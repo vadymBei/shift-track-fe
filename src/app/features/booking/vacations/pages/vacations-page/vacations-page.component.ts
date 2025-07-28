@@ -2,7 +2,7 @@ import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule} from "@angular/forms";
 import {DepartmentService} from "../../../../organization/structure/services/department.service";
 import {UnitService} from "../../../../organization/structure/services/unit.service";
-import {catchError, of, Subject, takeUntil} from "rxjs";
+import {catchError, delay, finalize, of, Subject, takeUntil} from "rxjs";
 import {Unit} from "../../../../organization/structure/models/unit.model";
 import {Department} from "../../../../organization/structure/models/department.model";
 import {debounceTime} from "rxjs/operators";
@@ -10,13 +10,17 @@ import {AllVacationsRequest} from "../../models/all-vacations-request.model";
 import {Vacation} from "../../models/vacation.model";
 import {VacationType} from "../../enums/vacation-type.enum";
 import {VacationStatus} from "../../enums/vacation-status.enum";
-import {EmployeeGender} from "../../../../organization/employees/enums/employee-gender.enum";
 import {CommonModule} from "@angular/common";
 import {BsDatepickerModule} from "ngx-bootstrap/datepicker";
 import {TooltipModule} from "ngx-bootstrap/tooltip";
 import {BsModalService} from "ngx-bootstrap/modal";
 import {EditVacationModalComponent} from "../../components/edit-vacation-modal/edit-vacation-modal.component";
 import {CreateVacationModalComponent} from "../../components/create-vacation-modal/create-vacation-modal.component";
+import {VacationService} from "../../services/vacation.service";
+import {
+  DeleteConfirmationModalComponent
+} from "../../../../../shared/components/delete-confirmation-modal/delete-confirmation-modal.component";
+import moment from "moment";
 
 @Component({
   selector: 'app-vacations-page',
@@ -25,13 +29,15 @@ import {CreateVacationModalComponent} from "../../components/create-vacation-mod
     CommonModule,
     ReactiveFormsModule,
     BsDatepickerModule,
-    TooltipModule
+    TooltipModule,
+    BsDatepickerModule
   ],
   templateUrl: './vacations-page.component.html',
   styleUrl: './vacations-page.component.scss'
 })
 export class VacationsPageComponent implements OnInit, OnDestroy {
   private readonly departmentService = inject(DepartmentService);
+  private readonly vacationService = inject(VacationService);
   private readonly unitService = inject(UnitService);
   private readonly fb = inject(FormBuilder);
   private readonly modalService = inject(BsModalService);
@@ -43,156 +49,24 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
     searchPattern: [''],
     unitId: [null],
     departmentId: [null],
-    dateFrom: [null],
-    dateTo: [null],
-    vacationStatus: [null]
+    dateFrom: [this.getFirstDayOfCurrentMonth()],
+    dateTo: [this.getLastDayOfCurrentMonth()],
+    vacationStatus: [VacationStatus.None]
   });
 
-  request: AllVacationsRequest = {
+  request = signal<AllVacationsRequest>({
     searchPattern: '',
     unitId: undefined,
     departmentId: undefined,
-    vacationStatus: VacationStatus.none
-  };
+    vacationStatus: VacationStatus.None,
+    startDate: new Date(),
+    endDate: new Date()
+  });
 
   units = signal<Unit[]>([]);
   departments = signal<Department[]>([]);
   isLoading = signal(false);
-  vacations = signal<Vacation[]>([
-    {
-      id: 1,
-      dateFrom: new Date('2024-01-01'),
-      dateTo: new Date('2024-01-14'),
-      daysCount: 14,
-      type: VacationType.yearMainVacation,
-      status: VacationStatus.approved,
-      dateOfCreation: new Date('2024-01-14'),
-      employee: {
-        id: 1,
-        name: 'John',
-        surname: 'Doe',
-        patronymic: 'Smith',
-        fullName: 'John Smith Doe',
-        email: 'john.doe@company.com',
-        phoneNumber: '+380501234567',
-        gender: EmployeeGender.male
-      }
-    },
-    {
-      id: 2,
-      dateFrom: new Date('2024-02-01'),
-      dateTo: new Date('2024-02-07'),
-      daysCount: 7,
-      type: VacationType.bonusVacation,
-      status: VacationStatus.approved,
-      dateOfCreation: new Date('2024-01-14'),
-      employee: {
-        id: 2,
-        name: 'Jane',
-        surname: 'Wilson',
-        patronymic: 'Marie',
-        fullName: 'Jane Marie Wilson',
-        email: 'jane.wilson@company.com',
-        phoneNumber: '+380507654321',
-        gender: EmployeeGender.female
-      }
-    },
-    {
-      id: 3,
-      dateFrom: new Date('2024-03-15'),
-      dateTo: new Date('2024-03-28'),
-      daysCount: 14,
-      type: VacationType.yearMainVacation,
-      status: VacationStatus.rejected,
-      dateOfCreation: new Date('2024-01-14'),
-      employee: {
-        id: 3,
-        name: 'Mike',
-        surname: 'Brown',
-        patronymic: 'James',
-        fullName: 'Mike James Brown',
-        email: 'mike.brown@company.com',
-        phoneNumber: '+380509876543',
-        gender: EmployeeGender.male
-      }
-    },
-    {
-      id: 4,
-      dateFrom: new Date('2024-04-01'),
-      dateTo: new Date('2024-04-07'),
-      daysCount: 7,
-      type: VacationType.vacationWithoutSalaryByFamily,
-      status: VacationStatus.approved,
-      dateOfCreation: new Date('2024-01-14'),
-      employee: {
-        id: 4,
-        name: 'Sarah',
-        surname: 'Davis',
-        patronymic: 'Elizabeth',
-        fullName: 'Sarah Elizabeth Davis',
-        email: 'sarah.davis@company.com',
-        phoneNumber: '+380503456789',
-        gender: EmployeeGender.female
-      }
-    },
-    {
-      id: 5,
-      dateFrom: new Date('2024-05-15'),
-      dateTo: new Date('2024-05-21'),
-      daysCount: 7,
-      type: VacationType.yearMainVacation,
-      status: VacationStatus.none,
-      dateOfCreation: new Date('2024-01-14'),
-      employee: {
-        id: 5,
-        name: 'Robert',
-        surname: 'Miller',
-        patronymic: 'William',
-        fullName: 'Robert William Miller',
-        email: 'robert.miller@company.com',
-        phoneNumber: '+380505555555',
-        gender: EmployeeGender.male
-      }
-    },
-    {
-      id: 6,
-      dateFrom: new Date('2024-01-01'),
-      dateTo: new Date('2024-01-14'),
-      daysCount: 14,
-      type: VacationType.yearMainVacation,
-      status: VacationStatus.approved,
-      dateOfCreation: new Date('2024-01-14'),
-      employee: {
-        id: 1,
-        name: 'John',
-        surname: 'Doe',
-        patronymic: 'Smith',
-        fullName: 'John Smith Doe',
-        email: 'john.doe@company.com',
-        phoneNumber: '+380501234567',
-        gender: EmployeeGender.male
-      }
-    },
-    {
-      id: 7,
-      dateFrom: new Date('2024-01-01'),
-      dateTo: new Date('2024-01-14'),
-      daysCount: 14,
-      type: VacationType.yearMainVacation,
-      status: VacationStatus.approved,
-      dateOfCreation: new Date('2024-01-14'),
-      employee: {
-        id: 1,
-        name: 'John',
-        surname: 'Doe',
-        patronymic: 'Smith',
-        fullName: 'John Smith Doe',
-        email: 'john.doe@company.com',
-        phoneNumber: '+380501234567',
-        gender: EmployeeGender.male
-      }
-    }
-  ]);
+  vacations = signal<Vacation[]>([]);
 
   ngOnInit(): void {
     this.searchSubject$
@@ -201,10 +75,18 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe(searchPattern => {
-        this.request.searchPattern = searchPattern;
+        this.getVacations();
       });
 
     this.getUnits();
+  }
+
+  private getFirstDayOfCurrentMonth(): string {
+    return moment().startOf('month').format('YYYY-MM-DD');
+  }
+
+  private getLastDayOfCurrentMonth(): string {
+    return moment().endOf('month').format('YYYY-MM-DD');
   }
 
   getUnits(): void {
@@ -221,8 +103,7 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
   }
 
   onSearchChange(event: Event): void {
-    const inputElement = event.target as HTMLInputElement;
-    this.searchSubject$.next(inputElement.value);
+    this.getVacations();
   }
 
   onUnitChange(event: Event): void {
@@ -230,30 +111,24 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
     const unitId = selectElement.value;
 
     if (unitId === 'null') {
-      this.request.unitId = undefined;
-      this.request.departmentId = undefined;
       this.departments.set([]);
+
       this.form.get('departmentId')?.setValue(null);
     } else {
       const numericUnitId = Number(unitId);
-      this.request.unitId = numericUnitId;
+
       this.getDepartmentsByUnitId(numericUnitId);
     }
 
+    this.vacations.set([]);
   }
 
   onDepartmentChange(event: Event): void {
-    const selectElement = event.target as HTMLSelectElement;
-    const departmentId = selectElement.value;
-
-    this.request.departmentId = departmentId === 'null'
-      ? undefined
-      : Number(departmentId);
+    this.getVacations();
   }
 
   onVacationStatusChange(event: Event): void {
-    const selectElement = event.target as HTMLSelectElement;
-    const status = selectElement.value;
+    this.getVacations();
   }
 
   getDepartmentsByUnitId(unitId: number): void {
@@ -271,10 +146,18 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
 
   getVacationTypeString(type: VacationType): string {
     switch (type) {
-      case VacationType.yearMainVacation:
+      case VacationType.YearMainVacation:
         return 'Основна щорічна відпустка';
-      case VacationType.bonusVacation:
+      case VacationType.BonusVacation:
         return 'Бонусна відпустка';
+      case VacationType.VacationWithoutSalaryByFamily:
+        return 'Відпустка без збереження з/п за згодою сторін за сімейними обставинами';
+      case VacationType.VacationWithoutSalaryByPregnancy:
+        return 'Відпустка у зв\'язку з вагітністю та пологами';
+      case VacationType.VacationWithoutSalaryByChild3years:
+        return 'Відпустка для догляду за дитиною до досягнення нею 3-го віку';
+      case VacationType.VacationWithoutSalaryByChild6years:
+        return 'Відпустка для догляду за дитиною до досягнення нею 6-го віку';
       default:
         return 'Відпустка';
     }
@@ -282,28 +165,31 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
 
   getStatusClass(status: VacationStatus): string {
     switch (status) {
-      case VacationStatus.approved:
+      case VacationStatus.ApprovedByUnitDirector:
         return 'status-approved';
-      case VacationStatus.rejected:
+      case VacationStatus.Rejected:
         return 'status-rejected';
       default:
         return '';
     }
   }
 
-
   getVacationStatusString(status: VacationStatus): string {
     switch (status) {
-      case VacationStatus.approved:
-        return 'Погоджено';
-        case VacationStatus.rejected:
-          return 'Відхилено';
+      case VacationStatus.ApprovedByUnitDirector:
+        return 'Погоджено регіональним директором';
+      case VacationStatus.ApprovedByDepartmentDirector:
+        return 'Погоджено директором';
+      case VacationStatus.PendingApproval:
+        return 'Очікує затвердження';
+      case VacationStatus.Rejected:
+        return 'Відхилено';
       default:
         return '';
     }
   }
 
-  openEditDepartmentModal(vacation: Vacation): void {
+  openEditVacationModal(vacation: Vacation): void {
     const ref = this.modalService.show(
       EditVacationModalComponent,
       {
@@ -318,23 +204,75 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
     })
   }
 
-  getVacations(){
+  getVacations() {
+    if (this.form.value.unitId === undefined
+      || this.form.value.departmentId === undefined) {
+      this.vacations.set([]);
+      return;
+    }
 
+    this.request.update(req => ({
+      ...req,
+      unitId: this.form.value.unitId,
+      departmentId: this.form.value.departmentId,
+      searchPattern: this.form.value.searchPattern,
+      vacationStatus: this.form.value.vacationStatus,
+      startDate: this.form.value.dateFrom,
+      endDate: this.form.value.dateTo,
+    }))
+
+    this.isLoading.set(true);
+
+    this.vacationService.getVacations(this.request())
+      .pipe(
+        delay(500),
+        finalize(() => {
+          this.isLoading.set(false);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(val => {
+        this.vacations.set(val);
+      });
+  }
+
+  onDateChange(event: Event): void {
+    this.getVacations();
   }
 
   openCreateVacationModal() {
     const ref = this.modalService.show(
       CreateVacationModalComponent,
       {
-        class: 'modal modal-dialog-centered',
-        initialState: {
-        }
+        class: 'modal-dialog-centered',
+        initialState: {}
       }
     );
 
     ref.onHidden?.subscribe({
       next: () => this.getVacations()
     })
+  }
+
+  openDeleteConfirmation(vacation: Vacation) {
+    this.modalService.show(
+      DeleteConfirmationModalComponent,
+      {
+        class: 'modal-dialog-centered',
+        initialState: {
+          itemName: vacation.employee.fullName,
+          entityName: 'відпустку для працівника',
+          onConfirm: () => this.deleteVacation(vacation.id)
+        }
+      });
+  }
+
+  deleteVacation(vacationId: number) {
+    this.vacationService.deleteVacation(vacationId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(val => {
+        this.getVacations();
+      })
   }
 
   ngOnDestroy(): void {

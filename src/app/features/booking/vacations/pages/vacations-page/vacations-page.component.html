@@ -1,199 +1,228 @@
 <div class="card shadow mb-4">
   <div class="card-body">
-    <div class="row" [formGroup]="form">
-      <div class="col-3">
-        <div class="form-floating">
-          <select
-            class="form-control form-control-sm"
-            formControlName="unitId"
-            id="unit"
-            (change)="onUnitChange($event)">
-            <option value="null">Оберіть регіон</option>
-            @for (unit of units(); track unit.id) {
-              <option value="{{unit.id}}">{{ unit.name }}</option>
-            }
-          </select>
+    <form [formGroup]="form">
+      <div class="row mb-3">
+        <div class="col-3">
+          <div class="form-floating">
+            <select
+              class="form-control form-control-sm"
+              formControlName="unitId"
+              id="unit"
+              (change)="onUnitChange($event)">
+              <option value="null">Оберіть регіон</option>
+              @for (unit of units(); track unit.id) {
+                <option value="{{unit.id}}">{{ unit.name }}</option>
+              }
+            </select>
 
-          <label class="form-label" for="unit">
-            Регіон:
-          </label>
+            <label class="form-label" for="unit">
+              Регіон:
+            </label>
+          </div>
+        </div>
+
+        <div class="col-3">
+          <div class="form-floating">
+            <select
+              class="form-control form-control-sm"
+              id="department"
+              formControlName="departmentId"
+              (change)="onDepartmentChange($event)">
+              <option value="null">Оберіть департамент</option>
+              @for (department of departments(); track department.id) {
+                <option value="{{department.id}}">{{ department.name }}</option>
+              }
+            </select>
+
+            <label class="form-label" for="department">
+              Департамент:
+            </label>
+          </div>
+        </div>
+
+        <div class="col-3">
+          <div class="form-floating">
+            <select
+              class="form-control form-control-sm"
+              id="vacationStatus"
+              formControlName="vacationStatus"
+              (change)="onVacationStatusChange($event)">
+              <option value="None">Всі</option>
+              <option value="PendingApproval">Очікує затвердежння</option>
+              <option value="ApprovedByDepartmentDirector">Затверджено директором</option>
+              <option value="ApprovedByUnitDirector">Затверджено регіональним директором</option>
+              <option value="Rejected">Відхилено</option>
+            </select>
+
+            <label class="form-label" for="vacationStatus">
+              Статус:
+            </label>
+          </div>
+        </div>
+
+        <div class="col-3">
+          <div class="form-floating">
+            <input
+              class="form-control form-control-sm"
+              id="search"
+              type="text"
+              formControlName="searchPattern"
+              (input)="onSearchChange($event)">
+
+            <label class="form-label" for="search">
+              Пошук:
+            </label>
+          </div>
         </div>
       </div>
 
-      <div class="col-3">
-        <div class="form-floating">
-          <select
-            class="form-control form-control-sm"
-            id="department"
-            formControlName="departmentId"
-            (change)="onDepartmentChange($event)">
-            <option value="null">Оберіть департамент</option>
-            @for (department of departments(); track department.id) {
-              <option value="{{department.id}}">{{ department.name }}</option>
-            }
-          </select>
+      <div class="row">
+        <div class="col-3">
+          <div class="form-floating">
+            <input
+              id="dateFrom"
+              type="date"
+              class="form-control"
+              (change)="onDateChange($event)"
+              formControlName="dateFrom">
 
-          <label class="form-label" for="department">
-            Департамент:
-          </label>
+            <label
+              class="form-label"
+              for="dateFrom">
+              Дата початку:
+            </label>
+          </div>
+        </div>
+
+        <div class="col-3">
+          <div class="form-floating">
+            <input
+              class="form-control"
+              type="date"
+              id="dateTo"
+              (change)="onDateChange($event)"
+              formControlName="dateTo">
+
+            <label
+              class="form-label"
+              for="dateTo">
+              Дата закінчення:
+            </label>
+          </div>
         </div>
       </div>
-
-      <div class="col-3">
-        <div class="form-floating">
-          <select
-            class="form-control form-control-sm"
-            id="vacationStatus"
-            formControlName="vacationStatus"
-            (change)="onVacationStatusChange($event)">
-            <option value="null">Оберіть статус</option>
-            <option value="approved">Погоджено</option>
-            <option value="rejected">Відхилено</option>
-          </select>
-
-          <label class="form-label" for="vacationStatus">
-            Статус:
-          </label>
-        </div>
-      </div>
-
-      <div class="col-3">
-        <div class="form-floating">
-          <input
-            class="form-control form-control-sm"
-            id="search"
-            type="text"
-            placeholder="Пошук"
-            formControlName="searchPattern"
-            (input)="onSearchChange($event)">
-
-          <label class="form-label" for="search">
-            Пошук:
-          </label>
-        </div>
-      </div>
-
-    </div>
+    </form>
   </div>
 </div>
 
-<div class="card shadow d-flex flex-column phones-card">
-  <div class="card-header">
-    <div class="row">
-      <div class="col-2">
-        <strong>
-          П.І.Б.
-        </strong>
+@if (vacations().length > 0) {
+  <div class="card shadow d-flex flex-column vacations-card">
+    <div class="card-header">
+      <div class="row">
+        <div class="col-2">
+          <strong>
+            П.І.Б.
+          </strong>
+        </div>
+
+        <div class="col">
+          <strong>
+            Початок
+          </strong>
+        </div>
+
+        <div class="col">
+          <strong>
+            Завершення
+          </strong>
+        </div>
+
+        <div class="col-auto">
+          <strong>
+            Днів
+          </strong>
+        </div>
+
+        <div class="col">
+          <strong>
+            Тип
+          </strong>
+        </div>
+
+        <div class="col">
+          <strong>
+            Створено
+          </strong>
+        </div>
+
+        <div class="col">
+          <strong>
+            Статус
+          </strong>
+        </div>
+
+        <div class="col"></div>
       </div>
-
-      <div class="col">
-        <strong>
-          Початок
-        </strong>
-      </div>
-
-      <div class="col">
-        <strong>
-          Завершення
-        </strong>
-      </div>
-
-      <div class="col-1">
-        <strong>
-          Днів
-        </strong>
-      </div>
-
-      <div class="col">
-        <strong>
-          Тип
-        </strong>
-      </div>
-
-      <div class="col">
-        <strong>
-          Створено
-        </strong>
-      </div>
-
-      <div class="col d-flex justify-content-center">
-        <strong>
-          Статус
-        </strong>
-      </div>
-
-      <div class="col-1"></div>
-
-      <div class="col-1"></div>
     </div>
+
+    <div class="card-body pt-0 position-relative overflow-auto">
+      @if (isLoading()) {
+        <div class="spinner-overlay">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      }
+
+      @for (vacation of vacations(); track vacation.id; let index = $index) {
+        <div
+          class="row pt-3 pb-3"
+          [ngClass]="{ 'bg-body-tertiary': index % 2 !== 0 }">
+          <div class="col-2 text-truncate">
+            <strong>{{ vacation.employee.fullName }}</strong>
+          </div>
+
+          <div class="col text-truncate">
+            {{ vacation.startDate  | date: 'dd.MM.yyyy' }}
+          </div>
+
+          <div class="col text-truncate">
+            {{ vacation.endDate  | date: 'dd.MM.yyyy' }}
+          </div>
+
+          <div class="col-auto text-truncate">
+            {{ vacation.daysCount }}
+          </div>
+
+          <div class="col text-truncate">
+            {{ getVacationTypeString(vacation.type) }}
+          </div>
+
+          <div class="col text-truncate">
+            {{ vacation.createdAt  | date: 'dd.MM.yyyy' }}
+          </div>
+
+          <div class="col d-flex justify-content-center align-items-center"
+               [ngClass]="getStatusClass(vacation.status)">
+            {{ getVacationStatusString(vacation.status) }}
+          </div>
+
+          <div class="col-1 d-flex justify-content-between">
+            <i class="bi bi-pencil"
+               (click)="openEditVacationModal(vacation)"
+            ></i>
+
+            <i class="bi bi-trash"
+               (click)="openDeleteConfirmation(vacation)"
+            ></i>
+          </div>
+        </div>
+      }
+    </div>
+
+    <button class="floating-action-button">
+      <i class="bi bi-plus"
+         (click)="openCreateVacationModal()"></i>
+    </button>
   </div>
-
-  <div class="card-body pt-0 position-relative overflow-auto">
-    @if (isLoading()) {
-      <div class="spinner-overlay">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    }
-
-    @for (vacation of vacations(); track vacation.id; let index = $index) {
-      <div
-        class="row pt-3 pb-3"
-        [ngClass]="{ 'bg-body-tertiary': index % 2 !== 0 }">
-        <div class="col-2 text-truncate">
-          <strong>{{ vacation.employee.fullName }}</strong>
-        </div>
-
-        <div class="col text-truncate">
-          {{ vacation.dateFrom  | date: 'dd.MM.yyyy' }}
-        </div>
-
-        <div class="col text-truncate">
-          {{ vacation.dateTo  | date: 'dd.MM.yyyy' }}
-        </div>
-
-        <div class="col-1 text-truncate">
-          {{ vacation.daysCount }}
-        </div>
-
-        <div class="col text-truncate">
-          {{ getVacationTypeString(vacation.type) }}
-        </div>
-
-        <div class="col text-truncate">
-          {{ vacation.dateOfCreation  | date: 'dd.MM.yyyy' }}
-        </div>
-
-        <div class="col-1 d-flex justify-content-center align-items-center"
-             [ngClass]="getStatusClass(vacation.status)">
-          {{ getVacationStatusString(vacation.status) }}
-        </div>
-
-        <div class="col-1 d-flex justify-content-between">
-          <i [isDisabled]="vacation.status === 2"
-             class="bi bi-check-circle text-success"
-             tooltip="Погодити"
-          ></i>
-
-          <i [isDisabled]="vacation.status === 1"
-             class="bi bi-x-circle text-danger"
-             tooltip="Відхилити"
-          ></i>
-        </div>
-
-        <div class="col-1 d-flex justify-content-center">
-          <i class="bi bi-pencil"
-             (click)="openEditDepartmentModal(vacation)"
-          ></i>
-        </div>
-      </div>
-    }
-  </div>
-
-  <button class="floating-action-button">
-    <i class="bi bi-plus"
-       (click)="openCreateVacationModal()"></i>
-  </button>
-
-</div>
+}
