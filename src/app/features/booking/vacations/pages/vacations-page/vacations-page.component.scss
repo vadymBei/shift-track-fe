@@ -6,14 +6,20 @@
   }
 }
 
-.status-approved {
-  color: #198754;
-  background-color: #d1e7dd;
-  border-radius: 20px;
-}
+.status {
+  i {
+    cursor: default;
+  }
 
-.status-rejected {
-  color: #dc3545;
-  background-color: #f8d7da;
-  border-radius: 20px;
+  .status-approved-by-unit-director {
+    color: #198754;
+  }
+
+  .status-rejected {
+    color: #dc3545;
+  }
+
+  .status-pending-approval {
+    color: #FDBB43;
+  }
 }

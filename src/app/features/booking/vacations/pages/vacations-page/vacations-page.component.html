@@ -202,9 +202,18 @@
             {{ vacation.createdAt  | date: 'dd.MM.yyyy' }}
           </div>
 
-          <div class="col d-flex justify-content-center align-items-center"
-               [ngClass]="getStatusClass(vacation.status)">
-            {{ getVacationStatusString(vacation.status) }}
+          <div class="col d-flex status">
+            @if (vacation.status === VacationStatus.Rejected) {
+              <i [ngClass]="getStatusClass(vacation.status)"
+                 class="bi bi-x-circle">
+              </i>
+            }
+
+            @if (vacation.status !== VacationStatus.None && vacation.status !== VacationStatus.Rejected) {
+              <i [ngClass]="getStatusClass(vacation.status)"
+                 class="bi bi-check2-circle">
+              </i>
+            }
           </div>
 
           <div class="col-1 d-flex justify-content-between">

@@ -105,6 +105,32 @@ export class EditVacationModalComponent implements OnInit, OnDestroy {
       });
   }
 
+  approveVacation() {
+    this.vacationService.approveVacation(this.vacation!.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.bsModalRef.hide();
+        },
+        error: () => {
+          this.bsModalRef.hide();
+        }
+      });
+  }
+
+  rejectVacation(){
+    this.vacationService.rejectVacation(this.vacation!.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.bsModalRef.hide();
+        },
+        error: () => {
+          this.bsModalRef.hide();
+        }
+      });
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();

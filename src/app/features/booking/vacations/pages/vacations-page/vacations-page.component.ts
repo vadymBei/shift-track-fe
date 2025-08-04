@@ -45,6 +45,8 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private readonly searchSubject$ = new Subject<string>();
 
+  protected readonly VacationStatus = VacationStatus;
+
   form: FormGroup = this.fb.group({
     searchPattern: [''],
     unitId: [null],
@@ -166,24 +168,11 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
   getStatusClass(status: VacationStatus): string {
     switch (status) {
       case VacationStatus.ApprovedByUnitDirector:
-        return 'status-approved';
+        return 'status-approved-by-unit-director';
       case VacationStatus.Rejected:
         return 'status-rejected';
-      default:
-        return '';
-    }
-  }
-
-  getVacationStatusString(status: VacationStatus): string {
-    switch (status) {
-      case VacationStatus.ApprovedByUnitDirector:
-        return 'Погоджено регіональним директором';
-      case VacationStatus.ApprovedByDepartmentDirector:
-        return 'Погоджено директором';
       case VacationStatus.PendingApproval:
-        return 'Очікує затвердження';
-      case VacationStatus.Rejected:
-        return 'Відхилено';
+        return 'status-pending-approval';
       default:
         return '';
     }
@@ -193,7 +182,7 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
     const ref = this.modalService.show(
       EditVacationModalComponent,
       {
-        class: 'modal modal-dialog-centered',
+        class: 'modal-dialog-centered',
         initialState: {
           vacation: vacation,
         }

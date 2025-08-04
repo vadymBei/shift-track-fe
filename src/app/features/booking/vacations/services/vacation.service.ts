@@ -64,4 +64,12 @@ export class VacationService {
   updateVacation(request: EditVacationRequest) {
     return this.httpClient.put<Vacation>(`${this.path}`, request);
   }
+
+  approveVacation(vacationId: number) {
+    return this.httpClient.put<Vacation>(`${this.path}/approve/${vacationId}`, {});
+  }
+
+  rejectVacation(vacationId: number) {
+    return this.httpClient.put<Vacation>(`${this.path}/reject/${vacationId}`, {});
+  }
 }

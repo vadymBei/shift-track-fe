@@ -21,6 +21,11 @@ $theme-colors: (
   --dark-hover-color: #212121;
   --pink-color: #e6268d;
   --lavender-color: #f6f0fe;
+  --grean-color: #157347;
+  --light-grean-color: #E8F5E9;
+  --red-color: #BB2D3B;
+  --light-red-color: #FBE9E7;
+
 }
 
 body {
@@ -53,6 +58,32 @@ i {
 
 .btn-lavender:hover {
   background-color: var(--lavender-color) !important;
+}
+
+.btn-success {
+  color: var(--grean-color) !important;
+  border: none;
+}
+
+.btn-success:active {
+  background-color: var(--light-grean-color) !important;
+}
+
+.btn-success:hover {
+  background-color: var(--light-grean-color);
+}
+
+.btn-danger {
+  color: var(--red-color) !important;
+  border: none;
+}
+
+.btn-danger:active {
+  background-color: var(--light-red-color) !important;
+}
+
+.btn-danger:hover {
+  background-color: var(--light-red-color);
 }
 
 .btn-close {
