@@ -4,11 +4,12 @@ import {Employee} from "../../../organization/employees/models/employee.model";
 
 export interface Vacation {
   id: number;
-  dateFrom: Date;
-  dateTo: Date;
+  startDate: Date;
+  endDate: Date;
   daysCount: number;
   type: VacationType
   status: VacationStatus
   employee: Employee;
-  dateOfCreation: Date;
+  createdAt: Date;
+  comment: string;
 }

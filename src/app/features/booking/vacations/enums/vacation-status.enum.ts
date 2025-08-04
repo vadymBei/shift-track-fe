@@ -1,5 +1,7 @@
 ﻿export enum VacationStatus {
-  none,
-  approved,
-  rejected
+  None = 'None',
+  PendingApproval = 'PendingApproval',
+  ApprovedByDepartmentDirector = 'ApprovedByDepartmentDirector',
+  ApprovedByUnitDirector = 'ApprovedByUnitDirector',
+  Rejected = 'Rejected'
 }

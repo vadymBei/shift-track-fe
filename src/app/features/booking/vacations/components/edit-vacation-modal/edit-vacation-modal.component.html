@@ -11,10 +11,123 @@
       </div>
     </div>
 
-    <div class="row">
-      <div class="col">
+    <form
+      id="editVacationForm"
+      [formGroup]="form"
+      (ngSubmit)="save()">
+      <div class="row">
+        <div class="col">
+          <div class="form-floating mb-3">
+            <select
+              formControlName="type"
+              id="type"
+              class="form-select">
+              <option [ngValue]="null">Не обрано</option>
+              <option [ngValue]="'YearMainVacation'">Основна щорічна відпустка</option>
+              <option [ngValue]="'VacationWithoutSalaryByFamily'">Відпустка без збереження з/п за згодою сторін за
+                сімейними обставинами
+              </option>
+              <option [ngValue]="'VacationWithoutSalaryByPregnancy'">Відпустка у зв'язку з вагітністю та пологами
+              </option>
+              <option [ngValue]="'VacationWithoutSalaryByChild3Years'">Відпустка для догляду за дитиною до досягнення
+                нею 3-го віку
+              </option>
+              <option [ngValue]="'VacationWithoutSalaryByChild6Years'">Відпустка для догляду за дитиною до досягнення
+                нею 6-го віку
+              </option>
+              <option [ngValue]="'BonusVacation'">Бонусна відпустка</option>
+            </select>
 
+            <label class="form-label" for="type">
+              Тип відпустки:
+            </label>
+          </div>
+        </div>
       </div>
-    </div>
+      <div class="row">
+        <div class="col">
+          <div class="form-floating mb-3">
+            <div class="form-floating mb-3">
+              <input
+                id="startDate"
+                type="date"
+                class="form-control"
+                formControlName="startDate">
+
+              <label
+                class="form-label"
+                for="startDate">
+                Дата початку:
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="form-floating mb-3">
+            <input
+              class="form-control"
+              type="date"
+              id="endDate"
+              formControlName="endDate">
+
+            <label
+              class="form-label"
+              for="endDate">
+              Дата закінчення:
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <div class="form-floating mb-3">
+            <input
+              class="form-control"
+              type="text"
+              id="comment"
+              formControlName="comment">
+
+            <label
+              class="form-label"
+              for="comment">
+              Коментар:
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-4 d-flex justify-content-center">
+          <button
+            type="button"
+            class="btn btn-success"
+            (click)="approveVacation()">
+            Погодити
+          </button>
+        </div>
+
+        <div class="col-4 d-flex justify-content-center">
+          <button
+            type="button"
+            class="btn btn-danger"
+            (click)="rejectVacation()">
+            Відхилити
+          </button>
+        </div>
+
+        <div class="col-4 d-flex justify-content-center">
+          <button
+            class="btn btn-lavender"
+            type="submit"
+            form="editVacationForm"
+            [class.disabled]="!form.valid"
+            [disabled]="!form.valid"
+          >Зберегти
+          </button>
+        </div>
+      </div>
+    </form>
   </div>
 </div>

@@ -1,12 +1,10 @@
 ﻿export enum VacationType {
-  none,
-  yearMainVacation,
-  vacationWithoutSalaryByFamily,
-  vacationWithoutSalaryByMilitary,
-  vacationWithoutSalaryByCarantine,
-  vacationWithoutSalaryByMilitaryOutCountry,
-  vacationWithoutSalaryByPregnancy,
-  vacationWithoutSalaryByChild3years,
-  vacationWithoutSalaryByChild6years,
-  bonusVacation
+  None = 'None',
+  YearMainVacation = 'YearMainVacation',
+  VacationWithoutSalaryByFamily = 'VacationWithoutSalaryByFamily',
+  VacationWithoutSalaryByPregnancy = 'VacationWithoutSalaryByPregnancy',
+  VacationWithoutSalaryByChild3years = 'VacationWithoutSalaryByChild3years',
+  VacationWithoutSalaryByChild6years = 'VacationWithoutSalaryByChild6years',
+  BonusVacation = 'BonusVacation'
+
 }

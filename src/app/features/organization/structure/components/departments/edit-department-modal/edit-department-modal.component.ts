@@ -1,4 +1,4 @@
-import {Component, inject, OnInit, signal} from '@angular/core';
+import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
 import {DepartmentService} from '../../../services/department.service';
 import {BsModalRef} from 'ngx-bootstrap/modal';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -17,7 +17,7 @@ import {Subject, takeUntil} from "rxjs";
   templateUrl: './edit-department-modal.component.html',
   styleUrl: './edit-department-modal.component.scss'
 })
-export class EditDepartmentModalComponent implements OnInit {
+export class EditDepartmentModalComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   private readonly departmentService = inject(DepartmentService);
@@ -81,5 +81,10 @@ export class EditDepartmentModalComponent implements OnInit {
           console.error('updating department error', error);
         }
       })
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
