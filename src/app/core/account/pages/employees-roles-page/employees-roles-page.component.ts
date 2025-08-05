@@ -22,7 +22,7 @@ import {EmployeeRolesService} from '../../services/employee-roles.service';
 import {
   DeleteConfirmationModalComponent
 } from "../../../../shared/components/delete-confirmation-modal/delete-confirmation-modal.component";
-import {delay, finalize, Subject, Subscription, takeUntil} from "rxjs";
+import {delay, finalize, Subject, takeUntil} from "rxjs";
 import {EmployeeRoleUnit} from "../../models/employee-role-unit.model";
 import {EmployeeRoleUnitsService} from "../../services/employee-role-units.service";
 import {EmployeeRoleUnitDepartmentsService} from "../../services/employee-role-unit-departments.service";
