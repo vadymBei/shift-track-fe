@@ -55,7 +55,7 @@ export class TimesheetShiftsPageComponent implements OnInit, OnDestroy {
     const ref = this.modalService.show(
       CreateShiftModalComponent,
       {
-        class: 'modal modal-dialog-centered',
+        class: 'modal-dialog-centered',
       });
 
     ref.onHidden?.subscribe({
@@ -67,7 +67,7 @@ export class TimesheetShiftsPageComponent implements OnInit, OnDestroy {
     const ref = this.modalService.show(
       EditShiftModalComponent,
       {
-        class: 'modal modal-dialog-centered',
+        class: 'modal-dialog-centered',
         initialState: {
           shift: shift
         }
@@ -82,7 +82,7 @@ export class TimesheetShiftsPageComponent implements OnInit, OnDestroy {
     this.modalService.show(
       DeleteConfirmationModalComponent,
       {
-        class: 'modal modal-dialog-centered',
+        class: 'modal-dialog-centered',
         initialState: {
           itemName: shift.code,
           entityName: 'зміну',

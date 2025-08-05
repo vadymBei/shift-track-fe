@@ -166,7 +166,7 @@ export class EmployeesPageComponent implements OnInit, OnDestroy {
 
   openEditEmployeeModal(employeeId: number) {
     const initialState: ModalOptions = {
-      class: 'modal modal-dialog-centered',
+      class: 'modal-dialog-centered',
       initialState: {
         employeeId: employeeId,
       }

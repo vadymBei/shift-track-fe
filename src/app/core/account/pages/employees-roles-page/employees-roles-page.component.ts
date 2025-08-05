@@ -160,7 +160,7 @@ export class EmployeesRolesPageComponent implements OnInit, OnDestroy {
 
   openCreateEmployeeRoleModal() {
     const initialState: ModalOptions = {
-      class: 'modal modal-dialog-centered',
+      class: 'modal-dialog-centered',
       initialState: {
         employeeId: this.employeeId,
       }
@@ -188,7 +188,7 @@ export class EmployeesRolesPageComponent implements OnInit, OnDestroy {
     this.modalService.show(
       DeleteConfirmationModalComponent,
       {
-        class: 'modal modal-dialog-centered',
+        class: 'modal-dialog-centered',
         initialState: {
           itemName: employeeRole.role.name,
           entityName: `роль`,
@@ -234,7 +234,7 @@ export class EmployeesRolesPageComponent implements OnInit, OnDestroy {
 
   openCreateEmployeeRoleUnitModal() {
     const initialState: ModalOptions = {
-      class: 'modal modal-dialog-centered',
+      class: 'modal-dialog-centered',
       initialState: {
         employeeRoleId: this.employeeRoleId,
       }
@@ -254,7 +254,7 @@ export class EmployeesRolesPageComponent implements OnInit, OnDestroy {
     this.modalService.show(
       DeleteConfirmationModalComponent,
       {
-        class: 'modal modal-dialog-centered',
+        class: 'modal-dialog-centered',
         initialState: {
           itemName: employeeRoleUnit.unit.name,
           entityName: `регіон`,
@@ -293,7 +293,7 @@ export class EmployeesRolesPageComponent implements OnInit, OnDestroy {
 
   openCreateEmployeeRoleUnitDepartmentModal() {
     const initialState: ModalOptions = {
-      class: 'modal modal-dialog-centered',
+      class: 'modal-dialog-centered',
       initialState: {
         employeeRoleUnitId: this.employeeRoleUnitId,
       }
@@ -313,7 +313,7 @@ export class EmployeesRolesPageComponent implements OnInit, OnDestroy {
     this.modalService.show(
       DeleteConfirmationModalComponent,
       {
-        class: 'modal modal-dialog-centered',
+        class: 'modal-dialog-centered',
         initialState: {
           itemName: employeeRoleUnitDepartment.department.name,
           entityName: `департамент`,

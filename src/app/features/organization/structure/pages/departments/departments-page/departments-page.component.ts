@@ -57,7 +57,7 @@ export class DepartmentsPageComponent implements OnInit, OnDestroy {
     const ref = this.modalService.show(
       CreateDepartmentModalComponent,
       {
-        class: 'modal modal-dialog-centered',
+        class: 'modal-dialog-centered',
         initialState: {
         }
       }
@@ -72,7 +72,7 @@ export class DepartmentsPageComponent implements OnInit, OnDestroy {
     const ref = this.modalService.show(
       EditDepartmentModalComponent,
       {
-        class: 'modal modal-dialog-centered',
+        class: 'modal-dialog-centered',
         initialState: {
           department: department,
         }
@@ -87,7 +87,7 @@ export class DepartmentsPageComponent implements OnInit, OnDestroy {
     this.modalService.show(
       DeleteConfirmationModalComponent,
       {
-        class: 'modal modal-dialog-centered',
+        class: 'modal-dialog-centered',
         initialState: {
           itemName: department.name,
           entityName: 'департамент',
