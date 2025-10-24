@@ -58,7 +58,7 @@ export class UnitsPageComponent implements OnInit, OnDestroy {
     const ref = this.modalService.show(
       EditUnitModalComponent,
       {
-        class: 'modal modal-dialog-centered',
+        class: 'modal-dialog-centered',
         initialState: {
           unit: unit
         }
@@ -74,7 +74,7 @@ export class UnitsPageComponent implements OnInit, OnDestroy {
     const ref = this.modalService.show(
       CreateUnitModalComponent,
       {
-        class: 'modal modal-dialog-centered',
+        class: 'modal-dialog-centered',
       });
 
     ref.onHidden?.subscribe({
@@ -86,7 +86,7 @@ export class UnitsPageComponent implements OnInit, OnDestroy {
     this.modalService.show(
       DeleteConfirmationModalComponent,
       {
-        class: 'modal modal-dialog-centered',
+        class: 'modal-dialog-centered',
         initialState: {
           itemName: unit.name,
           entityName: 'регіон',

@@ -62,7 +62,7 @@ export class PositionsPageComponent implements OnInit, OnDestroy {
     const ref = this.modalService.show(
       CreatePositionModalComponent,
       {
-        class: 'modal modal-dialog-centered'
+        class: 'modal-dialog-centered'
       });
 
     ref.onHidden?.subscribe({
@@ -74,7 +74,7 @@ export class PositionsPageComponent implements OnInit, OnDestroy {
     const ref = this.modalService.show(
       EditPositionModalComponent,
       {
-        class: 'modal modal-dialog-centered',
+        class: 'modal-dialog-centered',
         initialState: {
           position: position
         }
@@ -88,7 +88,7 @@ export class PositionsPageComponent implements OnInit, OnDestroy {
   openDeleteConfirmation(position: Position): void {
     this.modalService.show(DeleteConfirmationModalComponent,
       {
-        class: 'modal modal-dialog-centered',
+        class: 'modal-dialog-centered',
         initialState: {
           itemName: position.name,
           entityName: 'посаду',

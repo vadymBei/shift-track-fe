@@ -203,15 +203,35 @@
           </div>
 
           <div class="col d-flex status">
-            @if (vacation.status === VacationStatus.Rejected) {
-              <i [ngClass]="getStatusClass(vacation.status)"
-                 class="bi bi-x-circle">
+            @if (vacation.status === VacationStatus.PendingApproval) {
+              <i class="bi bi-check2 status-pending-approval"
+                 tooltip="Очікує затвердження"
+                 placement="top"
+                 containerClass="custom-tooltip">
               </i>
             }
 
-            @if (vacation.status !== VacationStatus.None && vacation.status !== VacationStatus.Rejected) {
-              <i [ngClass]="getStatusClass(vacation.status)"
-                 class="bi bi-check2-circle">
+            @if(vacation.status === VacationStatus.ApprovedByDepartmentDirector) {
+              <i class="bi bi-check2-circle status-approved"
+                 tooltip="Затверджено директором"
+                 placement="top"
+                 containerClass="custom-tooltip">
+              </i>
+            }
+
+            @if (vacation.status === VacationStatus.ApprovedByUnitDirector) {
+              <i class="bi bi-person-check status-approved"
+                 tooltip="Затверджено регіональним директором"
+                 placement="top"
+                 containerClass="custom-tooltip">
+              </i>
+            }
+
+            @if (vacation.status === VacationStatus.Rejected) {
+              <i class="bi bi-x-circle status-rejected"
+                 tooltip="Відхилено"
+                 placement="top"
+                 containerClass="custom-tooltip">
               </i>
             }
           </div>
@@ -228,10 +248,10 @@
         </div>
       }
     </div>
-
-    <button class="floating-action-button">
-      <i class="bi bi-plus"
-         (click)="openCreateVacationModal()"></i>
-    </button>
   </div>
 }
+
+<button class="floating-action-button">
+  <i class="bi bi-plus"
+     (click)="openCreateVacationModal()"></i>
+</button>

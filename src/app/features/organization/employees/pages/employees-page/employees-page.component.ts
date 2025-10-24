@@ -12,9 +12,6 @@ import {DepartmentService} from '../../../structure/services/department.service'
 import {Department} from '../../../structure/models/department.model';
 import {BsModalService, ModalOptions} from 'ngx-bootstrap/modal';
 import {EditEmployeeModalComponent} from '../../components/edit-employee-modal/edit-employee-modal.component';
-import {
-  DeleteConfirmationModalComponent
-} from '../../../../../shared/components/delete-confirmation-modal/delete-confirmation-modal.component';
 
 @Component({
   selector: 'app-employees-page',
@@ -166,7 +163,7 @@ export class EmployeesPageComponent implements OnInit, OnDestroy {
 
   openEditEmployeeModal(employeeId: number) {
     const initialState: ModalOptions = {
-      class: 'modal modal-dialog-centered',
+      class: 'modal-dialog-centered',
       initialState: {
         employeeId: employeeId,
       }

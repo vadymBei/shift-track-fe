@@ -7,6 +7,7 @@ import {errorInterceptor} from './shared/interceptors/error.interceptor';
 import {apiInterceptor} from './shared/interceptors/api.interceptor';
 import {ModalModule} from 'ngx-bootstrap/modal';
 import {provideAnimations} from "@angular/platform-browser/animations";
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -17,7 +18,8 @@ export const appConfig: ApplicationConfig = {
       tokenInterceptor,
       errorInterceptor])),
     importProvidersFrom([
-      ModalModule.forRoot()
+      ModalModule.forRoot(),
+      TooltipModule.forRoot()
     ]),
     {provide: ErrorHandler},
     provideAnimations()
