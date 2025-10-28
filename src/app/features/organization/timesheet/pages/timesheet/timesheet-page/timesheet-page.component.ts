@@ -5,10 +5,8 @@ import {BsModalService} from 'ngx-bootstrap/modal';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {BsDatepickerModule} from 'ngx-bootstrap/datepicker';
 import {Shift} from "../../../models/shift.model";
-import {EmployeeTimesheet} from "../../../models/employee-timesheet.model";
 import moment from "moment";
 import 'moment/locale/uk';
-import {EmployeeGender} from "../../../../employees/enums/employee-gender.enum";
 import {ShiftType} from "../../../enums/shift-type.enum";
 import {TooltipModule} from "ngx-bootstrap/tooltip";
 import {Unit} from "../../../../structure/models/unit.model";
@@ -21,6 +19,9 @@ import {
   EditEmployeeShiftModalComponent
 } from "../../../components/timesheet/edit-employee-shift-modal/edit-employee-shift-modal.component";
 import {DayInfo} from "../../../models/day-info.model";
+import {TimesheetRequest} from "../../../models/timesheet-request.model";
+import {Timesheet} from "../../../models/timesheet-model";
+import {TimesheetService} from "../../../services/timesheet-service";
 
 @Component({
   selector: 'app-timesheet-page',
@@ -41,22 +42,18 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly departmentService = inject(DepartmentService);
   private readonly unitService = inject(UnitService);
+  private readonly timesheetService = inject(TimesheetService);
 
   private readonly searchSubject$ = new Subject<string>();
 
-  employees = signal<Employee[]>([{
-    id: 2,
-    name: 'Jane',
-    surname: 'Wilson',
-    patronymic: 'Marie',
-    fullName: 'Jane Marie Wilson',
-    email: 'jane.wilson@company.com',
-    phoneNumber: '+380507654321',
-    gender: EmployeeGender.female
-  }]);
+
   selectedMonth = signal<Date>(new Date());
   searchTerm = signal<string>('');
-  timesheet = signal<EmployeeTimesheet[]>([]);
+  timesheet = signal<Timesheet>({
+    startDate: new Date(),
+    endDate: new Date(),
+    employeeTimesheets: []
+  });
   form: FormGroup = this.fb.group({
     unitId: [null],
     departmentId: [null],
@@ -167,6 +164,10 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
       type: ShiftType.workday
     }
   ]);
+  request = signal<TimesheetRequest>({
+    period: new Date(),
+    departmentId: 0
+  });
 
   constructor(private modalService: BsModalService) {
     moment.locale('uk');
@@ -187,7 +188,6 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
   }
 
   private initializeTimesheet() {
-    const employeeId = 2;
     const currentDate = moment(this.selectedMonth());
     const daysInMonth = currentDate.daysInMonth();
 
@@ -214,43 +214,25 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
         }
       }
     });
-
-    const totalWorkHours = 10;
-
-    const employeeTimesheet: EmployeeTimesheet = {
-      employeeId,
-      shifts,
-      totalWorkDays,
-      totalWorkHours
-    };
-
-    this.timesheet.set([employeeTimesheet]);
   }
 
   isWeekend(day: number): boolean {
     const date = moment(this.form.get('period')?.value).date(day);
     const dayOfWeek = date.day();
-    return dayOfWeek === 0 || dayOfWeek === 6; // 0 - неділя, 6 - субота
+    return dayOfWeek === 0 || dayOfWeek === 6;
   }
 
-  // Додайте метод для отримання стилів клітинки
   getCellStyle(day: number, employeeId: number): { [key: string]: string } {
     const baseStyle: { [key: string]: string } = {};
 
-    // Отримуємо зміну для цього дня
     const shift = this.getShiftForDay(employeeId, day);
 
     if (shift?.color) {
-      // Якщо є зміна з кольором, використовуємо її колір
       baseStyle['background-color'] = shift.color;
-    } else if (this.isWeekend(day)) {
-      // Якщо немає зміни але це вихідний, використовуємо сірий
-      baseStyle['background-color'] = '#EAEAEA';
     }
 
     return baseStyle;
   }
-
 
   getDays(): DayInfo[] {
     const date = moment(this.form.get('period')?.value);
@@ -260,12 +242,11 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
         const currentDate = moment(date).date(i + 1);
         return {
           dayOfMonth: i + 1,
-          dayOfWeek: currentDate.format('dd').toUpperCase() // 'dd' поверне скорочену назву дня тижня (Пн, Вт, etc.)
+          dayOfWeek: currentDate.format('dd').toUpperCase()
         };
       }
     );
   }
-
 
   private formatCurrentDate(): string {
     const now = new Date();
@@ -273,19 +254,24 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
   }
 
   getEmployeeTotalWorkDays(employeeId: number): number | undefined {
-    return this.timesheet().find(t => t.employeeId === employeeId)?.totalWorkDays;
+    return this.timesheet().employeeTimesheets.find(t => t.employee.id === employeeId)?.totalWorkDays;
   }
 
   getEmployeeTotalWorkHours(employeeId: number): number | undefined {
-    return this.timesheet().find(t => t.employeeId === employeeId)?.totalWorkHours;
+    return this.timesheet().employeeTimesheets.find(t => t.employee.id === employeeId)?.totalWorkHours;
   }
 
-  getShiftForDay(employeeId: number, day: number): Shift | null {
-    const timesheet = this.timesheet().find(t => t.employeeId === employeeId);
-    return timesheet?.shifts[day - 1] || null;
+  getShiftForDay(employeeId: number, day: number): Shift | undefined {
+    const employeeTimesheet = this.timesheet().employeeTimesheets.find(t => t.employee.id === employeeId);
+
+    const employeeShift = employeeTimesheet?.employeeShifts.find(
+      x => moment(x?.date).date() === day
+    );
+
+    return employeeShift?.shift;
   }
 
-  openEditEmployeeShiftModal(employee: Employee, day: number) {
+  openEditEmployeeShiftModal(employee: Employee, day: number, shift: Shift | undefined): void {
     const employeeShiftDate = moment(this.selectedMonth())
       .date(day)
       .toDate();
@@ -297,10 +283,13 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
         initialState: {
           employeeShiftDate: employeeShiftDate,
           employee: employee,
+          shift: shift
         }
       });
 
-    ref.onHidden?.subscribe({})
+    ref.onHidden?.subscribe({
+      next: () => this.getTimesheet()
+    });
   }
 
   exportToExcel() {
@@ -317,21 +306,20 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
     const unitId = selectElement.value;
 
     if (unitId === 'null') {
-      // this.request.unitId = undefined;
-      // this.request.departmentId = undefined;
       this.departments.set([]);
       this.form.get('departmentId')?.setValue(null);
     } else {
       const numericUnitId = Number(unitId);
-      // this.request.unitId = numericUnitId;
       this.getDepartmentsByUnitId(numericUnitId);
     }
-
   }
 
   onDepartmentChange(event: Event): void {
-    const selectElement = event.target as HTMLSelectElement;
-    const departmentId = selectElement.value;
+    this.getTimesheet();
+  }
+
+  onPeriodChange(event: Event): void {
+    this.getTimesheet();
   }
 
   getUnits(): void {
@@ -360,7 +348,33 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
       });
   }
 
-  getCellContent(shift: Shift | null): string {
+  getTimesheet() {
+    if (this.form.value.departmentId === undefined
+      || this.form.value.period === new Date()) {
+      this.timesheet.update(val => ({
+        ...val,
+        employeeTimesheets: []
+      }));
+    }
+
+    this.request.update(val => ({
+      ...val,
+      departmentId: this.form.value.departmentId,
+      period: this.form.value.period
+    }));
+
+    this.timesheetService.getTimesheet(this.request())
+      .subscribe(value => {
+        this.timesheet.update(val => ({
+          ...val,
+          endDate: value.endDate,
+          startDate: value.startDate,
+          employeeTimesheets: value.employeeTimesheets
+        }));
+      });
+  }
+
+  getCellContent(shift: Shift | undefined): string {
     const displayMode = this.form.get('displayMode')?.value;
 
     if (!shift) return '';
@@ -368,7 +382,6 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
     if (displayMode === 'shifts') {
       return shift.code;
     } else {
-      // Режим годин
       if (shift.startTime && shift.endTime) {
         return `${shift.startTime.slice(0, 5)}\n${shift.endTime.slice(0, 5)}`;
       } else {

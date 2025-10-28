@@ -64,7 +64,8 @@
             class="form-control form-control-sm"
             id="month"
             type="month"
-            formControlName="period">
+            formControlName="period"
+            (input)="onPeriodChange($event)">
 
           <label
             class="form-label"
@@ -77,114 +78,116 @@
   </div>
 </div>
 
-<div class="card shadow">
-  <div class="card-body">
-    <div class="row mb-1 d-flex justify-content-between">
-      <div class="col-4"
-           [formGroup]="form">
-        <div class="form-check form-check-inline">
-          <input class="form-check-input"
-                 type="radio"
-                 formControlName="displayMode"
-                 id="shiftCode"
-                 value="shifts">
+@if (timesheet().employeeTimesheets.length > 0) {
+  <div class="card shadow">
+    <div class="card-body">
+      <div class="row mb-1 d-flex justify-content-between">
+        <div class="col-4"
+             [formGroup]="form">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input"
+                   type="radio"
+                   formControlName="displayMode"
+                   id="shiftCode"
+                   value="shifts">
 
-          <label class="form-check-label"
-                 for="shiftCode">
-            Зміни
-          </label>
-        </div>
-
-        <div class="form-check form-check-inline">
-          <input class="form-check-input"
-                 type="radio"
-                 formControlName="displayMode"
-                 id="shiftHours"
-                 value="hours">
-
-          <label
-            class="form-check-label"
-            for="shiftHours">
-            Години
-          </label>
-
-        </div>
-      </div>
-
-      <div class="col-3 d-flex justify-content-end">
-        <button
-          class="btn btn-primary d-flex align-items-center justify-content-center gap-2"
-          (click)="exportToExcel()">
-          <img
-            src="assets/icons/excel.svg"
-            alt="Excel icon"
-            height="25">
-          Експорт в Excel
-        </button>
-      </div>
-    </div>
-
-    <div class="timesheet-wrapper border-top">
-      <!-- Names Column -->
-      <div class="names-column">
-        <div class="header-cell p-2 border-bottom fw-bold">
-          ПІБ
-        </div>
-
-        <div
-          class="name-cell p-2 border-bottom"
-          *ngFor="let emp of employees()">
-          {{ emp.fullName }}
-        </div>
-      </div>
-
-      <!-- Calendar Column with horizontal scroll -->
-      <div class="calendar-column">
-        <div class="calendar-content">
-          <!-- Calendar Header -->
-          <div class="calendar-header d-flex border-bottom">
-            <div
-              class="text-center p-2 day-cell"
-              *ngFor="let day of getDays()"
-              [ngStyle]="{'background-color': isWeekend(day.dayOfMonth) ? '#f5f5f5' : 'inherit'}">
-              <div class="day-content">
-                <div class="day-of-month">
-                  {{ day.dayOfMonth }}
-                </div>
-
-                <div class="day-of-week">
-                  {{ day.dayOfWeek }}
-                </div>
-              </div>
-            </div>
-
-            <div class="text-center p-2 bg-light summary-cell">
-              <strong>Роб. днів</strong>
-            </div>
-            <div class="text-center p-2 bg-light summary-cell">
-              <strong>Роб. год</strong>
-            </div>
+            <label class="form-check-label"
+                   for="shiftCode">
+              Зміни
+            </label>
           </div>
 
-          <!-- Calendar Data -->
-          <div class="calendar-data">
-            <div
-              class="d-flex border-bottom"
-              *ngFor="let emp of employees()">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input"
+                   type="radio"
+                   formControlName="displayMode"
+                   id="shiftHours"
+                   value="hours">
+
+            <label
+              class="form-check-label"
+              for="shiftHours">
+              Години
+            </label>
+
+          </div>
+        </div>
+
+        <div class="col-3 d-flex justify-content-end">
+          <button
+            class="btn btn-primary d-flex align-items-center justify-content-center gap-2"
+            (click)="exportToExcel()">
+            <img
+              src="assets/icons/excel.svg"
+              alt="Excel icon"
+              height="25">
+            Експорт в Excel
+          </button>
+        </div>
+      </div>
+
+      <div class="timesheet-wrapper border-top">
+        <!-- Names Column -->
+        <div class="names-column">
+          <div class="header-cell p-2 border-bottom fw-bold">
+            ПІБ
+          </div>
+
+          <div
+            class="name-cell p-2 border-bottom"
+            *ngFor="let employeeTimesheet of timesheet().employeeTimesheets">
+            {{ employeeTimesheet.employee.fullName }}
+          </div>
+        </div>
+
+        <!-- Calendar Column with horizontal scroll -->
+        <div class="calendar-column">
+          <div class="calendar-content">
+            <!-- Calendar Header -->
+            <div class="calendar-header d-flex border-bottom">
               <div
-                class="text-center p-2 employee-shift"
+                class="text-center p-2 day-cell"
                 *ngFor="let day of getDays()"
-                [ngStyle]="getCellStyle(day.dayOfMonth, emp.id)"
-                (click)="openEditEmployeeShiftModal(emp, day.dayOfMonth)">
-                {{ getCellContent(getShiftForDay(emp.id, day.dayOfMonth)) }}
+                [ngStyle]="{'background-color': isWeekend(day.dayOfMonth) ? '#f5f5f5' : 'inherit'}">
+                <div class="day-content">
+                  <div class="day-of-month">
+                    {{ day.dayOfMonth }}
+                  </div>
+
+                  <div class="day-of-week">
+                    {{ day.dayOfWeek }}
+                  </div>
+                </div>
               </div>
 
               <div class="text-center p-2 bg-light summary-cell">
-                {{ getEmployeeTotalWorkDays(emp.id) }}
+                <strong>Роб. днів</strong>
               </div>
-
               <div class="text-center p-2 bg-light summary-cell">
-                {{ getEmployeeTotalWorkHours(emp.id) }}
+                <strong>Роб. год</strong>
+              </div>
+            </div>
+
+            <!-- Calendar Data -->
+            <div class="calendar-data">
+              <div
+                class="d-flex border-bottom"
+                *ngFor="let employeeTimesheet of timesheet().employeeTimesheets">
+                <div
+                  class="text-center p-2 employee-shift"
+                  *ngFor="let day of getDays()"
+                  [ngStyle]="getCellStyle(day.dayOfMonth, employeeTimesheet.employee.id)"
+                  (click)="openEditEmployeeShiftModal(employeeTimesheet.employee, day.dayOfMonth, getShiftForDay(employeeTimesheet.employee.id, day.dayOfMonth))">
+                  {{ getCellContent(getShiftForDay(employeeTimesheet.employee.id, day.dayOfMonth)) }}
+                </div>
+
+                <div class="text-center p-2 bg-light summary-cell">
+                  {{ getEmployeeTotalWorkDays(employeeTimesheet.employee.id) }}
+                </div>
+
+                <div class="text-center p-2 bg-light summary-cell">
+                  {{ getEmployeeTotalWorkHours(employeeTimesheet.employee.id) }}
+                </div>
               </div>
             </div>
           </div>
@@ -192,4 +195,4 @@
       </div>
     </div>
   </div>
-</div>
+}
