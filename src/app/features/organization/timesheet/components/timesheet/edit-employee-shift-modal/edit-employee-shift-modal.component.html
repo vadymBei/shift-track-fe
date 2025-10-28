@@ -19,6 +19,7 @@
 
     <form
       [formGroup]="form"
+      id="editEmployeeShiftForm"
       (ngSubmit)="save()">
       <div class="row mb-3">
         <div class="col">
@@ -94,7 +95,7 @@
         <button
           class="btn btn-lavender"
           type="submit"
-          form=""
+          form="editEmployeeShiftForm"
           [class.disabled]="!form.valid"
           [disabled]="!form.valid"
         >Зберегти

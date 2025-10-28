@@ -45,7 +45,6 @@
             class="form-control form-control-sm"
             id="search"
             type="text"
-            placeholder="Пошук"
             formControlName="searchPattern"
             (input)="onSearchChange($event)">
 
@@ -99,7 +98,7 @@
     </div>
   </div>
 
-  <div class="card-body pt-0 position-relative overflow-auto" >
+  <div class="card-body pt-0 position-relative overflow-auto">
     @if (isLoading()) {
       <div class="spinner-overlay">
         <div class="spinner-border text-primary" role="status">

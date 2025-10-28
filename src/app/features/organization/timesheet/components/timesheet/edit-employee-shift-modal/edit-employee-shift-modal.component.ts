@@ -13,6 +13,9 @@ import {
   ValidationErrors,
   Validators
 } from "@angular/forms";
+import moment from "moment";
+import {CreateEmployeeShiftRequest} from "../../../models/create-employee-shift-request.model";
+import {EmployeeShiftService} from "../../../services/employee-shift-service";
 
 @Component({
   selector: 'app-edit-employee-shift-modal',
@@ -30,22 +33,23 @@ export class EditEmployeeShiftModalComponent implements OnInit, OnDestroy {
   bsModalRef = inject(BsModalRef);
 
   private readonly shiftsService = inject(ShiftsService);
+  private readonly employeeShiftService = inject(EmployeeShiftService);
   private fb = inject(FormBuilder);
 
   shifts = signal<Shift[]>([]);
+  request = signal<CreateEmployeeShiftRequest[]>([]);
   employee?: Employee;
   employeeShiftDate?: Date;
-  // shiftId?: number;
+  shift?: Shift;
   form: FormGroup = this.fb.group(
     {
       shiftId: [null, [Validators.required]],
-      dateFrom: [new Date(), [Validators.required]],
-      dateTo: [new Date(), [Validators.required]]
+      dateFrom: [this.formatDateForInput(new Date()), [Validators.required]],
+      dateTo: [this.formatDateForInput(new Date()), [Validators.required]]
     },
     {
       validators: this.dateRangeValidator
     });
-
 
   private dateRangeValidator(control: AbstractControl): ValidationErrors | null {
     const dateFrom = control.get('dateFrom')?.value;
@@ -65,10 +69,20 @@ export class EditEmployeeShiftModalComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.getShifts();
+
+    if (this.shift) {
+      this.form.patchValue({
+        shiftId: this.shift.id
+      });
+    }
+
+    this.form.patchValue({
+      dateFrom: this.formatDateForInput(this.employeeShiftDate!),
+      dateTo: this.formatDateForInput(this.employeeShiftDate!),
+    });
   }
 
   getShifts() {
-
     this.shiftsService.getShifts()
       .pipe(takeUntil(this.destroy$))
       .subscribe(shifts => {
@@ -76,8 +90,41 @@ export class EditEmployeeShiftModalComponent implements OnInit, OnDestroy {
       })
   }
 
-  save() {
+  private formatDateForInput(date: Date): string {
+    return moment(date).format('YYYY-MM-DD');
+  }
 
+  save() {
+    const dateFrom = moment(this.form.value.dateFrom);
+    const dateTo = moment(this.form.value.dateTo);
+    const shiftId = this.form.value.shiftId;
+
+    const requests: CreateEmployeeShiftRequest[] = [];
+
+    let currentDate = dateFrom.clone();
+
+    while (currentDate.isSameOrBefore(dateTo)) {
+      requests.push({
+        employeeId: this.employee!.id,
+        shiftId: shiftId,
+        date: currentDate.format('YYYY-MM-DD')
+      } as CreateEmployeeShiftRequest);
+
+      currentDate.add(1, 'day');
+    }
+
+    this.request.set(requests);
+
+    this.employeeShiftService.createEmployeeShifts(this.request())
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.bsModalRef.hide();
+        },
+        error: error => {
+          console.error('creating employee shift error', error);
+        }
+      });
   }
 
   ngOnDestroy(): void {

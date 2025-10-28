@@ -1,8 +1,9 @@
-﻿import {Shift} from "./shift.model";
+﻿import {EmployeeShift} from "./employee-shift.model";
+import {Employee} from "../../employees/models/employee.model";
 
 export interface EmployeeTimesheet {
-  employeeId: number;
-  shifts: (Shift | null)[];
+  employee: Employee;
+  employeeShifts: (EmployeeShift | null)[];
   totalWorkDays: number;
   totalWorkHours: number;
 }
