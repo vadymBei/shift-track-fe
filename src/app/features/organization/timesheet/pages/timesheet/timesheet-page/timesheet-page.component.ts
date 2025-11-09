@@ -7,7 +7,6 @@ import {BsDatepickerModule} from 'ngx-bootstrap/datepicker';
 import {Shift} from "../../../models/shift.model";
 import moment from "moment";
 import 'moment/locale/uk';
-import {ShiftType} from "../../../enums/shift-type.enum";
 import {TooltipModule} from "ngx-bootstrap/tooltip";
 import {Unit} from "../../../../structure/models/unit.model";
 import {Department} from "../../../../structure/models/department.model";
@@ -22,6 +21,7 @@ import {DayInfo} from "../../../models/day-info.model";
 import {TimesheetRequest} from "../../../models/timesheet-request.model";
 import {Timesheet} from "../../../models/timesheet-model";
 import {TimesheetService} from "../../../services/timesheet-service";
+import {ExportTimesheetRequest} from "../../../models/export-timesheet-request.model";
 
 @Component({
   selector: 'app-timesheet-page',
@@ -46,7 +46,6 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
 
   private readonly searchSubject$ = new Subject<string>();
 
-
   selectedMonth = signal<Date>(new Date());
   searchTerm = signal<string>('');
   timesheet = signal<Timesheet>({
@@ -62,111 +61,14 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
   });
   units = signal<Unit[]>([]);
   departments = signal<Department[]>([]);
-  shifts = signal<Shift[]>([
-    {
-      id: 1,
-      code: "-",
-      description: "Звільнено",
-      color: "#FFFFFF",
-      startTime: null,
-      endTime: null,
-      workHours: null,
-      type: ShiftType.none
-    },
-    {
-      id: 2,
-      code: "В",
-      description: "Основна щорічна відпустка",
-      color: "#FFF176",
-      startTime: null,
-      endTime: null,
-      workHours: null,
-      type: ShiftType.vacation
-    },
-    {
-      id: 3,
-      code: "ВД",
-      description: "Відрядження",
-      color: "#A08780",
-      startTime: "10:00:00",
-      endTime: "20:00:00",
-      workHours: "10:00:00",
-      type: ShiftType.workday
-    },
-    {
-      id: 4,
-      code: "ВП",
-      description: "Відпустка у зв'язку з вагітністю і пологами",
-      color: "#FFFFFF",
-      startTime: null,
-      endTime: null,
-      workHours: null,
-      type: ShiftType.vacation
-    },
-    {
-      id: 5,
-      code: "ВХ",
-      description: "Вихідний день",
-      color: "#E0E0E0",
-      startTime: null,
-      endTime: null,
-      workHours: null,
-      type: ShiftType.dayOff
-    },
-    {
-      id: 6,
-      code: "ДД",
-      description: "Відпустка за дитиною до 6-ти років",
-      color: "#FFFFFF",
-      startTime: null,
-      endTime: null,
-      workHours: null,
-      type: ShiftType.vacation
-    },
-    {
-      id: 7,
-      code: "І",
-      description: "Інші причини неявок",
-      color: "#FFFFFF",
-      startTime: null,
-      endTime: null,
-      workHours: null,
-      type: ShiftType.none
-    },
-    {
-      id: 8,
-      code: "НА",
-      description: "Відпустка без збереження заробітної плати за згодою обох сторін",
-      color: "#FFFFFF",
-      startTime: null,
-      endTime: null,
-      workHours: null,
-      type: ShiftType.vacation
-    },
-    {
-      id: 9,
-      code: "Р10",
-      description: "10-ти годинний робочий день",
-      color: "#DDE776",
-      startTime: "10:00:00",
-      endTime: "20:00:00",
-      workHours: "10:00:00",
-      type: ShiftType.workday
-    },
-    {
-      id: 10,
-      code: "Р9",
-      description: "9-ти годинний робочий день",
-      color: "#AED584",
-      startTime: "10:00:00",
-      endTime: "19:00:00",
-      workHours: "09:00:00",
-      type: ShiftType.workday
-    }
-  ]);
   request = signal<TimesheetRequest>({
     period: new Date(),
     departmentId: 0
+  });
+  exportTimesheetRequest = signal<ExportTimesheetRequest>({
+    exportWorkHours: true,
+    departmentId: 0,
+    period: new Date()
   });
 
   constructor(private modalService: BsModalService) {
@@ -174,8 +76,6 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.initializeTimesheet();
-
     this.getUnits();
 
     this.searchSubject$
@@ -185,35 +85,6 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
       )
       .subscribe(searchPattern => {
       });
-  }
-
-  private initializeTimesheet() {
-    const currentDate = moment(this.selectedMonth());
-    const daysInMonth = currentDate.daysInMonth();
-
-    const dayOffShift = this.shifts().find(s => s.code === 'ВХ');
-    const defaultWorkdayShift = this.shifts().find(s => s.code === 'Р9');
-
-    const shifts: (Shift | null)[] = Array(daysInMonth).fill(null).map((_, index) => {
-      const day = index + 1;
-      const date = moment(currentDate).date(day);
-      const isWeekend = date.day() === 0 || date.day() === 6;
-
-      return isWeekend ? dayOffShift! : defaultWorkdayShift!;
-    });
-
-    let totalWorkDays = 0;
-    let totalWorkMinutes = 0;
-
-    shifts.forEach(shift => {
-      if (shift?.type === ShiftType.workday) {
-        totalWorkDays++;
-        if (shift.workHours) {
-          const [hours, minutes] = shift.workHours.split(':').map(Number);
-          totalWorkMinutes += hours * 60 + minutes;
-        }
-      }
-    });
   }
 
   isWeekend(day: number): boolean {
@@ -293,7 +164,50 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
   }
 
   exportToExcel() {
-    // TODO: Implement Excel export
+    const displayMode = this.form.get('displayMode')?.value;
+
+    if (displayMode === 'shifts') {
+      this.exportTimesheetRequest.update(val => ({
+        ...val,
+        exportWorkHours: false
+      }));
+    } else {
+      this.exportTimesheetRequest.update(val => ({
+        ...val,
+        exportWorkHours: true
+      }));
+    }
+
+    if (this.form.value.departmentId === undefined
+      || this.form.value.period === new Date()) {
+      return;
+    }
+
+    this.exportTimesheetRequest.update(val => ({
+      ...val,
+      departmentId: this.form.value.departmentId,
+      period: this.form.value.period
+    }));
+
+    this.timesheetService.exportTimesheet(this.exportTimesheetRequest())
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob: Blob) => {
+          const url = window.URL.createObjectURL(blob);
+
+          const link = document.createElement('a');
+          link.href = url;
+
+          const period = moment(this.form.value.period).format('YYYY-MM');
+          link.download = `Табель_за_${period}.xlsx`;
+
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          window.URL.revokeObjectURL(url);
+        }
+      });
   }
 
   onSearchChange(event: Event): void {
