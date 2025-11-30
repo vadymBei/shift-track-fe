@@ -10,7 +10,7 @@ import 'moment/locale/uk';
 import {TooltipModule} from "ngx-bootstrap/tooltip";
 import {Unit} from "../../../../structure/models/unit.model";
 import {Department} from "../../../../structure/models/department.model";
-import {catchError, of, Subject, takeUntil} from "rxjs";
+import {catchError, of, Subject, take, takeUntil} from "rxjs";
 import {DepartmentService} from "../../../../structure/services/department.service";
 import {UnitService} from "../../../../structure/services/unit.service";
 import {debounceTime} from "rxjs/operators";
@@ -22,6 +22,7 @@ import {TimesheetRequest} from "../../../models/timesheet-request.model";
 import {Timesheet} from "../../../models/timesheet-model";
 import {TimesheetService} from "../../../services/timesheet-service";
 import {ExportTimesheetRequest} from "../../../models/export-timesheet-request.model";
+import {EmployeeShift} from "../../../models/employee-shift.model";
 
 @Component({
   selector: 'app-timesheet-page',
@@ -96,10 +97,10 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
   getCellStyle(day: number, employeeId: number): { [key: string]: string } {
     const baseStyle: { [key: string]: string } = {};
 
-    const shift = this.getShiftForDay(employeeId, day);
+    const employeeShift = this.getEmployeeShiftForDay(employeeId, day);
 
-    if (shift?.color) {
-      baseStyle['background-color'] = shift.color;
+    if (employeeShift?.shift?.color) {
+      baseStyle['background-color'] = employeeShift.shift.color;
     }
 
     return baseStyle;
@@ -132,17 +133,17 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
     return this.timesheet().employeeTimesheets.find(t => t.employee.id === employeeId)?.totalWorkHours;
   }
 
-  getShiftForDay(employeeId: number, day: number): Shift | undefined {
+  getEmployeeShiftForDay(employeeId: number, day: number): EmployeeShift | undefined | null {
     const employeeTimesheet = this.timesheet().employeeTimesheets.find(t => t.employee.id === employeeId);
 
     const employeeShift = employeeTimesheet?.employeeShifts.find(
       x => moment(x?.date).date() === day
     );
 
-    return employeeShift?.shift;
+    return employeeShift;
   }
 
-  openEditEmployeeShiftModal(employee: Employee, day: number, shift: Shift | undefined): void {
+  openEditEmployeeShiftModal(employee: Employee, day: number, employeeShift: EmployeeShift | undefined | null): void {
     const employeeShiftDate = moment(this.selectedMonth())
       .date(day)
       .toDate();
@@ -154,7 +155,7 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
         initialState: {
           employeeShiftDate: employeeShiftDate,
           employee: employee,
-          shift: shift
+          employeeShift: employeeShift ?? undefined
         }
       });
 
@@ -288,18 +289,18 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
       });
   }
 
-  getCellContent(shift: Shift | undefined): string {
+  getCellContent(employeeShift: EmployeeShift | undefined | null): string {
     const displayMode = this.form.get('displayMode')?.value;
 
-    if (!shift) return '';
+    if (!employeeShift) return '';
 
     if (displayMode === 'shifts') {
-      return shift.code;
+      return employeeShift.shift.code;
     } else {
-      if (shift.startTime && shift.endTime) {
-        return `${shift.startTime.slice(0, 5)}\n${shift.endTime.slice(0, 5)}`;
+      if (employeeShift.shift.startTime && employeeShift.shift.endTime) {
+        return `${employeeShift.shift.startTime.slice(0, 5)}\n${employeeShift.shift.endTime.slice(0, 5)}`;
       } else {
-        return shift.code;
+        return employeeShift.shift.code;
       }
     }
   }

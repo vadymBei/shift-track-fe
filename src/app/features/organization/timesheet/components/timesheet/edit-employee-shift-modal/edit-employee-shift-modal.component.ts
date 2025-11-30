@@ -1,7 +1,7 @@
 import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
 import {BsModalRef} from "ngx-bootstrap/modal";
 import {Employee} from "../../../../employees/models/employee.model";
-import {DatePipe} from "@angular/common";
+import {CommonModule, DatePipe, NgForOf} from "@angular/common";
 import {ShiftsService} from "../../../services/shifts.service";
 import {Shift} from "../../../models/shift.model";
 import {Subject, takeUntil} from "rxjs";
@@ -16,13 +16,19 @@ import {
 import moment from "moment";
 import {CreateEmployeeShiftRequest} from "../../../models/create-employee-shift-request.model";
 import {EmployeeShiftService} from "../../../services/employee-shift-service";
+import {TabsModule} from "ngx-bootstrap/tabs";
+import {EmployeeShiftHistoryService} from "../../../services/employee-shift-history-service";
+import {EmployeeShift} from "../../../models/employee-shift.model";
+import {EmployeeShiftHistory} from "../../../models/employee-shift-history.model";
 
 @Component({
   selector: 'app-edit-employee-shift-modal',
   standalone: true,
   imports: [
+    CommonModule,
     DatePipe,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TabsModule,
   ],
   templateUrl: './edit-employee-shift-modal.component.html',
   styleUrl: './edit-employee-shift-modal.component.scss'
@@ -34,13 +40,15 @@ export class EditEmployeeShiftModalComponent implements OnInit, OnDestroy {
 
   private readonly shiftsService = inject(ShiftsService);
   private readonly employeeShiftService = inject(EmployeeShiftService);
+  private readonly employeeShiftHistoryService = inject(EmployeeShiftHistoryService);
   private fb = inject(FormBuilder);
 
   shifts = signal<Shift[]>([]);
+  employeeShiftHistory = signal<EmployeeShiftHistory[]>([]);
   request = signal<CreateEmployeeShiftRequest[]>([]);
   employee?: Employee;
   employeeShiftDate?: Date;
-  shift?: Shift;
+  employeeShift?: EmployeeShift;
   form: FormGroup = this.fb.group(
     {
       shiftId: [null, [Validators.required]],
@@ -70,9 +78,11 @@ export class EditEmployeeShiftModalComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.getShifts();
 
-    if (this.shift) {
+    if (this.employeeShift) {
+      this.getEmployeeShiftHistory(this.employeeShift.id);
+
       this.form.patchValue({
-        shiftId: this.shift.id
+        shiftId: this.employeeShift.shift.id
       });
     }
 
@@ -87,7 +97,13 @@ export class EditEmployeeShiftModalComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(shifts => {
         this.shifts.set(shifts);
-      })
+      });
+  }
+
+  getEmployeeShiftHistory(employeeShiftId: number){
+    this.employeeShiftHistoryService.getEmployeeShiftHistoryByEmployeeShiftId(employeeShiftId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(history => this.employeeShiftHistory.set(history));
   }
 
   private formatDateForInput(date: Date): string {
