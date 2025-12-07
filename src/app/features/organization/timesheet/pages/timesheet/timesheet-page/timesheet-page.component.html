@@ -168,13 +168,13 @@
             <div class="calendar-data">
               <div
                 class="d-flex border-bottom"
-                *ngFor="let employeeTimesheet of timesheet().employeeTimesheets">
+                *ngFor="let employeeTimesheet of timesheet().employeeTimesheets; trackBy: trackByEmployeeId">
                 <div
                   class="text-center p-2 employee-shift"
-                  *ngFor="let day of getDays()"
+                  *ngFor="let day of getDays(); trackBy: trackByDay"
                   [ngStyle]="getCellStyle(day.dayOfMonth, employeeTimesheet.employee.id)"
-                  (click)="openEditEmployeeShiftModal(employeeTimesheet.employee, day.dayOfMonth, getShiftForDay(employeeTimesheet.employee.id, day.dayOfMonth))">
-                  {{ getCellContent(getShiftForDay(employeeTimesheet.employee.id, day.dayOfMonth)) }}
+                  (click)="openEditEmployeeShiftModal(employeeTimesheet.employee, day.dayOfMonth, getEmployeeShiftForDay(employeeTimesheet.employee.id, day.dayOfMonth))">
+                  {{ getCellContent(getEmployeeShiftForDay(employeeTimesheet.employee.id, day.dayOfMonth)) }}
                 </div>
 
                 <div class="text-center p-2 bg-light summary-cell">

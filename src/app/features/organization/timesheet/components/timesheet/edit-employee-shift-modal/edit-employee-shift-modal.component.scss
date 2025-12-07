@@ -1,0 +1,22 @@
+.card {
+  height: 50vh;
+}
+
+.history {
+  max-height: 25vh;
+  overflow-y: auto;
+  margin-left: -15px;
+  margin-right: -15px;
+  font-size: 0.9rem;
+
+  .table-fixed {
+    width: 100%;
+
+    thead {
+      position: sticky;
+      top: 0;
+      background: white;
+      z-index: 1;
+    }
+  }
+}
