@@ -3,7 +3,6 @@
   width: 100%;
   overflow: hidden;
 
-  // Names Column
   .names-column {
     flex: 0 0 250px;
     border-right: 1px solid #dee2e6;
@@ -19,19 +18,17 @@
     }
   }
 
-  // Calendar Column
   .calendar-column {
     flex: 1;
     overflow-x: auto;
     position: relative;
 
-    // Приховуємо скролбар для різних браузерів
     &::-webkit-scrollbar {
-      display: none; // Для Chrome, Safari та новіших версій Edge
+      display: none;
     }
 
-    -ms-overflow-style: none;  // Для Internet Explorer та Edge
-    scrollbar-width: none;  // Для Firefox
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 
     .calendar-content {
       min-width: max-content;
@@ -60,12 +57,12 @@
           width: 100%;
 
           .day-of-week {
-            font-size: 0.7rem; // зменшили з 0.8rem
+            font-size: 0.7rem;
             color: #666;
           }
 
           .day-of-month {
-            font-size: 0.9rem; // зменшили з 1rem
+            font-size: 0.9rem;
           }
         }
       }
@@ -98,15 +95,15 @@
         align-items: center;
         justify-content: center;
         white-space: pre-line;
-        line-height: 1.1; // зменшили з 1.2
+        line-height: 1.1;
         flex-direction: column;
-        font-size: 0.8rem; // зменшили з 0.9rem
+        font-size: 0.8rem;
         transition: all 0.2s ease-in-out;
         cursor: pointer;
 
         &:hover {
           transform: scale(1.05);
-          box-shadow: 0 0 5px rgba(0,0,0,0.2);
+          box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
         }
 
         &:active {
@@ -117,7 +114,6 @@
   }
 }
 
-// Додайте в початок файлу, якщо ще немає
 .card {
   max-height: 80vh;
 
