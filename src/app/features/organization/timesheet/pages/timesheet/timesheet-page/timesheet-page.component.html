@@ -158,10 +158,10 @@
               </div>
 
               <div class="text-center p-2 bg-light summary-cell">
-                <strong>Роб. днів</strong>
+                <strong>Роб. год</strong>
               </div>
               <div class="text-center p-2 bg-light summary-cell">
-                <strong>Роб. год</strong>
+                <strong>Роб. днів</strong>
               </div>
             </div>
 
@@ -178,11 +178,11 @@
                 </div>
 
                 <div class="text-center p-2 bg-light summary-cell">
-                  {{ getEmployeeTotalWorkDays(employeeTimesheet.employee.id) }}
+                  {{ getEmployeeTotalWorkHours(employeeTimesheet.employee.id) }}
                 </div>
 
                 <div class="text-center p-2 bg-light summary-cell">
-                  {{ getEmployeeTotalWorkHours(employeeTimesheet.employee.id) }}
+                  {{ getEmployeeTotalWorkDays(employeeTimesheet.employee.id) }}
                 </div>
               </div>
             </div>
