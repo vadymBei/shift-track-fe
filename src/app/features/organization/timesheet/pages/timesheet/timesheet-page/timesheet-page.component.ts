@@ -143,6 +143,14 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
     return employeeShift;
   }
 
+  trackByEmployeeId(index: number, item: any): any {
+    return item.employee.id;
+  }
+
+  trackByDay(index: number, day: any): any {
+    return day.dayOfMonth;
+  }
+
   openEditEmployeeShiftModal(employee: Employee, day: number, employeeShift: EmployeeShift | undefined | null): void {
     const employeeShiftDate = moment(this.selectedMonth())
       .date(day)
