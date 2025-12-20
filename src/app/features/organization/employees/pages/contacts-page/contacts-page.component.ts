@@ -34,7 +34,6 @@ export class ContactsPageComponent implements OnInit, OnDestroy {
   form!: FormGroup;
   request: AllEmployeesRequest = {
     searchPattern: '',
-    unitId: undefined,
     departmentId: undefined
   };
 
@@ -84,13 +83,11 @@ export class ContactsPageComponent implements OnInit, OnDestroy {
     const unitId = selectElement.value;
 
     if (unitId === 'null') {
-      this.request.unitId = undefined;
       this.request.departmentId = undefined;
       this.departments.set([]);
       this.form.get('departmentId')?.setValue(null);
     } else {
       const numericUnitId = Number(unitId);
-      this.request.unitId = numericUnitId;
       this.getDepartmentsByUnitId(numericUnitId);
     }
 

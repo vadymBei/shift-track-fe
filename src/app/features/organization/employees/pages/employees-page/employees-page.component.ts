@@ -39,7 +39,6 @@ export class EmployeesPageComponent implements OnInit, OnDestroy {
 
   request = signal<AllEmployeesRequest>({
     searchPattern: '',
-    unitId: undefined,
     departmentId: undefined
   });
   employees = signal<Employee[]>([]);
@@ -114,7 +113,7 @@ export class EmployeesPageComponent implements OnInit, OnDestroy {
         unitId: Number(unitId)
       }));
 
-      this.getDepartmentsByUnitId(this.request().unitId!);
+      this.getDepartmentsByUnitId(Number(unitId));
     }
 
     this.getEmployees();
