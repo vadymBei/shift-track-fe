@@ -1,7 +1,7 @@
 import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
 import {BsModalRef} from "ngx-bootstrap/modal";
 import {Employee} from "../../../../employees/models/employee.model";
-import {CommonModule, DatePipe, NgForOf} from "@angular/common";
+import {CommonModule, DatePipe} from "@angular/common";
 import {ShiftsService} from "../../../services/shifts.service";
 import {Shift} from "../../../models/shift.model";
 import {Subject, takeUntil} from "rxjs";

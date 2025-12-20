@@ -16,10 +16,6 @@ export class EmployeesService {
     let filter = new HttpParams();
 
     if (request !== undefined && request !== null) {
-      if (request.unitId !== undefined && request.unitId !== null) {
-        filter = filter.set('unitId', request.unitId);
-      }
-
       if (request.departmentId !== undefined && request.departmentId !== null) {
         filter = filter.set('departmentId', request.departmentId);
       }

@@ -56,7 +56,6 @@ export class EmployeesRolesPageComponent implements OnInit, OnDestroy {
 
   private request = signal<AllEmployeesRequest>({
     searchPattern: undefined,
-    unitId: undefined,
     departmentId: undefined
   });
 
@@ -127,18 +126,12 @@ export class EmployeesRolesPageComponent implements OnInit, OnDestroy {
     if (unitIdValue === 'null') {
       this.request.update(req => ({
         ...req,
-        unitId: undefined,
         departmentId: undefined
       }));
       this.form.patchValue({
         unitId: null,
         departmentId: null
       });
-    } else {
-      this.request.update(req => ({
-        ...req,
-        unitId: Number(unitIdValue)
-      }));
     }
 
     this.getEmployees();
