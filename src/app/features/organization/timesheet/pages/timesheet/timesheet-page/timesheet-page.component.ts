@@ -46,8 +46,6 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
 
   private readonly searchSubject$ = new Subject<string>();
 
-  selectedMonth = signal<Date>(new Date());
-  searchTerm = signal<string>('');
   timesheet = signal<Timesheet>({
     startDate: new Date(),
     endDate: new Date(),
@@ -151,7 +149,7 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
   }
 
   openEditEmployeeShiftModal(employee: Employee, day: number, employeeShift: EmployeeShift | undefined | null): void {
-    const employeeShiftDate = moment(this.selectedMonth())
+    const employeeShiftDate = moment(this.request().period)
       .date(day)
       .toDate();
 

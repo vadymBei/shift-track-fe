@@ -52,8 +52,8 @@ export class EditEmployeeShiftModalComponent implements OnInit, OnDestroy {
   form: FormGroup = this.fb.group(
     {
       shiftId: [null, [Validators.required]],
-      dateFrom: [this.formatDateForInput(new Date()), [Validators.required]],
-      dateTo: [this.formatDateForInput(new Date()), [Validators.required]]
+      dateFrom: [this.formatDateForInput(this.employeeShiftDate!), [Validators.required]],
+      dateTo: [this.formatDateForInput(this.employeeShiftDate!), [Validators.required]]
     },
     {
       validators: this.dateRangeValidator
