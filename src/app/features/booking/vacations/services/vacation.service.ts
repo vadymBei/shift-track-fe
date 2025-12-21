@@ -72,4 +72,12 @@ export class VacationService {
   rejectVacation(vacationId: number) {
     return this.httpClient.put<Vacation>(`${this.path}/reject/${vacationId}`, {});
   }
+
+  downloadVacationRequest(vacationId: number) {
+    return this.httpClient.get(`${this.path}/download/request/pdf/${vacationId}`,
+      {
+        responseType: 'blob'
+      });
+  }
+
 }

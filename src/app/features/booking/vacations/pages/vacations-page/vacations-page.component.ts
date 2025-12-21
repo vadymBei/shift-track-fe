@@ -178,6 +178,27 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
     }
   }
 
+  downloadVacationRequest(vacation: Vacation) : void{
+    this.vacationService.downloadVacationRequest(vacation.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob: Blob) => {
+          const url = window.URL.createObjectURL(blob);
+
+          const link = document.createElement('a');
+          link.href = url;
+
+          link.download = `Відпустка працівника ${vacation.employee.fullName} ${moment(vacation.startDate).format('DD/MM/YYYY')}-${moment(vacation.endDate).format('DD/MM/YYYY')}.pdf`;
+
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          window.URL.revokeObjectURL(url);
+        }
+      });
+  }
+
   openEditVacationModal(vacation: Vacation): void {
     const ref = this.modalService.show(
       EditVacationModalComponent,
