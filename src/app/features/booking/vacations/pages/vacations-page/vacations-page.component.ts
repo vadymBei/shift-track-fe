@@ -80,19 +80,11 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
         this.getVacations();
       });
 
-    this.getUnits();
+    this.getUnitsByRoles();
   }
 
-  private getFirstDayOfCurrentMonth(): string {
-    return moment().startOf('month').format('YYYY-MM-DD');
-  }
-
-  private getLastDayOfCurrentMonth(): string {
-    return moment().endOf('month').format('YYYY-MM-DD');
-  }
-
-  getUnits(): void {
-    this.unitService.getUnits()
+  getUnitsByRoles(): void {
+    this.unitService.getUnitsByRoles()
       .pipe(
         catchError(error => {
           return of([] as Unit[]);
@@ -102,10 +94,6 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
       .subscribe(units => {
         this.units.set(units);
       });
-  }
-
-  onSearchChange(event: Event): void {
-    this.getVacations();
   }
 
   onUnitChange(event: Event): void {
@@ -119,22 +107,14 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
     } else {
       const numericUnitId = Number(unitId);
 
-      this.getDepartmentsByUnitId(numericUnitId);
+      this.getDepartmentsByRoles(numericUnitId);
     }
 
     this.vacations.set([]);
   }
 
-  onDepartmentChange(event: Event): void {
-    this.getVacations();
-  }
-
-  onVacationStatusChange(event: Event): void {
-    this.getVacations();
-  }
-
-  getDepartmentsByUnitId(unitId: number): void {
-    this.departmentService.getDepartmentsByUnitId(unitId)
+  getDepartmentsByRoles(unitId: number): void {
+    this.departmentService.getDepartmentsByRoles(unitId)
       .pipe(
         catchError(error => {
           return of([] as Department[]);
@@ -146,39 +126,27 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
       });
   }
 
-  getVacationTypeString(type: VacationType): string {
-    switch (type) {
-      case VacationType.YearMainVacation:
-        return 'Основна щорічна відпустка';
-      case VacationType.BonusVacation:
-        return 'Бонусна відпустка';
-      case VacationType.VacationWithoutSalaryByFamily:
-        return 'Відпустка без збереження з/п за згодою сторін за сімейними обставинами';
-      case VacationType.VacationWithoutSalaryByPregnancy:
-        return 'Відпустка у зв\'язку з вагітністю та пологами';
-      case VacationType.VacationWithoutSalaryByChild3years:
-        return 'Відпустка для догляду за дитиною до досягнення нею 3-го віку';
-      case VacationType.VacationWithoutSalaryByChild6years:
-        return 'Відпустка для догляду за дитиною до досягнення нею 6-го віку';
-      default:
-        return 'Відпустка';
-    }
+  onDepartmentChange(event: Event): void {
+    this.getVacations();
   }
 
-  getStatusClass(status: VacationStatus): string {
-    switch (status) {
-      case VacationStatus.ApprovedByUnitDirector:
-        return 'status-approved-by-unit-director';
-      case VacationStatus.Rejected:
-        return 'status-rejected';
-      case VacationStatus.PendingApproval:
-        return 'status-pending-approval';
-      default:
-        return '';
-    }
+  private getFirstDayOfCurrentMonth(): string {
+    return moment().startOf('month').format('YYYY-MM-DD');
   }
 
-  downloadVacationRequest(vacation: Vacation) : void{
+  private getLastDayOfCurrentMonth(): string {
+    return moment().endOf('month').format('YYYY-MM-DD');
+  }
+
+  onSearchChange(event: Event): void {
+    this.getVacations();
+  }
+
+  onVacationStatusChange(event: Event): void {
+    this.getVacations();
+  }
+
+  downloadVacationRequest(vacation: Vacation): void {
     this.vacationService.downloadVacationRequest(vacation.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -197,21 +165,6 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
           window.URL.revokeObjectURL(url);
         }
       });
-  }
-
-  openEditVacationModal(vacation: Vacation): void {
-    const ref = this.modalService.show(
-      EditVacationModalComponent,
-      {
-        class: 'modal-dialog-centered',
-        initialState: {
-          vacation: vacation,
-        }
-      });
-
-    ref.onHidden?.subscribe({
-      next: () => this.getVacations()
-    })
   }
 
   getVacations() {
@@ -250,6 +203,21 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
     this.getVacations();
   }
 
+  openEditVacationModal(vacation: Vacation): void {
+    const ref = this.modalService.show(
+      EditVacationModalComponent,
+      {
+        class: 'modal-dialog-centered',
+        initialState: {
+          vacation: vacation,
+        }
+      });
+
+    ref.onHidden?.subscribe({
+      next: () => this.getVacations()
+    })
+  }
+
   openCreateVacationModal() {
     const ref = this.modalService.show(
       CreateVacationModalComponent,
@@ -283,6 +251,25 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
       .subscribe(val => {
         this.getVacations();
       })
+  }
+
+  getVacationTypeString(type: VacationType): string {
+    switch (type) {
+      case VacationType.YearMainVacation:
+        return 'Основна щорічна відпустка';
+      case VacationType.BonusVacation:
+        return 'Бонусна відпустка';
+      case VacationType.VacationWithoutSalaryByFamily:
+        return 'Відпустка без збереження з/п за згодою сторін за сімейними обставинами';
+      case VacationType.VacationWithoutSalaryByPregnancy:
+        return 'Відпустка у зв\'язку з вагітністю та пологами';
+      case VacationType.VacationWithoutSalaryByChild3years:
+        return 'Відпустка для догляду за дитиною до досягнення нею 3-го віку';
+      case VacationType.VacationWithoutSalaryByChild6years:
+        return 'Відпустка для догляду за дитиною до досягнення нею 6-го віку';
+      default:
+        return 'Відпустка';
+    }
   }
 
   ngOnDestroy(): void {

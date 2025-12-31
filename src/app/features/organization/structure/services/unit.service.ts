@@ -18,6 +18,10 @@ export class UnitService {
     return this.httpClient.get<Unit[]>(this.path);
   }
 
+  getUnitsByRoles() {
+    return this.httpClient.get<Unit[]>(this.path + '/by-roles');
+  }
+
   updateUnit(request: EditUnitRequest) {
     return this.httpClient.put<Unit>(this.path, request);
   }
