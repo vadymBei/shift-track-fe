@@ -17,12 +17,22 @@ export class AccountService {
   private router = inject(Router);
 
   token = signal<Token | null>(null);
+  currentUser = signal<CurrentUser | null>(null);
 
   constructor() {
     const storedToken = localStorage.getItem('token');
 
     if (storedToken) {
       this.token.set(JSON.parse(storedToken));
+    }
+
+    const storedUser = localStorage.getItem('currentUser');
+    if (storedUser) {
+      try {
+        this.currentUser.set(JSON.parse(storedUser));
+      } catch (e) {
+        console.error('Error parsing user data from localStorage:', e);
+      }
     }
   }
 
@@ -33,19 +43,7 @@ export class AccountService {
 
   private setCurrentUser(user: CurrentUser): void {
     localStorage.setItem('currentUser', JSON.stringify(user));
-  }
-
-  getCurrentUserFromLocalStorage(): CurrentUser | null {
-    const storedUser = localStorage.getItem('currentUser');
-
-    if (storedUser) {
-      try {
-        return JSON.parse(storedUser);
-      } catch (e) {
-        console.error('Error parsing user data from localStorage:', e);
-      }
-    }
-    return null;
+    this.currentUser.set(user)
   }
 
   getCurrentUser(): Observable<CurrentUser | null> {
@@ -53,7 +51,9 @@ export class AccountService {
 
     if (storedUser) {
       try {
-        return of(JSON.parse(storedUser));
+        const user = JSON.parse(storedUser);
+        this.currentUser.set(user);
+        return of(user);
       } catch (e) {
         console.error('Error parsing user data from localStorage:', e);
       }
@@ -119,6 +119,7 @@ export class AccountService {
     localStorage.removeItem('token');
     localStorage.removeItem('currentUser');
     this.token.set(null);
+    this.currentUser.set(null);
     this.router.navigate(['/account/login']);
   }
 

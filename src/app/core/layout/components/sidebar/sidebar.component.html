@@ -2,7 +2,7 @@
   <div class="bg-body-tertiary w-100 h-100 d-flex">
     <nav class="navbar w-100 h-100 d-flex flex-column">
       <ul class="navbar-nav w-100 flex-grow-1 gap-1">
-        @for (item of menuItems; track $index) {
+        @for (item of menuItems(); track item.link) {
           <li class="main-menu-list w-100 d-flex justify-content-center">
             <a class="menu-item d-flex align-items-center py-1 pt-2 pb-2"
                routerLink="{{item.link}}"
