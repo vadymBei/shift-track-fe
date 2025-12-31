@@ -57,90 +57,92 @@
   </div>
 </div>
 
-<div class="card shadow d-flex flex-column phones-card">
-  <div class="card-header">
-    <div class="row">
-      <div class="col-3">
-        <strong>
-          ПІБ
-        </strong>
-      </div>
+@if (employees().length > 0) {
+  <div class="card shadow d-flex flex-column phones-card">
+    <div class="card-header">
+      <div class="row">
+        <div class="col-3">
+          <strong>
+            ПІБ
+          </strong>
+        </div>
 
-      <div class="col">
-        <strong>
-          Мобільний
-        </strong>
-      </div>
+        <div class="col">
+          <strong>
+            Мобільний
+          </strong>
+        </div>
 
-      <div class="col">
-        <strong>
-          Email
-        </strong>
-      </div>
+        <div class="col">
+          <strong>
+            Email
+          </strong>
+        </div>
 
-      <div class="col">
-        <strong>
-          Регіон
-        </strong>
-      </div>
+        <div class="col">
+          <strong>
+            Регіон
+          </strong>
+        </div>
 
-      <div class="col">
-        <strong>
-          Департамент
-        </strong>
-      </div>
+        <div class="col">
+          <strong>
+            Департамент
+          </strong>
+        </div>
 
-      <div class="col">
-        <strong>
-          Посада
-        </strong>
+        <div class="col">
+          <strong>
+            Посада
+          </strong>
+        </div>
       </div>
     </div>
+
+    <div class="card-body pt-0 position-relative overflow-auto">
+      @if (isLoading()) {
+        <div class="spinner-overlay">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      }
+
+      @if (errorMessage()) {
+        <div class="alert alert-danger m-3">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      @for (employee of employees(); track employee.id; let index = $index) {
+        <div
+          class="row pt-3 pb-3"
+          [ngClass]="{ 'bg-body-tertiary': index % 2 !== 0 }">
+          <div class="col-3 text-truncate">
+            <strong>{{ employee.fullName }}</strong>
+          </div>
+
+          <div class="col text-truncate">
+            {{ employee.phoneNumber }}
+          </div>
+
+          <div class="col text-truncate">
+            {{ employee.email }}
+          </div>
+
+          <div class="col text-truncate">
+            {{ employee.department?.unit?.name }}
+          </div>
+
+          <div class="col text-truncate">
+            {{ employee.department?.name }}
+          </div>
+
+          <div class="col text-truncate">
+            {{ employee.position?.name }}
+          </div>
+        </div>
+      }
+    </div>
   </div>
-
-  <div class="card-body pt-0 position-relative overflow-auto">
-    @if (isLoading()) {
-      <div class="spinner-overlay">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    }
-
-    @if (errorMessage()) {
-      <div class="alert alert-danger m-3">
-        {{ errorMessage() }}
-      </div>
-    }
-
-    @for (employee of employees(); track employee.id; let index = $index) {
-      <div
-        class="row pt-3 pb-3"
-        [ngClass]="{ 'bg-body-tertiary': index % 2 !== 0 }">
-        <div class="col-3 text-truncate">
-          <strong>{{ employee.fullName }}</strong>
-        </div>
-
-        <div class="col text-truncate">
-          {{ employee.phoneNumber }}
-        </div>
-
-        <div class="col text-truncate">
-          {{ employee.email }}
-        </div>
-
-        <div class="col text-truncate">
-          {{ employee.department?.unit?.name }}
-        </div>
-
-        <div class="col text-truncate">
-          {{ employee.department?.name }}
-        </div>
-
-        <div class="col text-truncate">
-          {{ employee.position?.name }}
-        </div>
-      </div>
-    }
-  </div>
-</div>
+}

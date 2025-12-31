@@ -27,6 +27,10 @@ export class DepartmentService {
     return this.httpClient.get<Department[]>(this.path + `/by-unitId/${unitId}`);
   }
 
+  getDepartmentsByRoles(unitId: number) {
+    return this.httpClient.get<Department[]>(this.path + `/by-roles/${unitId}`);
+  }
+
   createDepartment(request: CreateDepartmentRequest) {
     return this.httpClient.post<Department>(this.path, request);
   }

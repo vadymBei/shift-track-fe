@@ -74,7 +74,7 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.getUnits();
+    this.getUnitsByRoles();
 
     this.searchSubject$
       .pipe(
@@ -83,6 +83,84 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
       )
       .subscribe(searchPattern => {
       });
+  }
+
+  getUnitsByRoles(): void {
+    this.unitService.getUnitsByRoles()
+      .pipe(
+        catchError(error => {
+          return of([] as Unit[]);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(units => {
+        this.units.set(units);
+      });
+  }
+
+  getDepartmentsByRoles(unitId: number): void {
+    this.departmentService.getDepartmentsByRoles(unitId)
+      .pipe(
+        catchError(error => {
+          return of([] as Department[]);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(departments => {
+        this.departments.set(departments);
+      });
+  }
+
+  onUnitChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    const unitId = selectElement.value;
+
+    if (unitId === 'null') {
+      this.departments.set([]);
+      this.form.get('departmentId')?.setValue(null);
+    } else {
+      const numericUnitId = Number(unitId);
+      this.getDepartmentsByRoles(numericUnitId);
+    }
+  }
+
+  onDepartmentChange(event: Event): void {
+    this.getTimesheet();
+  }
+
+  getTimesheet() {
+    if (this.form.value.departmentId === undefined
+      || this.form.value.period === new Date()) {
+      this.timesheet.update(val => ({
+        ...val,
+        employeeTimesheets: []
+      }));
+    }
+
+    this.request.update(val => ({
+      ...val,
+      departmentId: this.form.value.departmentId,
+      period: this.form.value.period
+    }));
+
+    this.timesheetService.getTimesheet(this.request())
+      .subscribe(value => {
+        this.timesheet.update(val => ({
+          ...val,
+          endDate: value.endDate,
+          startDate: value.startDate,
+          employeeTimesheets: value.employeeTimesheets
+        }));
+      });
+  }
+
+  onSearchChange(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    this.searchSubject$.next(inputElement.value);
+  }
+
+  onPeriodChange(event: Event): void {
+    this.getTimesheet();
   }
 
   isWeekend(day: number): boolean {
@@ -213,84 +291,6 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
 
           window.URL.revokeObjectURL(url);
         }
-      });
-  }
-
-  onSearchChange(event: Event): void {
-    const inputElement = event.target as HTMLInputElement;
-    this.searchSubject$.next(inputElement.value);
-  }
-
-  onUnitChange(event: Event): void {
-    const selectElement = event.target as HTMLSelectElement;
-    const unitId = selectElement.value;
-
-    if (unitId === 'null') {
-      this.departments.set([]);
-      this.form.get('departmentId')?.setValue(null);
-    } else {
-      const numericUnitId = Number(unitId);
-      this.getDepartmentsByUnitId(numericUnitId);
-    }
-  }
-
-  onDepartmentChange(event: Event): void {
-    this.getTimesheet();
-  }
-
-  onPeriodChange(event: Event): void {
-    this.getTimesheet();
-  }
-
-  getUnits(): void {
-    this.unitService.getUnits()
-      .pipe(
-        catchError(error => {
-          return of([] as Unit[]);
-        }),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(units => {
-        this.units.set(units);
-      });
-  }
-
-  getDepartmentsByUnitId(unitId: number): void {
-    this.departmentService.getDepartmentsByUnitId(unitId)
-      .pipe(
-        catchError(error => {
-          return of([] as Department[]);
-        }),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(departments => {
-        this.departments.set(departments);
-      });
-  }
-
-  getTimesheet() {
-    if (this.form.value.departmentId === undefined
-      || this.form.value.period === new Date()) {
-      this.timesheet.update(val => ({
-        ...val,
-        employeeTimesheets: []
-      }));
-    }
-
-    this.request.update(val => ({
-      ...val,
-      departmentId: this.form.value.departmentId,
-      period: this.form.value.period
-    }));
-
-    this.timesheetService.getTimesheet(this.request())
-      .subscribe(value => {
-        this.timesheet.update(val => ({
-          ...val,
-          endDate: value.endDate,
-          startDate: value.startDate,
-          employeeTimesheets: value.employeeTimesheets
-        }));
       });
   }
 

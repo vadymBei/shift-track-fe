@@ -1,9 +1,8 @@
-import {Component, inject, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {AccountService} from '../../../account/services/account.service';
 import {RouterLink} from '@angular/router';
 import {CurrentUser} from "../../../account/models/current-user.model";
 import {CommonModule} from "@angular/common";
-import {Subscription} from "rxjs";
 
 @Component({
   selector: 'app-header',
@@ -22,7 +21,7 @@ export class HeaderComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.currentUser = this.accountService.getCurrentUserFromLocalStorage();
+    this.currentUser = this.accountService.currentUser();
 
     if (!this.currentUser) {
       this.accountService.getCurrentUser()

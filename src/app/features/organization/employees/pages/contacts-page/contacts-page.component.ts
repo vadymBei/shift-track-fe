@@ -15,10 +15,10 @@ import {CommonModule} from "@angular/common";
   selector: 'app-contacts-page',
   standalone: true,
   imports: [
-        CommonModule,
-        FormsModule,
-        ReactiveFormsModule
-    ],
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule
+  ],
   templateUrl: './contacts-page.component.html',
   styleUrl: './contacts-page.component.scss'
 })
@@ -31,7 +31,11 @@ export class ContactsPageComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private readonly searchSubject$ = new Subject<string>();
 
-  form!: FormGroup;
+  form: FormGroup = this.fb.group({
+    searchPattern: [''],
+    unitId: [null],
+    departmentId: [null]
+  });
   request: AllEmployeesRequest = {
     searchPattern: '',
     departmentId: undefined
@@ -44,8 +48,6 @@ export class ContactsPageComponent implements OnInit, OnDestroy {
   errorMessage = signal('');
 
   ngOnInit(): void {
-    this.initializeForm();
-
     this.searchSubject$
       .pipe(
         debounceTime(500),
@@ -56,26 +58,20 @@ export class ContactsPageComponent implements OnInit, OnDestroy {
         this.getEmployees();
       });
 
-    this.getUnits();
-    this.getEmployees();
+    this.getUnitsByRoles();
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  initializeForm(): void {
-    this.form = this.fb.group({
-      searchPattern: [''],
-      unitId: [null],
-      departmentId: [null]
-    });
-  }
-
-  onSearchChange(event: Event): void {
-    const inputElement = event.target as HTMLInputElement;
-    this.searchSubject$.next(inputElement.value);
+  getUnitsByRoles(): void {
+    this.unitService.getUnitsByRoles()
+      .pipe(
+        catchError(error => {
+          return of([] as Unit[]);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(units => {
+        this.units.set(units);
+      });
   }
 
   onUnitChange(event: Event): void {
@@ -88,19 +84,8 @@ export class ContactsPageComponent implements OnInit, OnDestroy {
       this.form.get('departmentId')?.setValue(null);
     } else {
       const numericUnitId = Number(unitId);
-      this.getDepartmentsByUnitId(numericUnitId);
+      this.getDepartmentsByRoles(numericUnitId);
     }
-
-    this.getEmployees();
-  }
-
-  onDepartmentChange(event: Event): void {
-    const selectElement = event.target as HTMLSelectElement;
-    const departmentId = selectElement.value;
-
-    this.request.departmentId = departmentId === 'null'
-      ? undefined
-      : Number(departmentId);
 
     this.getEmployees();
   }
@@ -126,21 +111,8 @@ export class ContactsPageComponent implements OnInit, OnDestroy {
       });
   }
 
-  getUnits(): void {
-    this.unitService.getUnits()
-      .pipe(
-        catchError(error => {
-          return of([] as Unit[]);
-        }),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(units => {
-        this.units.set(units);
-      });
-  }
-
-  getDepartmentsByUnitId(unitId: number): void {
-    this.departmentService.getDepartmentsByUnitId(unitId)
+  getDepartmentsByRoles(unitId: number): void {
+    this.departmentService.getDepartmentsByRoles(unitId)
       .pipe(
         catchError(error => {
           return of([] as Department[]);
@@ -150,5 +122,26 @@ export class ContactsPageComponent implements OnInit, OnDestroy {
       .subscribe(departments => {
         this.departments.set(departments);
       });
+  }
+
+  onSearchChange(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    this.searchSubject$.next(inputElement.value);
+  }
+
+  onDepartmentChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    const departmentId = selectElement.value;
+
+    this.request.departmentId = departmentId === 'null'
+      ? undefined
+      : Number(departmentId);
+
+    this.getEmployees();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

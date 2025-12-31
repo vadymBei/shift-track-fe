@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
-import { MenuItem } from '../../models/menu-item.model';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import {Component, computed, inject} from '@angular/core';
+import {MenuItem} from '../../models/menu-item.model';
+import {RouterLink, RouterLinkActive} from '@angular/router';
 import {NgClass} from "@angular/common";
+import {AccountService} from "../../../account/services/account.service";
+import {DefaultRolesCatalog} from "../../../account/constants/default-roles-catalog.constants";
 
 @Component({
   selector: 'app-sidebar',
@@ -15,7 +17,9 @@ import {NgClass} from "@angular/common";
   styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent {
-  menuItems: MenuItem[] = [
+  private accountService = inject(AccountService);
+
+  private allMenuItems: MenuItem[] = [
     {
       label: 'Табель',
       icon: 'bi bi-calendar',
@@ -39,11 +43,21 @@ export class SidebarComponent {
     {
       label: 'Адміністрування',
       icon: 'bi bi-person-gear',
-      link: '/administration'
+      link: '/administration',
+      roles: [DefaultRolesCatalog.SYS_ADMIN, DefaultRolesCatalog.UNIT_DIRECTOR]
     }
-  ]
+  ];
 
-  getMenuIconSrc(icon: string): string {
-    return `/assets/icons/${icon}.svg`;
-  }
+
+  public menuItems = computed(() => {
+    const userRoles = this.accountService.currentUser()?.roles || [];
+
+    return this.allMenuItems
+      .filter(item => {
+        if (!item.roles || item.roles.length === 0)
+          return true;
+
+        return item.roles.some(role => userRoles.includes(role));
+      });
+  });
 }
