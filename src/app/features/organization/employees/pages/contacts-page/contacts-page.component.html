@@ -116,12 +116,6 @@
         </div>
       }
 
-      @if (errorMessage()) {
-        <div class="alert alert-danger m-3">
-          {{ errorMessage() }}
-        </div>
-      }
-
       @for (employee of employees(); track employee.id; let index = $index) {
         <div
           class="row pt-3 pb-3"

@@ -133,19 +133,16 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
     const selectElement = event.target as HTMLSelectElement;
     const unitId = selectElement.value;
 
-    if (unitId === 'null') {
-      this.departments.set([]);
+    if (unitId !== 'null') {
       this.wasDepartmentSelected = false;
-
-      this.form.get('departmentId')?.setValue(null);
-    } else {
-      const numericUnitId = Number(unitId);
-      this.wasDepartmentSelected = false;
-      this.getDepartmentsByRoles(numericUnitId);
+      this.getDepartmentsByRoles(Number(unitId));
     }
 
-    this.wasUnitSelected = true;
     this.vacations.set([]);
+    this.departments.set([]);
+    this.form.get('departmentId')?.setValue(null);
+
+    this.wasUnitSelected = true;
   }
 
   getDepartmentsByRoles(unitId: number): void {

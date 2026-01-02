@@ -47,7 +47,6 @@ export class ContactsPageComponent implements OnInit, OnDestroy {
   units = signal<Unit[]>([]);
   departments = signal<Department[]>([]);
   isLoading = signal(false);
-  errorMessage = signal('');
 
   ngOnInit(): void {
     this.searchSubject$
@@ -80,27 +79,24 @@ export class ContactsPageComponent implements OnInit, OnDestroy {
     const selectElement = event.target as HTMLSelectElement;
     const unitId = selectElement.value;
 
-    this.wasUnitSelected = true;
-    if (unitId === 'null') {
-      this.request.departmentId = undefined;
-      this.departments.set([]);
-      this.form.get('departmentId')?.setValue(null);
-    } else {
-      const numericUnitId = Number(unitId);
-      this.getDepartmentsByRoles(numericUnitId);
+    if (unitId !== 'null') {
+      this.wasDepartmentSelected = false;
+      this.getDepartmentsByRoles(Number(unitId));
     }
 
-    this.getEmployees();
+    this.departments.set([]);
+    this.form.get('departmentId')?.setValue(null);
+
+    this.employees.set([]);
+    this.wasUnitSelected = true;
   }
 
   getEmployees(): void {
     this.isLoading.set(true);
-    this.errorMessage.set('');
 
     this.employeeService.getAllEmployees(this.request)
       .pipe(
         catchError(error => {
-          this.errorMessage.set('Failed to load employees. Please try again.');
           return of([] as Employee[]);
         }),
         delay(500),
