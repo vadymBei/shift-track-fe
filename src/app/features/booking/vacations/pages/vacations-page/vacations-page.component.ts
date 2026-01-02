@@ -47,6 +47,8 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
 
   protected readonly VacationStatus = VacationStatus;
 
+  wasDepartmentSelected = false;
+  wasUnitSelected = false;
   form: FormGroup = this.fb.group({
     searchPattern: [''],
     unitId: [null],
@@ -56,6 +58,10 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
     vacationStatus: [VacationStatus.None]
   });
 
+  units = signal<Unit[]>([]);
+  departments = signal<Department[]>([]);
+  isLoading = signal(false);
+  vacations = signal<Vacation[]>([]);
   request = signal<AllVacationsRequest>({
     searchPattern: '',
     unitId: undefined,
@@ -64,11 +70,6 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
     startDate: new Date(),
     endDate: new Date()
   });
-
-  units = signal<Unit[]>([]);
-  departments = signal<Department[]>([]);
-  isLoading = signal(false);
-  vacations = signal<Vacation[]>([]);
 
   ngOnInit(): void {
     this.searchSubject$
@@ -81,6 +82,38 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
       });
 
     this.getUnitsByRoles();
+  }
+
+  getVacations() {
+    if (this.form.value.unitId === undefined
+      || this.form.value.departmentId === undefined) {
+      this.vacations.set([]);
+      return;
+    }
+
+    this.request.update(req => ({
+      ...req,
+      unitId: this.form.value.unitId,
+      departmentId: this.form.value.departmentId,
+      searchPattern: this.form.value.searchPattern,
+      vacationStatus: this.form.value.vacationStatus,
+      startDate: this.form.value.dateFrom,
+      endDate: this.form.value.dateTo,
+    }))
+
+    this.isLoading.set(true);
+
+    this.vacationService.getVacations(this.request())
+      .pipe(
+        delay(500),
+        finalize(() => {
+          this.isLoading.set(false);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(val => {
+        this.vacations.set(val);
+      });
   }
 
   getUnitsByRoles(): void {
@@ -102,14 +135,16 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
 
     if (unitId === 'null') {
       this.departments.set([]);
+      this.wasDepartmentSelected = false;
 
       this.form.get('departmentId')?.setValue(null);
     } else {
       const numericUnitId = Number(unitId);
-
+      this.wasDepartmentSelected = false;
       this.getDepartmentsByRoles(numericUnitId);
     }
 
+    this.wasUnitSelected = true;
     this.vacations.set([]);
   }
 
@@ -127,6 +162,12 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
   }
 
   onDepartmentChange(event: Event): void {
+    this.getVacations();
+
+    this.wasDepartmentSelected = true;
+  }
+
+  onDateChange(event: Event): void {
     this.getVacations();
   }
 
@@ -165,42 +206,6 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
           window.URL.revokeObjectURL(url);
         }
       });
-  }
-
-  getVacations() {
-    if (this.form.value.unitId === undefined
-      || this.form.value.departmentId === undefined) {
-      this.vacations.set([]);
-      return;
-    }
-
-    this.request.update(req => ({
-      ...req,
-      unitId: this.form.value.unitId,
-      departmentId: this.form.value.departmentId,
-      searchPattern: this.form.value.searchPattern,
-      vacationStatus: this.form.value.vacationStatus,
-      startDate: this.form.value.dateFrom,
-      endDate: this.form.value.dateTo,
-    }))
-
-    this.isLoading.set(true);
-
-    this.vacationService.getVacations(this.request())
-      .pipe(
-        delay(500),
-        finalize(() => {
-          this.isLoading.set(false);
-        }),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(val => {
-        this.vacations.set(val);
-      });
-  }
-
-  onDateChange(event: Event): void {
-    this.getVacations();
   }
 
   openEditVacationModal(vacation: Vacation): void {
