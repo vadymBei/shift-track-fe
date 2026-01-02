@@ -31,6 +31,8 @@ export class ContactsPageComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private readonly searchSubject$ = new Subject<string>();
 
+  wasDepartmentSelected = false;
+  wasUnitSelected = false;
   form: FormGroup = this.fb.group({
     searchPattern: [''],
     unitId: [null],
@@ -78,6 +80,7 @@ export class ContactsPageComponent implements OnInit, OnDestroy {
     const selectElement = event.target as HTMLSelectElement;
     const unitId = selectElement.value;
 
+    this.wasUnitSelected = true;
     if (unitId === 'null') {
       this.request.departmentId = undefined;
       this.departments.set([]);
@@ -124,11 +127,6 @@ export class ContactsPageComponent implements OnInit, OnDestroy {
       });
   }
 
-  onSearchChange(event: Event): void {
-    const inputElement = event.target as HTMLInputElement;
-    this.searchSubject$.next(inputElement.value);
-  }
-
   onDepartmentChange(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
     const departmentId = selectElement.value;
@@ -137,7 +135,14 @@ export class ContactsPageComponent implements OnInit, OnDestroy {
       ? undefined
       : Number(departmentId);
 
+    this.wasDepartmentSelected = true;
+
     this.getEmployees();
+  }
+
+  onSearchChange(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    this.searchSubject$.next(inputElement.value);
   }
 
   ngOnDestroy(): void {
