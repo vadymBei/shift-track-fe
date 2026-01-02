@@ -9,7 +9,9 @@
             formControlName="unitId"
             id="unit"
             (change)="onUnitChange($event)">
-            <option value="null">Оберіть регіон</option>
+            @if(!wasUnitSelected) {
+              <option value="null">Оберіть регіон</option>
+            }
             @for (unit of units(); track unit.id) {
               <option value="{{unit.id}}">{{ unit.name }}</option>
             }
@@ -30,7 +32,9 @@
             id="department"
             formControlName="departmentId"
             (change)="onDepartmentChange($event)">
+            @if (!wasDepartmentSelected) {
             <option value="null">Оберіть департамент</option>
+            }
             @for (department of departments(); track department.id) {
               <option value="{{department.id}}">{{ department.name }}</option>
             }
@@ -78,7 +82,7 @@
   </div>
 </div>
 
-@if (timesheet().employeeTimesheets.length > 0) {
+@if (showTimesheet) {
   <div class="card shadow">
     <div class="card-body">
       <div class="row mb-1 d-flex justify-content-between">

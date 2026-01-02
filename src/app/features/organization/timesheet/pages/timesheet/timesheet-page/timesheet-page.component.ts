@@ -46,6 +46,9 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
 
   private readonly searchSubject$ = new Subject<string>();
 
+  wasDepartmentSelected = false;
+  wasUnitSelected = false;
+  showTimesheet = false;
   timesheet = signal<Timesheet>({
     startDate: new Date(),
     endDate: new Date(),
@@ -119,13 +122,29 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
       this.departments.set([]);
       this.form.get('departmentId')?.setValue(null);
     } else {
-      const numericUnitId = Number(unitId);
-      this.getDepartmentsByRoles(numericUnitId);
+      this.wasDepartmentSelected = false;
+
+      this.getDepartmentsByRoles(Number(unitId));
     }
+
+    this.showTimesheet = false;
+    this.wasUnitSelected = true;
   }
 
   onDepartmentChange(event: Event): void {
-    this.getTimesheet();
+    const selectElement = event.target as HTMLSelectElement;
+    const departmentId = selectElement.value;
+
+    if (departmentId !== 'null') {
+      this.timesheet.update(val => ({
+        ...val,
+        employeeTimesheets: []
+      }));
+
+      this.getTimesheet();
+
+      this.wasDepartmentSelected = true;
+    }
   }
 
   getTimesheet() {
@@ -152,6 +171,8 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
           employeeTimesheets: value.employeeTimesheets
         }));
       });
+
+    this.showTimesheet = true;
   }
 
   onSearchChange(event: Event): void {
