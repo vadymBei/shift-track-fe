@@ -13,7 +13,7 @@
               formControlName="unitId"
               id="unit"
               (change)="onUnitChange($event)">
-              <option value="null">Оберіть регіон</option>
+              <option value="null">Всі</option>
               @for (unit of units(); track unit.id) {
                 <option value="{{unit.id}}">{{ unit.name }}</option>
               }

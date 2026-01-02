@@ -20,6 +20,10 @@ export class EmployeesService {
         filter = filter.set('departmentId', request.departmentId);
       }
 
+      if (request.unitId !== undefined && request.unitId !== null) {
+        filter = filter.set('unitId', request.unitId);
+      }
+
       if (request.searchPattern) {
         filter = filter.set('searchPattern', request.searchPattern);
       }

@@ -43,20 +43,24 @@ import {EmployeeRoleUnitDepartment} from "../../models/employee-role-unit-depart
 export class EmployeesRolesPageComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
+  private fb = inject(FormBuilder);
   private unitService = inject(UnitService);
   private employeeService = inject(EmployeesService);
   private employeeRolesService = inject(EmployeeRolesService);
   private employeeRoleUnitsService = inject(EmployeeRoleUnitsService);
   private employeeRoleUnitDepartmentsService = inject(EmployeeRoleUnitDepartmentsService);
-
   modalService = inject(BsModalService);
 
-  form: FormGroup = new FormGroup({});
-  fb = inject(FormBuilder);
+  form: FormGroup = this.fb.group({
+    searchPattern: [undefined],
+    unitId: [null],
+    departmentId: [null]
+  });
 
   private request = signal<AllEmployeesRequest>({
     searchPattern: undefined,
-    departmentId: undefined
+    departmentId: undefined,
+    unitId: undefined,
   });
 
   employees = signal<Employee[]>([]);
@@ -75,8 +79,6 @@ export class EmployeesRolesPageComponent implements OnInit, OnDestroy {
   showCreateEmployeeRoleUnitDepartmentButton: boolean = false;
 
   ngOnInit(): void {
-    this.initializeForm();
-
     this.getEmployees();
 
     this.getUnits();
@@ -85,14 +87,6 @@ export class EmployeesRolesPageComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  private initializeForm() {
-    this.form = this.fb.group({
-      searchPattern: [undefined],
-      unitId: [null],
-      departmentId: [null]
-    });
   }
 
   private getEmployees() {
@@ -132,6 +126,17 @@ export class EmployeesRolesPageComponent implements OnInit, OnDestroy {
         unitId: null,
         departmentId: null
       });
+
+      this.request.update(req => ({
+        ...req,
+        unitId: undefined
+      }));
+    }
+    else {
+      this.request.update(req => ({
+        ...req,
+        unitId: Number(unitIdValue)
+      }));
     }
 
     this.getEmployees();

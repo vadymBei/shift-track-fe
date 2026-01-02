@@ -118,14 +118,13 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
     const selectElement = event.target as HTMLSelectElement;
     const unitId = selectElement.value;
 
-    if (unitId === 'null') {
-      this.departments.set([]);
-      this.form.get('departmentId')?.setValue(null);
-    } else {
+    if (unitId !== 'null') {
       this.wasDepartmentSelected = false;
-
       this.getDepartmentsByRoles(Number(unitId));
     }
+
+    this.departments.set([]);
+    this.form.get('departmentId')?.setValue(null);
 
     this.showTimesheet = false;
     this.wasUnitSelected = true;

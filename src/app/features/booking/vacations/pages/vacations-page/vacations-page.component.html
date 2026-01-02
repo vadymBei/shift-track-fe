@@ -9,7 +9,9 @@
               formControlName="unitId"
               id="unit"
               (change)="onUnitChange($event)">
-              <option value="null">Оберіть регіон</option>
+              @if (!wasUnitSelected) {
+                <option value="null">Оберіть регіон</option>
+              }
               @for (unit of units(); track unit.id) {
                 <option value="{{unit.id}}">{{ unit.name }}</option>
               }
@@ -28,7 +30,9 @@
               id="department"
               formControlName="departmentId"
               (change)="onDepartmentChange($event)">
-              <option value="null">Оберіть департамент</option>
+              @if (!wasDepartmentSelected) {
+                <option value="null">Оберіть департамент</option>
+              }
               @for (department of departments(); track department.id) {
                 <option value="{{department.id}}">{{ department.name }}</option>
               }
@@ -211,7 +215,7 @@
               </i>
             }
 
-            @if(vacation.status === VacationStatus.ApprovedByDepartmentDirector) {
+            @if (vacation.status === VacationStatus.ApprovedByDepartmentDirector) {
               <i class="bi bi-check2-circle status-approved"
                  tooltip="Затверджено директором"
                  placement="top"
