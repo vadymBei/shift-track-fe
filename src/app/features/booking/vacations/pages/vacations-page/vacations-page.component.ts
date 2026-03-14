@@ -85,8 +85,9 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
   }
 
   getVacations() {
-    if (this.form.value.unitId === undefined
-      || this.form.value.departmentId === undefined) {
+    debugger
+    if (this.form.value.unitId === null
+      || this.form.value.departmentId === null) {
       this.vacations.set([]);
       return;
     }
