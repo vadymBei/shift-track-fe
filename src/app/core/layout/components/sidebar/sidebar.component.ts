@@ -41,6 +41,11 @@ export class SidebarComponent {
       link: '/employees/contact-list'
     },
     {
+      label: 'Зарплати',
+      icon: 'bi bi-cash-coin',
+      link: '/trips'
+    },
+    {
       label: 'Адміністрування',
       icon: 'bi bi-person-gear',
       link: '/administration',
