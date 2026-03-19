@@ -266,3 +266,15 @@ i {
 .tooltip.custom-tooltip .tooltip-arrow::before {
   border-top-color: #dee2e6 !important;
 }
+
+.main-card {
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  backdrop-filter: blur(8px);
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.1) !important;
+  }
+}

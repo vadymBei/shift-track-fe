@@ -1,36 +1,21 @@
-<app-go-back path="/administration">
-</app-go-back>
-
-<div class="card shadow">
-  <div class="card-header">
-    <div class="row align-items-end">
-      <div class="col-1">
-        <strong>
-          Код
-        </strong>
-      </div>
-
-      <div class="col-2">
-        <strong>
-          Робочі години
-        </strong>
-      </div>
-
-      <div class="col-2">
-        <strong>
-          Колір
-        </strong>
-      </div>
-
-      <div class="col">
-        <strong>
-          Опис
-        </strong>
-      </div>
-    </div>
+<div class="row align-items-start justify-content-between mb-3">
+  <div class="col">
+    <h3 class="mb-1">Робочі зміни</h3>
+    <p class="text-secondary mb-0">Налаштування типів змін та робочих годин</p>
   </div>
 
-  <div class="card-body position-relative overflow-auto">
+  <div class="col-3">
+    <button
+      class="btn btn-primary btn-sm mt-2 ms-auto d-flex align-items-center gap-2"
+      (click)="openCreateShiftModal()">
+      <i class=" bi bi-plus"></i>
+      Додати зміну
+    </button>
+  </div>
+</div>
+
+<div class="main-card shadow">
+  <div class="p-3 position-relative">
     @if (isLoading()) {
       <div class="spinner-overlay">
         <div class="spinner-border text-primary" role="status">
@@ -39,48 +24,56 @@
       </div>
     }
 
-    @for (shift of shifts(); track shift.id; let index = $index) {
-      <div
-        class="row pt-3 pb-3"
-        [ngClass]="{ 'bg-body-tertiary': index % 2 !== 0 }">
+    <div class="row g-3">
+      @for (shift of shifts(); track shift.id) {
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body">
+              <div class="row">
+                <div class="col-auto">
+                  <div class="shift-badge" [style.background]="shift.color">
+                    {{ shift.code }}
+                  </div>
+                </div>
 
-        <div class="col-1">
-          <strong> {{ shift.code }}</strong>
-        </div>
+                <div class="col">
+                  <span class="text-secondary">{{ shift.description }}</span>
+                  <br>
 
-        <div class="col-2">
-          <span> {{ shift.workHours | timeSpanHoursMinutesFormat }}</span>
-        </div>
+                  @if (shift.workHours != null) {
+                    <span class="mb-0 text-secondary">
+                      <i class="bi bi-clock me-1"></i>
+                      {{ shift.workHours }}
+                    </span>
+                  }
+                </div>
 
-        <div class="col-2">
-          <div
-            class="d-inline-block rounded border"
-            [style.background]="shift.color"
-            style="width: 24px; height: 24px;"
-            [attr.title]="shift.color">
+                <div class="col-auto">
+                  <div class="dropdown dropdown-hover">
+                    <button class="btn btn-link p-0 text-secondary" type="button">
+                      <i class="bi bi-three-dots"></i>
+                    </button>
+
+                    <ul class="dropdown-menu dropdown-menu-end p-2">
+                      <li>
+                        <a class="dropdown-item" role="button" (click)="openEditShiftModal(shift)">
+                          <i class="bi bi-pencil"></i> Редагувати
+                        </a>
+                      </li>
+                      <li>
+                        <a class="dropdown-item" role="button" (click)="openDeleteConfirmation(shift)">
+                          <i class="bi bi-trash"></i> Видалити
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-
-        <div class="col text-truncate">
-          <span> {{ shift.description }}</span>
-        </div>
-
-        <div class="col-1 d-flex justify-content-between">
-          <i class="bi bi-pencil"
-             (click)="openEditShiftModal(shift)"
-          ></i>
-
-          <i class="bi bi-trash"
-             (click)="openDeleteConfirmation(shift)"
-          ></i>
-        </div>
-      </div>
-    }
+      }
+    </div>
   </div>
-
-  <button class="floating-action-button">
-    <i class="bi bi-plus"
-       (click)="openCreateShiftModal()"></i>
-  </button>
 </div>
 

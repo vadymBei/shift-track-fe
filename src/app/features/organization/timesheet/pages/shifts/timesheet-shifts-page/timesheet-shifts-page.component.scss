@@ -1,4 +1,77 @@
 .card {
-    height: 80vh;
+  position: relative;
+  z-index: 1;
+
+  &:hover {
+    z-index: 10;
   }
-  
+
+  i {
+    color: #6F6797;
+  }
+
+  .bi-clock {
+    font-size: 15px;
+  }
+}
+
+.shift-badge {
+  min-width: 42px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #E6DEEC;
+  border-radius: 8px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropdown-hover {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-hover .dropdown-menu {
+  display: block;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 2000;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transform: translateY(6px);
+  transition: opacity 0.2s ease,
+  transform 0.2s ease,
+  visibility 0s linear 0.5s;
+}
+
+.dropdown-hover:hover .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+
+  transition-delay: 0.5s, 0.5s, 0s;
+}
+
+.dropdown-item {
+  color: #6F6797 !important;
+
+  i {
+    margin-right: 10px;
+    color: #6F6797;
+  }
+}
+
+.dropdown-item:hover {
+  background: #E7E0FD;
+  border-radius: 10px;
+
+  i {
+    color: var(--primary-color);
+  }
+}
