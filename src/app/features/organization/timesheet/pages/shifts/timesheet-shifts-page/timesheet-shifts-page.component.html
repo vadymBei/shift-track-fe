@@ -24,55 +24,120 @@
       </div>
     }
 
-    <div class="row g-3">
-      @for (shift of shifts(); track shift.id) {
-        <div class="col-12 col-md-6 col-lg-4">
-          <div class="card h-100 shadow-sm">
-            <div class="card-body">
-              <div class="row">
-                <div class="col-auto">
-                  <div class="shift-badge" [style.background]="shift.color">
-                    {{ shift.code }}
+    <div class="shift-group mb-4">
+      <h5 class="mb-3">
+        Робочі зміни
+        <span class="text-secondary">({{ workdayShifts.length }})</span>
+      </h5>
+
+      <div class="row g-3">
+        @for (shift of workdayShifts; track shift.id) {
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-auto">
+                    <div class="shift-badge" [style.background]="shift.color">
+                      {{ shift.code }}
+                    </div>
                   </div>
-                </div>
 
-                <div class="col">
-                  <span class="text-secondary">{{ shift.description }}</span>
-                  <br>
+                  <div class="col">
+                    <span class="text-secondary">{{ shift.description }}</span>
+                    <br>
 
-                  @if (shift.workHours != null) {
-                    <span class="mb-0 text-secondary">
-                      <i class="bi bi-clock me-1"></i>
-                      {{ shift.workHours }}
-                    </span>
-                  }
-                </div>
+                    @if (shift.workHours != null) {
+                      <span class="mb-0 text-secondary">
+                        <i class="bi bi-clock me-1"></i>
+                        {{ shift.workHours }}
+                      </span>
+                    }
+                  </div>
 
-                <div class="col-auto">
-                  <div class="dropdown dropdown-hover">
-                    <button class="btn btn-link p-0 text-secondary" type="button">
-                      <i class="bi bi-three-dots"></i>
-                    </button>
+                  <div class="col-auto">
+                    <div class="dropdown dropdown-hover">
+                      <button class="btn btn-link p-0 text-secondary" type="button">
+                        <i class="bi bi-three-dots"></i>
+                      </button>
 
-                    <ul class="dropdown-menu dropdown-menu-end p-2">
-                      <li>
-                        <a class="dropdown-item" role="button" (click)="openEditShiftModal(shift)">
-                          <i class="bi bi-pencil"></i> Редагувати
-                        </a>
-                      </li>
-                      <li>
-                        <a class="dropdown-item" role="button" (click)="openDeleteConfirmation(shift)">
-                          <i class="bi bi-trash"></i> Видалити
-                        </a>
-                      </li>
-                    </ul>
+                      <ul class="dropdown-menu dropdown-menu-end p-2">
+                        <li>
+                          <a class="dropdown-item" role="button" (click)="openEditShiftModal(shift)">
+                            <i class="bi bi-pencil"></i> Редагувати
+                          </a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" role="button" (click)="openDeleteConfirmation(shift)">
+                            <i class="bi bi-trash"></i> Видалити
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      }
+        }
+      </div>
+    </div>
+
+    <div class="shift-group">
+      <h5 class="mb-3">
+        Відсутності
+        <span class="text-secondary">({{ absenceShifts.length }})</span>
+      </h5>
+
+      <div class="row g-3">
+        @for (shift of absenceShifts; track shift.id) {
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-auto">
+                    <div class="shift-badge" [style.background]="shift.color">
+                      {{ shift.code }}
+                    </div>
+                  </div>
+
+                  <div class="col">
+                    <span class="text-secondary">{{ shift.description }}</span>
+                    <br>
+
+                    @if (shift.workHours != null) {
+                      <span class="mb-0 text-secondary">
+                        <i class="bi bi-clock me-1"></i>
+                        {{ shift.workHours }}
+                      </span>
+                    }
+                  </div>
+
+                  <div class="col-auto">
+                    <div class="dropdown dropdown-hover">
+                      <button class="btn btn-link p-0 text-secondary" type="button">
+                        <i class="bi bi-three-dots"></i>
+                      </button>
+
+                      <ul class="dropdown-menu dropdown-menu-end p-2">
+                        <li>
+                          <a class="dropdown-item" role="button" (click)="openEditShiftModal(shift)">
+                            <i class="bi bi-pencil"></i> Редагувати
+                          </a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" role="button" (click)="openDeleteConfirmation(shift)">
+                            <i class="bi bi-trash"></i> Видалити
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
     </div>
   </div>
 </div>

@@ -10,6 +10,7 @@ import {BsModalService} from 'ngx-bootstrap/modal';
 import {EditShiftModalComponent} from '../../../components/shifts/edit-shift-modal/edit-shift-modal.component';
 import {CreateShiftModalComponent} from '../../../components/shifts/create-shift-modal/create-shift-modal.component';
 import {ReactiveFormsModule} from "@angular/forms";
+import {ShiftType} from "../../../enums/shift-type.enum";
 
 @Component({
   selector: 'app-timesheet-shifts-page',
@@ -45,8 +46,17 @@ export class TimesheetShiftsPageComponent implements OnInit, OnDestroy {
         }),
         takeUntil(this.destroy$))
       .subscribe(shifts => {
+        debugger
         this.shifts.set(shifts);
       })
+  }
+
+  get workdayShifts(): Shift[] {
+    return this.shifts().filter(shift => shift.type === ShiftType.workday);
+  }
+
+  get absenceShifts(): Shift[] {
+    return this.shifts().filter(shift => shift.type !== ShiftType.workday);
   }
 
   openCreateShiftModal() {

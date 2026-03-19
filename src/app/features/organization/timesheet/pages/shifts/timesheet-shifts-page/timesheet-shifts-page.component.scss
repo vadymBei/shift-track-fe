@@ -30,12 +30,14 @@
 .dropdown-hover {
   position: relative;
   display: inline-block;
+
+  padding-bottom: 8px;
 }
 
 .dropdown-hover .dropdown-menu {
   display: block;
   position: absolute;
-  top: 100%;
+  top: calc(100% - 2px);
   right: 0;
   z-index: 2000;
 
@@ -44,18 +46,17 @@
   pointer-events: none;
 
   transform: translateY(6px);
-  transition: opacity 0.2s ease,
-  transform 0.2s ease,
-  visibility 0s linear 0.5s;
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s linear 0.15s;
 }
 
-.dropdown-hover:hover .dropdown-menu {
+.dropdown-hover:hover .dropdown-menu,
+.dropdown-hover:focus-within .dropdown-menu {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
   transform: translateY(0);
 
-  transition-delay: 0.5s, 0.5s, 0s;
+  transition-delay: 0s;
 }
 
 .dropdown-item {
