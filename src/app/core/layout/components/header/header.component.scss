@@ -14,30 +14,42 @@
   background: transparent;
   padding: 0.5rem;
   transition: all 0.2s;
+  min-width: 100px;
+}
+
+i {
+  color: #6F6797;
+}
+
+.bi-person-fill{
+  font-size: 25px;
+}
+
+.bi-chevron-compact-up, .bi-chevron-compact-down{
+  font-size: 15px;
 }
 
 .account button:hover {
   background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 0.25rem;
+}
+
+.dropdown-menu {
+  padding: 16px 12px;
 }
 
 .dropdown-item {
   cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background-color: #E7E0FD;
+    border-radius: 0.25rem;
+    color: #423D4F !important;
+  }
 }
 
-.log-out {
-  color: var(--light-color);
-  padding: 10px 20px;
-  font-weight: 800;
-  font-size: 14px;
-  line-height: 24px;
-  cursor: pointer;
-  width: 100%;
-  height: 100%;
-
-  &:hover {
-    background: var(--primary-hover-color);
-  }
+a {
+  color: #6F6797;
 }
 
 a img {

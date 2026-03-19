@@ -1,9 +1,10 @@
-import {Component, computed, inject} from '@angular/core';
+import {Component, computed, inject, signal} from '@angular/core';
 import {MenuItem} from '../../models/menu-item.model';
 import {RouterLink, RouterLinkActive} from '@angular/router';
 import {NgClass} from "@angular/common";
 import {AccountService} from "../../../account/services/account.service";
 import {DefaultRolesCatalog} from "../../../account/constants/default-roles-catalog.constants";
+import {CurrentUser} from "../../../account/models/current-user.model";
 
 @Component({
   selector: 'app-sidebar',
@@ -18,6 +19,7 @@ import {DefaultRolesCatalog} from "../../../account/constants/default-roles-cata
 })
 export class SidebarComponent {
   private accountService = inject(AccountService);
+  currentUser = signal<CurrentUser | null>(this.accountService.currentUser());
 
   private allMenuItems: MenuItem[] = [
     {

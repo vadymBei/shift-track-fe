@@ -10,38 +10,41 @@
         type="button"
         class="btn btn-primary d-flex align-items-center justify-content-center"
         data-bs-toggle="dropdown"
-        aria-expanded="false">
-        <span class="text-primary" *ngIf="currentUser; else loading">
-         {{ currentUser.employee.surname }}  {{ currentUser.employee.name.charAt(0) }}.
+        aria-expanded="false"
+        (click)="isDropdownMenuOpened = !isDropdownMenuOpened">
+        <span class="text-primary d-flex align-items-center justify-content-around">
+          <i class="bi bi-person-fill"></i>
+          @if (isDropdownMenuOpened) {
+            <i class="bi bi-chevron-compact-up"></i>
+          } @else {
+            <i class="bi bi-chevron-compact-down"></i>
+          }
         </span>
-        <ng-template #loading>
-          <span class="text-primary">Завантаження...</span>
-        </ng-template>
       </button>
 
       <ul class="dropdown-menu bg-body-tertiary">
         <li>
-          <a class="dropdown-item text-primary"  routerLink="/administration/profile">
-           <i class="bi bi-person"></i>
+          <a class="dropdown-item" routerLink="/administration/profile">
+            <i class="bi bi-person"></i>
             Мій профіль
           </a>
         </li>
         <li>
-          <a class="dropdown-item text-primary" routerLink="/administration/profile/edit">
+          <a class="dropdown-item" routerLink="/administration/profile/edit">
             <i class="bi bi-person-gear"></i>
             Редагувати профіль
           </a>
         </li>
 
         <li>
-          <a class="dropdown-item text-primary" routerLink="/administration/change-password">
+          <a class="dropdown-item" routerLink="/administration/change-password">
             <i class="bi bi-lock"></i>
             Змінити пароль
           </a>
         </li>
 
         <li>
-          <a class="dropdown-item text-primary" (click)="logOut()">
+          <a class="dropdown-item" (click)="logOut()">
             <i class="bi bi-box-arrow-right"></i>
             Вихід
           </a>
