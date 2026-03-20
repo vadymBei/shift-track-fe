@@ -46,7 +46,6 @@ export class TimesheetShiftsPageComponent implements OnInit, OnDestroy {
         }),
         takeUntil(this.destroy$))
       .subscribe(shifts => {
-        debugger
         this.shifts.set(shifts);
       })
   }

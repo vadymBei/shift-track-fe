@@ -277,4 +277,51 @@ i {
     transform: translateY(-2px);
     box-shadow: 0 12px 30px rgba(0,0,0,0.1) !important;
   }
+
+  .dropdown-hover {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 8px;
+  }
+
+  .dropdown-hover .dropdown-menu {
+    background-color: white;
+    display: block;
+    position: absolute;
+    top: calc(100% - 2px);
+    right: 0;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(6px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s linear 0.15s;
+  }
+
+  .dropdown-hover:hover .dropdown-menu,
+  .dropdown-hover:focus-within .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0) !important;
+    transition-delay: 0s;
+  }
+
+  .dropdown-item {
+    color: #6F6797 !important;
+
+    i {
+      margin-right: 10px;
+      color: #6F6797;
+    }
+  }
+
+  .dropdown-item:hover {
+    background: #E7E0FD;
+    border-radius: 10px;
+
+    i {
+      color: var(--primary-color);
+    }
+  }
 }

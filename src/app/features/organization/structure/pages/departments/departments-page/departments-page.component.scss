@@ -1,7 +1,128 @@
-.card {
-  height: 80vh;
+.region-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem 0.85rem;
+}
 
-  .card-body {
-    height: 70vh;
+.region-card__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+i{
+  font-size: 1.15rem;
+  color: #6d5b86;
+}
+
+.region-card__title {
+  font-size: 1.05rem;
+  color: #4c405d;
+}
+
+.region-card__badge {
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: #f0edf7;
+  color: #8d819f;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.region-card__menu {
+  border: 0;
+  background: transparent;
+  color: #8d819f;
+  padding: 0.25rem;
+}
+
+.region-card__list {
+  margin: 0 1rem;
+  border-radius: 14px;
+  overflow: visible;
+  border: 1px solid rgba(226, 220, 235, 0.9);
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.department-row {
+  min-height: 48px;
+  padding: 0.7rem 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid rgba(232, 228, 239, 0.9);
+  position: relative;
+}
+
+.department-row__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.region-card__add {
+  width: calc(100% - 2rem);
+  margin: 0.85rem 1rem 1rem;
+  padding: 0.3rem 1rem;
+  border: 1px solid rgba(212, 200, 230, 0.8);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.75);
+  color: #8a57d1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  font-weight: 600;
+}
+
+.region-card__add:hover {
+  background: rgba(245, 239, 255, 0.95);
+}
+
+.floating-action-button {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 0;
+  color: #fff;
+  background: linear-gradient(135deg, #8d5be8, #b25cf2);
+  box-shadow: 0 14px 30px rgba(141, 91, 232, 0.35);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+}
+
+.spinner-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.35);
+  z-index: 10;
+}
+
+@media (max-width: 768px) {
+  .departments-page {
+    padding: 0.75rem;
+    border-radius: 18px;
+  }
+
+  .departments-page__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .department-row {
+    align-items: flex-start;
   }
 }
