@@ -24,7 +24,6 @@ $theme-colors: (
   --light-grean-color: #E8F5E9;
   --red-color: #BB2D3B;
   --light-red-color: #FBE9E7;
-
 }
 
 body {
@@ -35,72 +34,31 @@ body {
 }
 
 i {
-  color: #ae7aff;
   font-size: 20px;
-  cursor: pointer;
 }
 
-.bg-primary {
-  background-color: #6200ea !important;
-  color: var(--light-color);
+.text-primary {
+  color: var(--primary-color) !important;
 }
 
-.bg-gray-hover:hover {
-  background-color: var(--grey-color) !important;
-  color: var(--dark-color);
-}
-
-.btn-lavender {
-  background-color: var(--light-color) !important;
-  color: #6200ea !important;
-  border: none;
-}
-
-.btn-lavender:hover {
-  background-color: var(--lavender-color) !important;
-}
-
-.btn-success {
-  color: var(--grean-color) !important;
-  border: none;
-}
-
-.btn-success:active {
-  background-color: var(--light-grean-color) !important;
-}
-
-.btn-success:hover {
-  background-color: var(--light-grean-color);
-}
-
-.btn-danger {
-  color: var(--red-color) !important;
-  border: none;
-}
-
-.btn-danger:active {
-  background-color: var(--light-red-color) !important;
-}
-
-.btn-danger:hover {
-  background-color: var(--light-red-color);
+.btn {
+  padding-left: 1.75rem;
+  padding-right: 1.75rem;
 }
 
 .btn-close {
   color: var(--light-color) !important;
 }
 
-.icon-button {
-  cursor: pointer;
-}
-
-.text-primary {
-  color: #6200ea !important;
-}
-
-.text-bg-primary {
-  background-color: #6200ea !important;
+.btn-primary {
+  background-color: #9645F6 !important;
+  border-color: #9645F6 !important;
   color: var(--light-color) !important;
+
+  &:hover {
+    background-color: #6200ea !important;
+    border-color: #6200ea !important;
+  }
 }
 
 .dropdown-item {
@@ -140,16 +98,6 @@ i {
 
 .page-item {
   cursor: pointer;
-}
-
-.btn {
-  color: var(--light-color);
-  padding: 5px 10px;
-  font-weight: 700;
-  font-size: 14px;
-  line-height: 24px;
-  cursor: pointer;
-  border-radius: 4px;
 }
 
 .container {
@@ -275,7 +223,7 @@ i {
 
   .card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.1) !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1) !important;
   }
 
   .dropdown-hover {
