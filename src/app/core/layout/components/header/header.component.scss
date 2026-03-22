@@ -21,11 +21,11 @@ i {
   color: #6F6797;
 }
 
-.bi-person-fill{
+.bi-person-fill {
   font-size: 25px;
 }
 
-.bi-chevron-compact-up, .bi-chevron-compact-down{
+.bi-chevron-compact-up, .bi-chevron-compact-down {
   font-size: 15px;
 }
 
@@ -43,8 +43,12 @@ i {
   &:hover,
   &:focus-visible {
     background-color: #E7E0FD;
-    border-radius: 0.25rem;
+    border-radius: 10px;
     color: #423D4F !important;
+
+    i {
+      color: var(--primary-color);
+    }
   }
 }
 
@@ -52,7 +56,3 @@ a {
   color: #6F6797;
 }
 
-a img {
-  width: 25px;
-  height: 25px;
-}
