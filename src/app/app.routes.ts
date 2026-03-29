@@ -42,4 +42,10 @@ export const routes: Routes = [
     loadChildren: () => import("./features/booking/vacations/vacations.routes"),
     canActivate: [authGuard]
   },
+  {
+    path: 'salary',
+    component: LayoutComponent,
+    loadChildren: () => import("./features/organization/salary/salary.routes"),
+    canActivate: [authGuard]
+  },
 ];

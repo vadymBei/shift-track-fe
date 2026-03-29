@@ -45,7 +45,7 @@ export class SidebarComponent {
     {
       label: 'Зарплати',
       icon: 'bi bi-cash-coin',
-      link: '/trips'
+      link: '/salary'
     },
     {
       label: 'Адміністрування',
@@ -54,7 +54,6 @@ export class SidebarComponent {
       roles: [DefaultRolesCatalog.SYS_ADMIN, DefaultRolesCatalog.UNIT_DIRECTOR]
     }
   ];
-
 
   public menuItems = computed(() => {
     const userRoles = this.accountService.currentUser()?.roles || [];
