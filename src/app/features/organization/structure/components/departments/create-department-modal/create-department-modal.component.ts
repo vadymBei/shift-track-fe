@@ -26,6 +26,9 @@ export class CreateDepartmentModalComponent implements OnInit, OnDestroy {
 
   bsModalRef = inject(BsModalRef);
 
+  // можна передати через initialState
+  unitId?: number;
+
   fb = inject(FormBuilder);
   form: FormGroup = this.fb.group({
     name: [
@@ -63,6 +66,12 @@ export class CreateDepartmentModalComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(units => {
         this.units.set(units);
+
+        if (this.unitId) {
+          this.form.patchValue({
+            unitId: this.unitId
+          });
+        }
       });
   }
 

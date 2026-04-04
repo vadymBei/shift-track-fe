@@ -38,7 +38,7 @@
               <option [ngValue]="null">Не обрано</option>
 
               @for (unit of units(); track $index) {
-                <option [ngValue]="[unit.id]">{{ unit.name }}</option>
+                <option [ngValue]="unit.id">{{ unit.name }}</option>
               }
             </select>
 

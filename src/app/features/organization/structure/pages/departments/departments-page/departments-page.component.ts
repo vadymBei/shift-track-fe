@@ -51,12 +51,13 @@ export class DepartmentsPageComponent implements OnInit, OnDestroy {
       })
   }
 
-  openCreateDepartmentModal() {
+  openCreateDepartmentModal(unitId?: number) {
     const ref = this.modalService.show(
       CreateDepartmentModalComponent,
       {
         class: 'modal-dialog-centered',
         initialState: {
+          unitId
         }
       }
     );

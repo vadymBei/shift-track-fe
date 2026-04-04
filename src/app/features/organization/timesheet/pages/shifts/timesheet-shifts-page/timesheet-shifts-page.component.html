@@ -25,10 +25,13 @@
     }
 
     <div class="mb-4">
-      <h5 class="mb-3">
-        Робочі зміни
-        <span class="text-secondary">({{ workdayShifts.length }})</span>
-      </h5>
+      <div class="d-flex align-items-center mb-3">
+        <h5 class="mb-0 me-3">
+          Робочі зміни
+          <span class="text-secondary">({{ workdayShifts.length }})</span>
+        </h5>
+        <div class="flex-grow-1 border-bottom"></div>
+      </div>
 
       <div class="row g-3">
         @for (shift of workdayShifts; track shift.id) {
@@ -83,10 +86,13 @@
     </div>
 
     <div class="shift-group">
-      <h5 class="mb-3">
-        Відсутності
-        <span class="text-secondary">({{ absenceShifts.length }})</span>
-      </h5>
+      <div class="d-flex align-items-center mb-3">
+        <h5 class="mb-0 me-3">
+          Відсутності
+          <span class="text-secondary">({{ absenceShifts.length }})</span>
+        </h5>
+        <div class="flex-grow-1 border-bottom"></div>
+      </div>
 
       <div class="row g-3">
         @for (shift of absenceShifts; track shift.id) {
