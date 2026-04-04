@@ -31,6 +31,14 @@ export class CreatePositionModalComponent implements OnInit, OnDestroy {
         Validators.maxLength(100)
       ]
     ],
+    hourlyRate: [
+      '',
+      [
+        Validators.required,
+        Validators.min(0),
+        Validators.max(1000)
+      ]
+    ],
     description: [
       '',
       [
@@ -43,7 +51,8 @@ export class CreatePositionModalComponent implements OnInit, OnDestroy {
   request = signal<CreatePositionRequest>(
     {
       name: '',
-      description: ''
+      description: '',
+      hourlyRate: 0
     }
   );
 
@@ -62,7 +71,8 @@ export class CreatePositionModalComponent implements OnInit, OnDestroy {
     this.request.update(value => ({
       ...value,
       name: this.form.value.name,
-      description: this.form.value.description
+      description: this.form.value.description,
+      hourlyRate: this.form.value.hourlyRate
     }));
 
     this.positionService.createPosition(this.request())

@@ -73,7 +73,8 @@ export class EditEmployeeModalComponent implements OnInit, OnDestroy {
   defaultDropdownPosition: Position = {
     id: 0,
     name: 'Оберіть посаду',
-    description: ''
+    description: '',
+    hourlyRate: 0
   };
 
   request = signal<EditEmployeeRequest>({
