@@ -1,5 +1,4 @@
 import {Component, inject, OnDestroy, OnInit,  signal} from '@angular/core';
-import { GoBackComponent } from '../../../../../../shared/components/go-back/go-back.component';
 import { DepartmentService } from '../../../services/department.service';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import {delay, finalize, Subject, takeUntil} from 'rxjs';
@@ -15,7 +14,6 @@ import { DeleteConfirmationModalComponent } from '../../../../../../shared/compo
   standalone: true,
   imports: [
     CommonModule,
-    GoBackComponent
   ],
   templateUrl: './departments-page.component.html',
   styleUrl: './departments-page.component.scss'

@@ -170,39 +170,6 @@ i {
   height: 3rem;
 }
 
-.floating-action-button {
-  position: fixed;
-  bottom: 6rem;
-  right: 3rem;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background-color: #ae7aff;
-  border: none;
-  color: white;
-  font-size: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-  z-index: 1000;
-  transition: background-color 0.3s, transform 0.3s;
-
-  i {
-    color: var(--light-color);
-  }
-}
-
-.floating-action-button:hover {
-  background-color: var(--primary-hover-color);
-  transform: scale(1.05);
-}
-
-.floating-action-button:active {
-  transform: scale(0.95);
-}
-
 .tooltip.custom-tooltip .tooltip-inner {
   background-color: var(--light-color) !important;
   color: var(--dark-color) !important;

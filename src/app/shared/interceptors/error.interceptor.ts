@@ -10,6 +10,11 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((httpError: HttpErrorResponse) => {
       const backendError = httpError.error as BackendError;
+      const isRefreshRequest = req.url.includes('system/auth/tokens/refresh');
+
+      if (httpError.status === 401 && isRefreshRequest) {
+        return throwError(() => httpError);
+      }
 
       if (backendError) {
         switch (httpError.status) {
@@ -24,11 +29,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           case 422:
             if (backendError.ValidationErrors) {
               errorService.handleValidationError(backendError.ValidationErrors);
-            }
-            else {
+            } else {
               errorService.handleBackendError(backendError);
             }
-
             break;
 
           case 403: // Forbidden

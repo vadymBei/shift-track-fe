@@ -1,5 +1,4 @@
 import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
-import {GoBackComponent} from '../../../../../shared/components/go-back/go-back.component';
 import {EmployeesService} from '../../services/employees.service';
 import {UnitService} from '../../../structure/services/unit.service';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule} from '@angular/forms';
@@ -20,7 +19,6 @@ import {EditEmployeeModalComponent} from '../../components/edit-employee-modal/e
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    GoBackComponent
   ],
   templateUrl: './employees-page.component.html',
   styleUrl: './employees-page.component.scss'

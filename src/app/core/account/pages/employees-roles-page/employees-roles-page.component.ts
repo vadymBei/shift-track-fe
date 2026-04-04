@@ -1,5 +1,4 @@
 import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
-import {GoBackComponent} from '../../../../shared/components/go-back/go-back.component';
 import {Employee} from '../../../../features/organization/employees/models/employee.model';
 import {EmployeesService} from '../../../../features/organization/employees/services/employees.service';
 import {AllEmployeesRequest} from '../../../../features/organization/employees/models/all-employees-request.model';
@@ -34,8 +33,7 @@ import {EmployeeRoleUnitDepartment} from "../../models/employee-role-unit-depart
   imports: [
     CommonModule,
     FormsModule,
-    ReactiveFormsModule,
-    GoBackComponent,
+    ReactiveFormsModule
   ],
   templateUrl: './employees-roles-page.component.html',
   styleUrl: './employees-roles-page.component.scss'

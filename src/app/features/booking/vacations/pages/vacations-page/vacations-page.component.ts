@@ -85,7 +85,6 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
   }
 
   getVacations() {
-    debugger
     if (this.form.value.unitId === null
       || this.form.value.departmentId === null) {
       this.vacations.set([]);
