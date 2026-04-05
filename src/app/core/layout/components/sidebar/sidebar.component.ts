@@ -1,10 +1,9 @@
-import {Component, computed, inject, signal} from '@angular/core';
+import {Component, computed, inject} from '@angular/core';
 import {MenuItem} from '../../models/menu-item.model';
 import {RouterLink, RouterLinkActive} from '@angular/router';
 import {NgClass} from "@angular/common";
 import {AccountService} from "../../../account/services/account.service";
 import {DefaultRolesCatalog} from "../../../account/constants/default-roles-catalog.constants";
-import {CurrentUser} from "../../../account/models/current-user.model";
 
 @Component({
   selector: 'app-sidebar',
@@ -18,8 +17,7 @@ import {CurrentUser} from "../../../account/models/current-user.model";
   styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent {
-  private accountService = inject(AccountService);
-  currentUser = signal<CurrentUser | null>(this.accountService.currentUser());
+  accountService = inject(AccountService);
 
   private allMenuItems: MenuItem[] = [
     {
@@ -55,15 +53,14 @@ export class SidebarComponent {
     }
   ];
 
-  public menuItems = computed(() => {
-    const userRoles = this.accountService.currentUser()?.roles || [];
+  readonly isUserLoaded = computed(() => this.accountService.currentUser() !== null);
 
-    return this.allMenuItems
-      .filter(item => {
-        if (!item.roles || item.roles.length === 0)
-          return true;
+  readonly menuItems = computed(() => {
+    const userRoles = new Set(this.accountService.currentUser()?.roles ?? []);
 
-        return item.roles.some(role => userRoles.includes(role));
-      });
+    return this.allMenuItems.filter(item => {
+      if (!item.roles?.length) return true;
+      return item.roles.some(role => userRoles.has(role));
+    });
   });
 }
