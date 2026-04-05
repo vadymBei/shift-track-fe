@@ -1,5 +1,5 @@
 export enum EmployeeGender {
-    none,
-    male,
-    female
+    none = "None",
+    male = "Male",
+    female = "Female"
 }

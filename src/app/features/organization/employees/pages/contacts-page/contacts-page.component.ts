@@ -10,6 +10,9 @@ import {Unit} from "../../../structure/models/unit.model";
 import {Department} from "../../../structure/models/department.model";
 import {debounceTime} from "rxjs/operators";
 import {CommonModule} from "@angular/common";
+import {RouterLink} from "@angular/router";
+import {EmployeeDetailsModalComponent} from "../../components/employee-details-modal/employee-details-modal.component";
+import {BsModalService, ModalOptions} from "ngx-bootstrap/modal";
 
 @Component({
   selector: 'app-contacts-page',
@@ -17,7 +20,8 @@ import {CommonModule} from "@angular/common";
   imports: [
     CommonModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    RouterLink
   ],
   templateUrl: './contacts-page.component.html',
   styleUrl: './contacts-page.component.scss'
@@ -27,6 +31,7 @@ export class ContactsPageComponent implements OnInit, OnDestroy {
   private readonly departmentService = inject(DepartmentService);
   private readonly unitService = inject(UnitService);
   private readonly fb = inject(FormBuilder);
+  private readonly modalService = inject(BsModalService);
 
   private readonly destroy$ = new Subject<void>();
   private readonly searchSubject$ = new Subject<string>();
@@ -139,6 +144,17 @@ export class ContactsPageComponent implements OnInit, OnDestroy {
   onSearchChange(event: Event): void {
     const inputElement = event.target as HTMLInputElement;
     this.searchSubject$.next(inputElement.value);
+  }
+
+  openEmployeeDetailsModal(employee: Employee): void {
+    this.modalService.show(
+      EmployeeDetailsModalComponent,
+      {
+        class: 'modal-dialog-centered',
+        initialState: {
+          employee: employee
+        }
+      });
   }
 
   ngOnDestroy(): void {

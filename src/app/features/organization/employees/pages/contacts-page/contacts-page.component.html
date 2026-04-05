@@ -1,147 +1,127 @@
-<div class="card shadow mb-4">
-  <div class="card-body">
-    <div class="row" [formGroup]="form">
-      <div class="col-3">
-        <div class="form-floating">
-          <select
-            class="form-control form-control-sm"
-            formControlName="unitId"
-            id="unit"
-            (change)="onUnitChange($event)">
-            @if (!wasUnitSelected) {
-              <option value="null">Оберіть регіон</option>
-            } @else {
-              <option value="null">Всі</option>
-            }
-            @for (unit of units(); track unit.id) {
-              <option value="{{unit.id}}">{{ unit.name }}</option>
-            }
-          </select>
+<div class="main-card p-3 shadow mb-4">
+  <div class="row g-3" [formGroup]="form">
+    <div class="col-12 col-md-4 col-lg-3">
+      <div class="form-floating">
+        <select
+          class="form-select form-select-sm"
+          formControlName="unitId"
+          id="unit"
+          (change)="onUnitChange($event)">
+          @if (!wasUnitSelected) {
+            <option value="null">Оберіть регіон</option>
+          } @else {
+            <option value="null">Всі</option>
+          }
+          @for (unit of units(); track unit.id) {
+            <option value="{{unit.id}}">{{ unit.name }}</option>
+          }
+        </select>
 
-          <label class="form-label" for="unit">
-            Регіон:
-          </label>
-        </div>
+        <label class="form-label" for="unit">
+          Регіон:
+        </label>
       </div>
+    </div>
 
-      <div class="col-3">
-        <div class="form-floating">
-          <select
-            class="form-control form-control-sm"
-            id="department"
-            formControlName="departmentId"
-            (change)="onDepartmentChange($event)">
-            @if (!wasDepartmentSelected) {
-              <option value="null">Оберіть департамент</option>
-            } @else {
-              <option value="null">Всі</option>
-            }
-            @for (department of departments(); track department.id) {
-              <option value="{{department.id}}">{{ department.name }}</option>
-            }
-          </select>
+    <div class="col-12 col-md-4 col-lg-3">
+      <div class="form-floating">
+        <select
+          class="form-select form-select-sm"
+          id="department"
+          formControlName="departmentId"
+          (change)="onDepartmentChange($event)">
+          @if (!wasDepartmentSelected) {
+            <option value="null">Оберіть департамент</option>
+          } @else {
+            <option value="null">Всі</option>
+          }
+          @for (department of departments(); track department.id) {
+            <option value="{{department.id}}">{{ department.name }}</option>
+          }
+        </select>
 
-          <label class="form-label" for="department">
-            Департамент:
-          </label>
-        </div>
+        <label class="form-label" for="department">
+          Департамент:
+        </label>
       </div>
+    </div>
 
-      <div class="col-3">
-        <div class="form-floating">
-          <input
-            class="form-control form-control-sm"
-            id="search"
-            type="text"
-            formControlName="searchPattern"
-            (input)="onSearchChange($event)">
+    <div class="col-12 col-md-4 col-lg-3">
+      <div class="form-floating">
+        <input
+          class="form-control form-control-sm"
+          id="search"
+          type="text"
+          formControlName="searchPattern"
+          (input)="onSearchChange($event)">
 
-          <label class="form-label" for="search">
-            Пошук:
-          </label>
-        </div>
+        <label class="form-label" for="search">
+          Пошук:
+        </label>
       </div>
     </div>
   </div>
 </div>
 
 @if (employees().length > 0) {
-  <div class="card shadow d-flex flex-column phones-card">
-    <div class="card-header">
-      <div class="row">
-        <div class="col-3">
-          <strong>
-            ПІБ
-          </strong>
-        </div>
-
-        <div class="col">
-          <strong>
-            Мобільний
-          </strong>
-        </div>
-
-        <div class="col">
-          <strong>
-            Email
-          </strong>
-        </div>
-
-        <div class="col">
-          <strong>
-            Регіон
-          </strong>
-        </div>
-
-        <div class="col">
-          <strong>
-            Департамент
-          </strong>
-        </div>
-
-        <div class="col">
-          <strong>
-            Посада
-          </strong>
+  <div class="main-card p-3 position-relative">
+    @if (isLoading()) {
+      <div class="spinner-overlay">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
         </div>
       </div>
-    </div>
+    }
 
-    <div class="card-body pt-0 position-relative overflow-auto">
-      @if (isLoading()) {
-        <div class="spinner-overlay">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-        </div>
-      }
+    <div class="row g-3">
+      @for (employee of employees(); track employee.id) {
+        <div class="col-12 col-md-6 col-xl-4">
+          <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden">
+            <div class="card-body p-3 d-flex flex-column">
+              <div class="border-bottom d-flex align-items-start justify-content-between gap-3 mb-3 pb-2">
+                <div class="d-flex align-items-center gap-3">
+                  <div
+                    class="rounded-circle bg-body-secondary d-flex align-items-center justify-content-center flex-shrink-0 overflow-hidden"
+                    style="width: 52px; height: 52px;">
+                    <i class="bi bi-person-fill fs-3 text-secondary"></i>
+                  </div>
 
-      @for (employee of employees(); track employee.id; let index = $index) {
-        <div
-          class="row pt-3 pb-3"
-          [ngClass]="{ 'bg-body-tertiary': index % 2 !== 0 }">
-          <div class="col-3 text-truncate">
-            <strong>{{ employee.fullName }}</strong>
-          </div>
+                  <div class="min-w-0">
+                    <h5 class="card-title mb-1 text-truncate">
+                      {{ employee.fullName }}
+                    </h5>
 
-          <div class="col text-truncate">
-            {{ employee.phoneNumber }}
-          </div>
+                    <span
+                      class="text-secondary">
+                      @if (employee.position !== null) {
+                        {{ employee.position?.name }}
+                      } @else {
+                        Без посади
+                      }
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-          <div class="col text-truncate">
-            {{ employee.email }}
-          </div>
+              <div class="vstack gap-2 small text-secondary">
+                <div class="d-flex align-items-center gap-2 text-truncate">
+                  <i class="bi bi-telephone text-primary"></i>
+                  <span class="text-truncate">{{ employee.phoneNumber }}</span>
+                </div>
 
-          <div class="col text-truncate">
-            {{ employee.department?.unit?.name }}
-          </div>
+                <div class="d-flex align-items-center gap-2 text-truncate">
+                  <i class="bi bi-envelope text-primary"></i>
+                  <span class="text-truncate">{{ employee.email }}</span>
+                </div>
+              </div>
 
-          <div class="col text-truncate">
-            {{ employee.department?.name }}
-          </div>
-
-          <div class="col text-truncate">
-            {{ employee.position?.name }}
+              <div
+                class="count-btn d-flex justify-content-between mt-1"
+                (click)="openEmployeeDetailsModal(employee)">
+                <span class="text-secondary">Переглянути</span>
+                <i class="bi bi-chevron-compact-right text-primary"></i>
+              </div>
+            </div>
           </div>
         </div>
       }
