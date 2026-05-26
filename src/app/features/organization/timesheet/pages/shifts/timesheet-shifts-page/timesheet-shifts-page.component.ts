@@ -1,5 +1,4 @@
 import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
-import {GoBackComponent} from '../../../../../../shared/components/go-back/go-back.component';
 import {delay, finalize, Subject, takeUntil} from 'rxjs';
 import {CommonModule} from '@angular/common';
 import {Shift} from '../../../models/shift.model';
@@ -10,15 +9,15 @@ import {
 import {BsModalService} from 'ngx-bootstrap/modal';
 import {EditShiftModalComponent} from '../../../components/shifts/edit-shift-modal/edit-shift-modal.component';
 import {CreateShiftModalComponent} from '../../../components/shifts/create-shift-modal/create-shift-modal.component';
-import {TimeSpanHoursMinutesFormatPipe} from '../../../../../../shared/pipes/time-span-hours-minutes-format.pipe';
+import {ReactiveFormsModule} from "@angular/forms";
+import {ShiftType} from "../../../enums/shift-type.enum";
 
 @Component({
   selector: 'app-timesheet-shifts-page',
   standalone: true,
   imports: [
     CommonModule,
-    GoBackComponent,
-    TimeSpanHoursMinutesFormatPipe
+    ReactiveFormsModule
   ],
   templateUrl: './timesheet-shifts-page.component.html',
   styleUrl: './timesheet-shifts-page.component.scss'
@@ -49,6 +48,14 @@ export class TimesheetShiftsPageComponent implements OnInit, OnDestroy {
       .subscribe(shifts => {
         this.shifts.set(shifts);
       })
+  }
+
+  get workdayShifts(): Shift[] {
+    return this.shifts().filter(shift => shift.type === ShiftType.workday);
+  }
+
+  get absenceShifts(): Shift[] {
+    return this.shifts().filter(shift => shift.type !== ShiftType.workday);
   }
 
   openCreateShiftModal() {

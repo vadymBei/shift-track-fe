@@ -71,6 +71,47 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
     endDate: new Date()
   });
 
+  // map vacation status to bootstrap border color classes
+  private readonly STATUS_BORDER_CLASS: Record<VacationStatus | string, string> = {
+    [VacationStatus.ApprovedByDepartmentDirector]: 'border-success',
+    [VacationStatus.ApprovedByUnitDirector]: 'border-success',
+    [VacationStatus.PendingApproval]: 'border-warning',
+    [VacationStatus.Rejected]: 'border-danger',
+    [VacationStatus.None]: 'border-secondary'
+  };
+
+  getStatusBorderClass(status?: VacationStatus | string): string {
+    if (!status) return this.STATUS_BORDER_CLASS[VacationStatus.None];
+    return this.STATUS_BORDER_CLASS[status as VacationStatus] || this.STATUS_BORDER_CLASS[VacationStatus.None];
+  }
+
+  // map vacation status to bootstrap badge classes and labels (ukr)
+  private readonly STATUS_BADGE_CLASS: Record<VacationStatus | string, string> = {
+    [VacationStatus.ApprovedByDepartmentDirector]: 'text-success bg-success-subtle',
+    [VacationStatus.ApprovedByUnitDirector]: 'text-success bg-success-subtle',
+    [VacationStatus.PendingApproval]: 'text-warning bg-warning-subtle',
+    [VacationStatus.Rejected]: 'text-danger bg-danger-subtle',
+    [VacationStatus.None]: 'text-secondary bg-secondary-subtle'
+  };
+
+  private readonly STATUS_LABEL: Record<VacationStatus | string, string> = {
+    [VacationStatus.ApprovedByDepartmentDirector]: 'Затверджено',
+    [VacationStatus.ApprovedByUnitDirector]: 'Затверджено',
+    [VacationStatus.PendingApproval]: 'Очікує',
+    [VacationStatus.Rejected]: 'Відхилено',
+    [VacationStatus.None]: 'Невідомо'
+  };
+
+  getStatusBadgeClass(status?: VacationStatus | string): string {
+    if (!status) return this.STATUS_BADGE_CLASS[VacationStatus.None];
+    return this.STATUS_BADGE_CLASS[status as VacationStatus] || this.STATUS_BADGE_CLASS[VacationStatus.None];
+  }
+
+  getStatusLabel(status?: VacationStatus | string): string {
+    if (!status) return this.STATUS_LABEL[VacationStatus.None];
+    return this.STATUS_LABEL[status as VacationStatus] || this.STATUS_LABEL[VacationStatus.None];
+  }
+
   ngOnInit(): void {
     this.searchSubject$
       .pipe(
@@ -85,7 +126,6 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
   }
 
   getVacations() {
-    debugger
     if (this.form.value.unitId === null
       || this.form.value.departmentId === null) {
       this.vacations.set([]);

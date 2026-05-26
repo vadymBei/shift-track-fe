@@ -1,0 +1,47 @@
+.profile-image-container {
+  position: relative;
+  cursor: pointer;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+
+  .profile-image {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: filter 0.3s ease;
+  }
+
+  .profile-image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+
+    .btn {
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+    }
+  }
+
+  &:hover {
+    .profile-image {
+      filter: blur(2px);
+    }
+
+    .profile-image-overlay {
+      opacity: 1;
+
+      .btn {
+        transform: translateY(0);
+      }
+    }
+  }
+}

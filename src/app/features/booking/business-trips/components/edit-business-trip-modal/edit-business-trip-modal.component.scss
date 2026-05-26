@@ -1,0 +1,15 @@
+.dropdown-item-hover:hover {
+  background: #f0eeff;
+  cursor: pointer;
+}
+
+.add-dashed-btn {
+  border: 1.5px dashed #c5c8d8;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+
+  &:hover {
+    border-color: #7c6ff7;
+    background: #f0eeff;
+  }
+}

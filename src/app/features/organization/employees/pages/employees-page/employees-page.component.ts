@@ -1,9 +1,8 @@
 import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
-import {GoBackComponent} from '../../../../../shared/components/go-back/go-back.component';
 import {EmployeesService} from '../../services/employees.service';
 import {UnitService} from '../../../structure/services/unit.service';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {debounceTime, delay, finalize, Subject, takeUntil} from 'rxjs';
+import {catchError, debounceTime, delay, finalize, of, Subject, takeUntil} from 'rxjs';
 import {AllEmployeesRequest} from '../../models/all-employees-request.model';
 import {Employee} from '../../models/employee.model';
 import {Unit} from '../../../structure/models/unit.model';
@@ -12,6 +11,7 @@ import {DepartmentService} from '../../../structure/services/department.service'
 import {Department} from '../../../structure/models/department.model';
 import {BsModalService, ModalOptions} from 'ngx-bootstrap/modal';
 import {EditEmployeeModalComponent} from '../../components/edit-employee-modal/edit-employee-modal.component';
+import {AccountService} from "../../../../../core/account/services/account.service";
 
 @Component({
   selector: 'app-employees-page',
@@ -20,7 +20,6 @@ import {EditEmployeeModalComponent} from '../../components/edit-employee-modal/e
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    GoBackComponent
   ],
   templateUrl: './employees-page.component.html',
   styleUrl: './employees-page.component.scss'
@@ -28,14 +27,22 @@ import {EditEmployeeModalComponent} from '../../components/edit-employee-modal/e
 export class EmployeesPageComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
+  private readonly accountService = inject(AccountService);
   private readonly departmentService = inject(DepartmentService);
   private readonly employeeService = inject(EmployeesService);
   private readonly unitService = inject(UnitService);
   private readonly modalService = inject(BsModalService);
 
+  private isInitialLoad = true;
+  private wasDepartmentSelected = false;
+  private wasUnitSelected = false;
   searchSubject$: Subject<string> = new Subject<string>();
   fb = inject(FormBuilder);
-  form: FormGroup = new FormGroup({});
+  form: FormGroup = this.fb.group({
+    searchPattern: [undefined],
+    unitId: [null],
+    departmentId: [null]
+  });
 
   request = signal<AllEmployeesRequest>({
     searchPattern: '',
@@ -48,42 +55,100 @@ export class EmployeesPageComponent implements OnInit, OnDestroy {
   isLoading = signal(false);
 
   ngOnInit(): void {
-    this.getEmployees();
-
-    this.initializeForm();
-
     this.setupSearchSubscription();
 
-    this.getUnits();
+    this.getUnitsByRoles();
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+  private setupSearchSubscription() {
+    this.searchSubject$
+      .pipe(
+        debounceTime(500),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(searchPattern => {
+        this.request.update(req => ({
+          ...req,
+          searchPattern: searchPattern
+        }));
+
+        this.getEmployees();
+      });
   }
 
-
-  private getEmployees() {
+  private getEmployees(): void {
     this.isLoading.set(true);
 
     this.employeeService.getAllEmployees(this.request())
       .pipe(
+        catchError(_ => {
+          return of([] as Employee[]);
+        }),
         delay(500),
         finalize(() => {
           this.isLoading.set(false);
-        })
+        }),
+        takeUntil(this.destroy$)
       )
-      .subscribe(val => {
-        this.employees.set(val);
+      .subscribe(employees => {
+        this.employees.set(employees);
       });
   }
 
-  private initializeForm() {
-    this.form = this.fb.group({
-      searchPattern: [undefined],
-      unitId: [null],
-      departmentId: [null]
-    });
+  private getUnitsByRoles(): void {
+    this.unitService.getUnitsByRoles()
+      .pipe(
+        catchError(_ => {
+          return of([] as Unit[]);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(units => {
+        this.units.set(units);
+
+        const currentUserUnitId = this.accountService.currentUser()?.employee?.department?.unit?.id;
+
+        if (this.isInitialLoad && currentUserUnitId && units.some(u => u.id === currentUserUnitId)) {
+
+          this.form.get('unitId')?.setValue(currentUserUnitId);
+
+          this.wasUnitSelected = true;
+
+          this.getDepartmentsByRoles(currentUserUnitId);
+        } else {
+          this.isInitialLoad = false;
+        }
+      });
+  }
+
+  private getDepartmentsByRoles(unitId: number): void {
+    this.departmentService.getDepartmentsByRoles(unitId)
+      .pipe(
+        catchError(_ => {
+          return of([] as Department[]);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(departments => {
+        this.departments.set(departments);
+
+        const currentUserDepartmentId = this.accountService.currentUser()?.employee?.departmentId;
+
+        if (this.isInitialLoad && currentUserDepartmentId && departments.some(d => d.id === currentUserDepartmentId)) {
+          this.form.get('departmentId')?.setValue(currentUserDepartmentId);
+
+          this.request.update(req => ({
+            ...req,
+            departmentId: currentUserDepartmentId
+          }));
+
+          this.wasDepartmentSelected = true;
+
+          this.getEmployees();
+        }
+
+        this.isInitialLoad = false;
+      });
   }
 
   onSearchChange(event: Event) {
@@ -91,32 +156,20 @@ export class EmployeesPageComponent implements OnInit, OnDestroy {
     this.searchSubject$.next(inputElement.value);
   }
 
-  onUnitChange(event: Event) {
-    if (!this.request)
-      return;
-
+  onUnitChange(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
     const unitId = selectElement.value;
 
-    if (unitId == 'null') {
-      this.request.update(req => ({
-        ...req,
-        unitId: undefined,
-        departmentId: undefined
-      }));
-      this.departments.set([]);
-
-      this.initializeForm();
-    } else {
-      this.request.update(req => ({
-        ...req,
-        unitId: Number(unitId)
-      }));
-
-      this.getDepartmentsByUnitId(Number(unitId));
+    if (unitId !== 'null') {
+      this.wasDepartmentSelected = false;
+      this.getDepartmentsByRoles(Number(unitId));
     }
 
-    this.getEmployees();
+    this.departments.set([]);
+    this.form.get('departmentId')?.setValue(null);
+
+    this.employees.set([]);
+    this.wasUnitSelected = true;
   }
 
   onDepartmentChange(event: Event) {
@@ -137,27 +190,9 @@ export class EmployeesPageComponent implements OnInit, OnDestroy {
         departmentId: Number(departmentId)
       }));
 
+    this.wasDepartmentSelected = true;
+
     this.getEmployees();
-  }
-
-  private getUnits() {
-    this.unitService.getUnits()
-      .pipe(
-        takeUntil(this.destroy$)
-      )
-      .subscribe(units => {
-        this.units.set(units);
-      });
-  }
-
-  private getDepartmentsByUnitId(unitId: number) {
-    this.departmentService.getDepartmentsByUnitId(unitId)
-      .pipe(
-        takeUntil(this.destroy$)
-      )
-      .subscribe(departments => {
-        this.departments.set(departments);
-      });
   }
 
   openEditEmployeeModal(employeeId: number) {
@@ -175,18 +210,8 @@ export class EmployeesPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  private setupSearchSubscription() {
-    this.searchSubject$
-      .pipe(
-        debounceTime(500),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(searchPattern => {
-        this.request.update(req => ({
-          ...req,
-          searchPattern: searchPattern
-        }));
-        this.getEmployees();
-      });
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

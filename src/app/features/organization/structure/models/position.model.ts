@@ -1,5 +1,6 @@
 export interface Position {
     id: number,
     name: string,
-    description: string
+    description: string,
+    hourlyRate: number
 }

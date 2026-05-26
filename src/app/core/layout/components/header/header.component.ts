@@ -14,26 +14,9 @@ import {CommonModule} from "@angular/common";
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
-export class HeaderComponent implements OnInit {
-  currentUser: CurrentUser | null = null;
-
+export class HeaderComponent {
+  isDropdownMenuOpened = false;
   constructor(private accountService: AccountService) {
-  }
-
-  ngOnInit(): void {
-    this.currentUser = this.accountService.currentUser();
-
-    if (!this.currentUser) {
-      this.accountService.getCurrentUser()
-        .subscribe({
-          next: (user) => {
-            this.currentUser = user;
-          },
-          error: (error) => {
-            console.error('Error fetching user:', error);
-          }
-        });
-    }
   }
 
   logOut(): void {

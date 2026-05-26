@@ -1,13 +1,13 @@
-import {HttpClient} from '@angular/common/http';
-import {inject, Injectable, signal} from '@angular/core';
-import {Token} from '../models/token.model';
-import {catchError, map, Observable, of, tap, throwError} from 'rxjs';
-import {Router} from '@angular/router';
-import {CurrentUser} from '../models/current-user.model';
-import {CreateUserRequest} from '../models/create-user-request.model';
-import {Employee} from '../../../features/organization/employees/models/employee.model';
-import {EditAccountRequest} from '../models/edit-account-request.model';
-import {ChangePasswordRequest} from "../models/change-password-request.model";
+import { HttpClient } from '@angular/common/http';
+import { inject, Injectable, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { catchError, finalize, map, Observable, of, shareReplay, tap, throwError } from 'rxjs';
+import { Token } from '../models/token.model';
+import { CurrentUser } from '../models/current-user.model';
+import { CreateUserRequest } from '../models/create-user-request.model';
+import { Employee } from '../../../features/organization/employees/models/employee.model';
+import { EditAccountRequest } from '../models/edit-account-request.model';
+import { ChangePasswordRequest } from '../models/change-password-request.model';
 
 @Injectable({
   providedIn: 'root'
@@ -18,6 +18,8 @@ export class AccountService {
 
   token = signal<Token | null>(null);
   currentUser = signal<CurrentUser | null>(null);
+
+  private refreshTokenRequest$?: Observable<Token>;
 
   constructor() {
     const storedToken = localStorage.getItem('token');
@@ -43,7 +45,7 @@ export class AccountService {
 
   private setCurrentUser(user: CurrentUser): void {
     localStorage.setItem('currentUser', JSON.stringify(user));
-    this.currentUser.set(user)
+    this.currentUser.set(user);
   }
 
   getCurrentUser(): Observable<CurrentUser | null> {
@@ -61,16 +63,26 @@ export class AccountService {
 
     return this.httpClient.get<CurrentUser>('system/auth/account/current-user')
       .pipe(
-        tap(user => {
-          this.setCurrentUser(user);
-        })
+        tap(user => this.setCurrentUser(user))
       );
   }
 
   login(model: any) {
-    return this.httpClient.post<Token>(`system/auth/tokens/generate`, model)
+    return this.httpClient.post<Token>('system/auth/tokens/generate', model)
       .pipe(
-        map((token) => {
+        tap(token => {
+          if (token.tokenType && token.accessToken && token.refreshToken) {
+            this.setToken(token);
+            this.loadCurrentUser();
+          }
+        })
+      );
+  }
+
+  register(request: CreateUserRequest) {
+    return this.httpClient.post<Token>('system/auth/account/register', request)
+      .pipe(
+        tap(token => {
           if (token.tokenType && token.accessToken && token.refreshToken) {
             this.setToken(token);
             this.loadCurrentUser();
@@ -81,38 +93,37 @@ export class AccountService {
 
   setToken(token: Token) {
     localStorage.setItem('token', JSON.stringify(token));
-
     this.token.set(token);
   }
 
-  register(request: CreateUserRequest) {
-    return this.httpClient.post<Token>(`system/auth/account/register`, request)
-      .pipe(
-        map((token) => {
-          if (token.tokenType && token.accessToken && token.refreshToken) {
-            this.setToken(token);
-            this.loadCurrentUser();
-          }
-        })
-      );
-  }
+  refreshTokenOnce(): Observable<Token> {
+    const refreshToken = this.token()?.refreshToken;
 
-  refreshToken() {
-    return this.httpClient.post<Token>(
-      `system/auth/tokens/refresh`,
-      {
-        refreshToken: this.token()?.refreshToken
+    if (!refreshToken) {
+      this.logout();
+      return throwError(() => new Error('Refresh token is missing'));
+    }
+
+    if (this.refreshTokenRequest$) {
+      return this.refreshTokenRequest$;
+    }
+
+    this.refreshTokenRequest$ = this.httpClient.post<Token>(
+      'system/auth/tokens/refresh',
+      { refreshToken }
+    ).pipe(
+      tap(token => this.setToken(token)),
+      shareReplay(1),
+      finalize(() => {
+        this.refreshTokenRequest$ = undefined;
+      }),
+      catchError(err => {
+        this.logout();
+        return throwError(() => err);
       })
-      .pipe(
-        tap(value => {
-          this.setToken(value);
-        }),
-        catchError(err => {
-          this.logout();
+    );
 
-          return throwError(() => new Error(err));
-        })
-      );
+    return this.refreshTokenRequest$;
   }
 
   logout() {
@@ -126,16 +137,14 @@ export class AccountService {
   updateAccount(request: EditAccountRequest) {
     return this.httpClient.put<Employee>('system/auth/account', request)
       .pipe(
-        tap(() => {
-          this.loadCurrentUser();
-        })
+        tap(() => this.loadCurrentUser())
       );
   }
 
   changePassword(request: ChangePasswordRequest) {
-    return this.httpClient.post<Token>(`system/auth/account/password/change`, request)
+    return this.httpClient.post<Token>('system/auth/account/password/change', request)
       .pipe(
-        map((token) => {
+        tap(token => {
           if (token.tokenType && token.accessToken && token.refreshToken) {
             this.setToken(token);
             this.loadCurrentUser();
@@ -160,12 +169,13 @@ export class AccountService {
 
   uploadProfilePhoto(formData: FormData) {
     return this.httpClient.post(
-      `system/auth/account/upload-photo`,
+      'system/auth/account/upload-photo',
       formData,
       {
         reportProgress: true,
         responseType: 'blob',
         observe: 'response'
-      });
+      }
+    );
   }
 }

@@ -1,29 +1,21 @@
-<app-go-back path="/administration"></app-go-back>
-
-<div class="card shadow">
-  <div class="card-header">
-    <div class="row align-items-end">
-      <div class="col-3">
-        <strong>
-          Код
-        </strong>
-      </div>
-
-      <div class="col">
-        <strong>
-          Назва
-        </strong>
-      </div>
-
-      <div class="col">
-        <strong>
-          Опис
-        </strong>
-      </div>
-    </div>
+<div class="row align-items-start justify-content-between mb-3">
+  <div class="col">
+    <h3 class="mb-1">Регіони</h3>
+    <p class="text-secondary mb-0">Керуйте регіонами компанії</p>
   </div>
 
-  <div class="card-body pt-0 position-relative overflow-auto">
+  <div class="col-3">
+    <button
+      class="btn btn-primary btn-sm mt-2 ms-auto d-flex align-items-center gap-2"
+      (click)="openCreateUnitModal()">
+      <i class="text-white bi bi-plus"></i>
+      Додати регіон
+    </button>
+  </div>
+</div>
+
+<div class="main-card shadow p-3">
+  <div class="position-relative">
     @if (isLoading()) {
       <div class="spinner-overlay">
         <div class="spinner-border text-primary" role="status">
@@ -32,37 +24,42 @@
       </div>
     }
 
-    @for (unit of units(); track unit.id; let index = $index) {
-      <div
-        class="row pt-3 pb-3"
-        [ngClass]="{ 'bg-body-tertiary': index % 2 !== 0 }">
-        <div class="col-3 text-truncate">
-          <strong> {{ unit.code }}</strong>
-        </div>
+    <div class="row g-3">
+      @for (unit of units(); track unit.id;) {
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="card h-100 ">
+            <div class="card-body">
+              <div class="row">
+                <div class="col">
+                  <h5>{{ unit.name }}</h5>
+                  <p class="text-secondary mb-0">{{ unit.description }}</p>
+                </div>
 
-        <div class="col text-truncate">
-          {{ unit.name }}
-        </div>
+                <div class="col-auto justify-content-end">
+                  <div class="dropdown dropdown-hover">
+                    <button class="btn btn-link p-0 text-secondary" type="button">
+                      <i class="bi bi-three-dots"></i>
+                    </button>
 
-        <div class="col text-truncate">
-          {{ unit.description }}
+                    <ul class="dropdown-menu dropdown-menu-end p-2">
+                      <li>
+                        <a class="dropdown-item" role="button" (click)="openEditUnitModal(unit)">
+                          <i class="bi bi-pencil"></i> Редагувати
+                        </a>
+                      </li>
+                      <li>
+                        <a class="dropdown-item" role="button" (click)="openDeleteConfirmation(unit)">
+                          <i class="bi bi-trash"></i> Видалити
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-
-        <div class="col-1 d-flex justify-content-between">
-          <i class="bi bi-pencil"
-             (click)="openEditUnitModal(unit)"
-          ></i>
-
-          <i class="bi bi-trash"
-             (click)="openDeleteConfirmation(unit)"
-          ></i>
-        </div>
-      </div>
-    }
+      }
+    </div>
   </div>
-
-  <button class="floating-action-button">
-    <i class="bi bi-plus"
-       (click)="openCreateUnitModal()"></i>
-  </button>
 </div>

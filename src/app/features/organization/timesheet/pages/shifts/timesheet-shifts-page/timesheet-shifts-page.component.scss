@@ -1,4 +1,28 @@
 .card {
-    height: 80vh;
+  position: relative;
+  z-index: 1;
+
+  &:hover {
+    z-index: 10;
   }
-  
+
+  i {
+    color: #6F6797;
+  }
+
+  .bi-clock {
+    font-size: 15px;
+  }
+}
+
+.shift-badge {
+  min-width: 42px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #E6DEEC;
+  border-radius: 8px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

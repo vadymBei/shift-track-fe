@@ -1,5 +1,4 @@
 import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
-import {GoBackComponent} from '../../../../../../shared/components/go-back/go-back.component';
 import {PositionService} from '../../../services/position.service';
 import {BsModalService} from 'ngx-bootstrap/modal';
 import {delay, finalize, Subject, takeUntil} from 'rxjs';
@@ -20,7 +19,6 @@ import {
   standalone: true,
   imports: [
     CommonModule,
-    GoBackComponent
   ],
   templateUrl: './positions-page.component.html',
   styleUrl: './positions-page.component.scss'

@@ -10,6 +10,9 @@ import {Unit} from "../../../structure/models/unit.model";
 import {Department} from "../../../structure/models/department.model";
 import {debounceTime} from "rxjs/operators";
 import {CommonModule} from "@angular/common";
+import {EmployeeDetailsModalComponent} from "../../components/employee-details-modal/employee-details-modal.component";
+import {BsModalService} from "ngx-bootstrap/modal";
+import {AccountService} from "../../../../../core/account/services/account.service";
 
 @Component({
   selector: 'app-contacts-page',
@@ -23,25 +26,29 @@ import {CommonModule} from "@angular/common";
   styleUrl: './contacts-page.component.scss'
 })
 export class ContactsPageComponent implements OnInit, OnDestroy {
+  private readonly accountService = inject(AccountService);
   private readonly employeeService = inject(EmployeesService);
   private readonly departmentService = inject(DepartmentService);
   private readonly unitService = inject(UnitService);
   private readonly fb = inject(FormBuilder);
+  private readonly modalService = inject(BsModalService);
 
   private readonly destroy$ = new Subject<void>();
   private readonly searchSubject$ = new Subject<string>();
 
-  wasDepartmentSelected = false;
-  wasUnitSelected = false;
+  private isInitialLoad = true;
+  private wasDepartmentSelected = false;
+  private wasUnitSelected = false;
   form: FormGroup = this.fb.group({
     searchPattern: [''],
     unitId: [null],
     departmentId: [null]
   });
-  request: AllEmployeesRequest = {
+
+  request = signal<AllEmployeesRequest>({
     searchPattern: '',
     departmentId: undefined
-  };
+  });
 
   employees = signal<Employee[]>([]);
   units = signal<Unit[]>([]);
@@ -55,27 +62,44 @@ export class ContactsPageComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe(searchPattern => {
-        this.request.searchPattern = searchPattern;
+        this.request.update(req => ({
+          ...req,
+          searchPattern: searchPattern
+        }));
+
         this.getEmployees();
       });
 
     this.getUnitsByRoles();
   }
 
-  getUnitsByRoles(): void {
+  private getUnitsByRoles() {
     this.unitService.getUnitsByRoles()
       .pipe(
-        catchError(error => {
+        catchError(_ => {
           return of([] as Unit[]);
         }),
         takeUntil(this.destroy$)
       )
       .subscribe(units => {
         this.units.set(units);
+
+        const currentUserUnitId = this.accountService.currentUser()?.employee?.department?.unit?.id;
+
+        if (this.isInitialLoad && currentUserUnitId && units.some(u => u.id === currentUserUnitId)) {
+
+          this.form.get('unitId')?.setValue(currentUserUnitId);
+
+          this.wasUnitSelected = true;
+
+          this.getDepartmentsByRoles(currentUserUnitId);
+        } else {
+          this.isInitialLoad = false;
+        }
       });
   }
 
-  onUnitChange(event: Event): void {
+  onUnitChange(event: Event) {
     const selectElement = event.target as HTMLSelectElement;
     const unitId = selectElement.value;
 
@@ -91,12 +115,12 @@ export class ContactsPageComponent implements OnInit, OnDestroy {
     this.wasUnitSelected = true;
   }
 
-  getEmployees(): void {
+  private getEmployees() {
     this.isLoading.set(true);
 
-    this.employeeService.getAllEmployees(this.request)
+    this.employeeService.getAllEmployees(this.request())
       .pipe(
-        catchError(error => {
+        catchError(_ => {
           return of([] as Employee[]);
         }),
         delay(500),
@@ -110,35 +134,73 @@ export class ContactsPageComponent implements OnInit, OnDestroy {
       });
   }
 
-  getDepartmentsByRoles(unitId: number): void {
+  private getDepartmentsByRoles(unitId: number) {
     this.departmentService.getDepartmentsByRoles(unitId)
       .pipe(
-        catchError(error => {
+        catchError(_ => {
           return of([] as Department[]);
         }),
         takeUntil(this.destroy$)
       )
       .subscribe(departments => {
         this.departments.set(departments);
+
+        const currentUserDepartmentId = this.accountService.currentUser()?.employee?.departmentId;
+
+        if (this.isInitialLoad && currentUserDepartmentId && departments.some(d => d.id === currentUserDepartmentId)) {
+          this.form.get('departmentId')?.setValue(currentUserDepartmentId);
+
+          this.request.update(req => ({
+            ...req,
+            departmentId: currentUserDepartmentId
+          }));
+
+          this.wasDepartmentSelected = true;
+
+          this.getEmployees();
+        }
+
+        this.isInitialLoad = false;
       });
   }
 
-  onDepartmentChange(event: Event): void {
+  onDepartmentChange(event: Event) {
+    if (!this.request)
+      return;
+
     const selectElement = event.target as HTMLSelectElement;
     const departmentId = selectElement.value;
 
-    this.request.departmentId = departmentId === 'null'
-      ? undefined
-      : Number(departmentId);
+    if (departmentId == 'null')
+      this.request.update(req => ({
+        ...req,
+        departmentId: undefined
+      }));
+    else
+      this.request.update(req => ({
+        ...req,
+        departmentId: Number(departmentId)
+      }));
 
     this.wasDepartmentSelected = true;
 
     this.getEmployees();
   }
 
-  onSearchChange(event: Event): void {
+  onSearchChange(event: Event) {
     const inputElement = event.target as HTMLInputElement;
     this.searchSubject$.next(inputElement.value);
+  }
+
+  openEmployeeDetailsModal(employee: Employee) {
+    this.modalService.show(
+      EmployeeDetailsModalComponent,
+      {
+        class: 'modal-dialog-centered',
+        initialState: {
+          employee: employee
+        }
+      });
   }
 
   ngOnDestroy(): void {

@@ -17,7 +17,7 @@ import {DefaultRolesCatalog} from "../../../account/constants/default-roles-cata
   styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent {
-  private accountService = inject(AccountService);
+  accountService = inject(AccountService);
 
   private allMenuItems: MenuItem[] = [
     {
@@ -33,12 +33,17 @@ export class SidebarComponent {
     {
       label: 'Відрядження',
       icon: 'bi bi-briefcase',
-      link: '/trips'
+      link: '/business-trips'
     },
     {
       label: 'Довідник',
       icon: 'bi bi-journal-text',
       link: '/employees/contact-list'
+    },
+    {
+      label: 'Зарплати',
+      icon: 'bi bi-cash-coin',
+      link: '/salary'
     },
     {
       label: 'Адміністрування',
@@ -48,16 +53,14 @@ export class SidebarComponent {
     }
   ];
 
+  readonly isUserLoaded = computed(() => this.accountService.currentUser() !== null);
 
-  public menuItems = computed(() => {
-    const userRoles = this.accountService.currentUser()?.roles || [];
+  readonly menuItems = computed(() => {
+    const userRoles = new Set(this.accountService.currentUser()?.roles ?? []);
 
-    return this.allMenuItems
-      .filter(item => {
-        if (!item.roles || item.roles.length === 0)
-          return true;
-
-        return item.roles.some(role => userRoles.includes(role));
-      });
+    return this.allMenuItems.filter(item => {
+      if (!item.roles?.length) return true;
+      return item.roles.some(role => userRoles.has(role));
+    });
   });
 }

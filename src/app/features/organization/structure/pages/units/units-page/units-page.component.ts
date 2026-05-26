@@ -5,7 +5,6 @@ import {Unit} from '../../../models/unit.model';
 import {CommonModule} from '@angular/common';
 import {BsModalService} from 'ngx-bootstrap/modal';
 import {EditUnitModalComponent} from '../../../components/units/edit-unit-modal/edit-unit-modal.component';
-import {GoBackComponent} from '../../../../../../shared/components/go-back/go-back.component';
 import {CreateUnitModalComponent} from '../../../components/units/create-unit-modal/create-unit-modal.component';
 import {
   DeleteConfirmationModalComponent
@@ -16,7 +15,6 @@ import {
   standalone: true,
   imports: [
     CommonModule,
-    GoBackComponent
   ],
   templateUrl: './units-page.component.html',
   styleUrl: './units-page.component.scss'

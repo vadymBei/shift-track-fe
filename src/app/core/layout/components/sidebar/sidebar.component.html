@@ -1,18 +1,35 @@
-<div class="d-flex flex-column vh-100">
-  <div class="bg-body-tertiary w-100 h-100 d-flex">
+<div class="sidebar-background d-flex flex-column vh-100">
+  <div class="row">
+    <div class="col d-flex justify-content-center align-items-center">
+      <span class="employee-name">{{ accountService.currentUser()?.employee?.fullName }}</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col d-flex justify-content-center align-items-center">
+      <span class="employee-position">{{ accountService.currentUser()?.employee?.position?.name }}</span>
+    </div>
+  </div>
+
+  <div class="w-100 h-100 d-flex">
     <nav class="navbar w-100 h-100 d-flex flex-column">
-      <ul class="navbar-nav w-100 flex-grow-1 gap-1">
-        @for (item of menuItems(); track item.link) {
-          <li class="main-menu-list w-100 d-flex justify-content-center">
-            <a class="menu-item d-flex align-items-center py-1 pt-2 pb-2"
-               routerLink="{{item.link}}"
-               routerLinkActive="active">
-              <i [ngClass]="item.icon" class="d-flex align-items-center"></i>
-              <span>{{ item.label }}</span>
-            </a>
-          </li>
-        }
-      </ul>
+      @if (isUserLoaded()) {
+        <ul class="navbar-nav w-100 flex-grow-1 gap-1">
+          @for (item of menuItems(); track item.link) {
+            <li class="main-menu-list w-100 d-flex justify-content-center">
+              <a class="menu-item d-flex align-items-center py-1 pt-2 pb-2"
+                 routerLink="{{item.link}}"
+                 routerLinkActive="active">
+                <i [ngClass]="item.icon" class="d-flex align-items-center"></i>
+                <span>{{ item.label }}</span>
+              </a>
+            </li>
+          }
+        </ul>
+      } @else {
+      <div class="sidebar-menu-loading">
+      </div>
+    }
     </nav>
   </div>
 </div>

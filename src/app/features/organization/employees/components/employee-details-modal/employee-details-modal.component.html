@@ -1,0 +1,82 @@
+<div class="modal-header border-0 pb-0">
+  <div class="d-flex align-items-center gap-3">
+    <div
+      class="rounded-circle bg-body-secondary d-flex align-items-center justify-content-center overflow-hidden flex-shrink-0"
+      style="width: 64px; height: 64px;">
+      <img
+        class="profile-image w-100 h-100 object-fit-cover"
+        [src]="profilePhotoUrl()"
+        alt="Profile">
+    </div>
+
+    <div class="min-w-0">
+      <h5 class="modal-title mb-1 text-truncate">
+        {{ employee?.fullName }}
+      </h5>
+
+      <span class="text-secondary">
+        {{ positionName }}
+      </span>
+    </div>
+  </div>
+
+  <button
+    type="button" class="btn-close"
+    aria-label="Close"
+    (click)="bsModalRef.hide()">
+  </button>
+</div>
+
+<div class="modal-body pt-3">
+  <div class="d-grid gap-3">
+    <h6 class="mb-0">Контактна інформація</h6>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-body pt-2">
+        <div class="list-group list-group-flush">
+          <div class="list-group-item px-0 d-flex align-items-center gap-2">
+            <i class="bi bi-telephone text-primary"></i>
+            <span>{{ employee?.phoneNumber }}</span>
+          </div>
+
+          <div class="list-group-item px-0 d-flex align-items-center gap-2">
+            <i class="bi bi-envelope text-primary"></i>
+            <span class="text-break">{{ employee?.email }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h6 class="mb-0">Деталі</h6>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-body pt-2">
+        <div class="list-group list-group-flush">
+          <div class="list-group-item px-0 d-flex align-items-center gap-2">
+            <i class="bi bi-cake2 text-primary"></i>
+            <span>{{ employee?.dateOfBirth ? (employee?.dateOfBirth | date:'dd MMMM yyyy') : 'Не вказано' }}</span>
+          </div>
+
+          <div class="list-group-item px-0 d-flex align-items-center gap-2">
+            <i class="bi bi-buildings text-primary"></i>
+            <span>{{ unitName }}</span>
+          </div>
+
+          <div class="list-group-item px-0 d-flex align-items-center gap-2">
+            <i class="bi bi-building text-primary"></i>
+            <span>{{ departmentName }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-footer d-flex justify-content-center border-0 pt-0">
+  <button
+    type="button"
+    class="btn btn-light"
+    (click)="bsModalRef.hide()">
+    Закрити
+  </button>
+</div>

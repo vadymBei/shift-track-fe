@@ -31,6 +31,14 @@ export class EditPositionModalComponent implements OnInit, OnDestroy {
         Validators.maxLength(100)
       ]
     ],
+    hourlyRate: [
+      '',
+      [
+        Validators.required,
+        Validators.min(0),
+        Validators.max(1000)
+      ]
+    ],
     description: [
       '',
       [
@@ -44,7 +52,8 @@ export class EditPositionModalComponent implements OnInit, OnDestroy {
     {
       id: 0,
       name: '',
-      description: ''
+      description: '',
+      hourlyRate: 0
     }
   );
 
@@ -68,7 +77,8 @@ export class EditPositionModalComponent implements OnInit, OnDestroy {
   updateFormWithPositionData(position: Position) {
     this.form.patchValue({
       name: position.name,
-      description: position.description
+      description: position.description,
+      hourlyRate: position.hourlyRate
     });
   }
 
@@ -81,6 +91,7 @@ export class EditPositionModalComponent implements OnInit, OnDestroy {
       id: this.position!.id,
       name: this.form.value.name,
       description: this.form.value.description,
+      hourlyRate: this.form.value.hourlyRate
     }));
 
     this.positionService.updatePosition(this.request())

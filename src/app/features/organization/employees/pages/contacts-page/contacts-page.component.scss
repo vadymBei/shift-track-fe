@@ -1,8 +1,12 @@
-.phones-card {
-  height: 70vh;
+.count-btn {
+  cursor: pointer;
+  width: 100%;
+  padding: 0.2rem 1rem;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #ffffff 0%, rgba(234, 227, 253) 100%);
+  box-shadow: 0 4px 14px rgba(13, 110, 253, 0.12);
 
-  .card-body{
-    height: 55vh;
+  i {
+    font-size: 20px;
   }
 }
-

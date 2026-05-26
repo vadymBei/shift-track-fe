@@ -1,7 +1,7 @@
 export enum ShiftType {
-    none,
-    workday,
-    holiday,
-    vacation,
-    dayOff
+  none = 'None',
+  workday = 'Workday',
+  holiday = 'Holiday',
+  vacation = 'Vacation',
+  dayOff = 'DayOff'
 }

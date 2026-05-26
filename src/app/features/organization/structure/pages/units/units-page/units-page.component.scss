@@ -1,7 +1,12 @@
 .card {
-  height: 80vh;
+  position: relative;
+  z-index: 1;
 
-  .card-body{
-    height: 70vh;
+  &:hover {
+    z-index: 10;
+  }
+
+  i {
+    color: #6F6797;
   }
 }

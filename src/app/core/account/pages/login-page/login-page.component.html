@@ -1,104 +1,141 @@
-<div class="login-container min-vh-100 d-flex justify-content-center align-items-center">
-  <div class="container text-center">
-    <div class="row justify-content-center">
-      <div class="col-7">
-        <div class="card shadow mt-5 mt-xl-10 mb-4">
-          <div class="row g-0">
-            <div class="col">
-              <div class="card-body p-5">
-                <div class="row justify-content-between">
-                  <div class="col">
-                    <div class="row justify-content-start">
-                      <div class="col-auto">
-                        <h1 class="h1 display-5 mb-3">Вхід</h1>
-                      </div>
-                    </div>
-
-                    <form
-                      class="mb-5"
-                      [formGroup]="form"
-                      (ngSubmit)="login()">
-
-                      <div class="form-floating mb-3">
-                        <input
-                          id="login"
-                          class="form-control"
-                          type="text"
-                          placeholder="+380XXXXXXXXX"
-                          formControlName="login">
-
-                        <label
-                          for="login"
-                          class="form-label">
-                          Телефон:
-                        </label>
-                      </div>
-
-                      <div class="form-floating mb-3">
-                        <input
-                          class="form-control"
-                          id="floatingPassword"
-                          type="password"
-                          placeholder="Мінімум 6 символів"
-                          formControlName="password"
-                          [type]="isPasswordVisible() ? 'text' : 'password'">
-
-                        <button
-                          type="button"
-                          class="password-eye-btn"
-                          (click)="isPasswordVisible.set(!isPasswordVisible())">
-
-                          <i class="bi bi-eye-slash-fill"
-                             *ngIf="isPasswordVisible()">
-                          </i>
-
-                          <i class="bi bi-eye-fill"
-                             *ngIf="!isPasswordVisible()">
-                          </i>
-                        </button>
-
-                        <label
-                          class="form-label"
-                          for="floatingPassword">
-                          Пароль:
-                        </label>
-                      </div>
-
-                      <div class="row p-0 justify-content-between align-items-end">
-                        <div class="col text-start">
-                          <a class="fw-500"
-                             routerLink="/account/register">
-                            Зареєструватись
-                          </a>
-                        </div>
-
-                        <div class="col d-flex justify-content-end">
-                          <button
-                            class="btn btn-primary"
-                            type="submit"
-                            [class.disabled]="!form.valid"
-                            [disabled]="!form.valid">Увійти
-                          </button>
-                        </div>
-                      </div>
-                    </form>
-                  </div>
-
-                  <div class="col d-flex flex-column justify-content-center align-items-center">
-                    <div class="row">
-                      <div class="col">
-                        <img class="logo" src="/assets/icons/cube_large.svg" alt="ShiftTrack">
-                      </div>
-                    </div>
-
-                    <div class="row">
-                      <div class="col">
-                        <h1 class="h1">ShiftTrack</h1>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+<div class="login-page-wrapper">
+  <div class="login-card shadow border-0">
+    <div class="login-card-body">
+      <div class="login-columns">
+        <div class="login-left">
+          <div class="row">
+            <div class="col ">
+              <div class="d-flex align-items-center gap-2 mb-4">
+                <img class="logo" src="/assets/icons/cube_large.svg" alt="ShiftTrack">
+                <h3 class="mb-0">ShiftTrack</h3>
               </div>
+            </div>
+          </div>
+
+          <div class="info-column text-start">
+            <h4 class="text-black mb-0">Керуйте робочими</h4>
+            <h4 class="text-black mb-4">змінами легко</h4>
+
+            <div class="feature-list mb-4">
+              <div class="feature-item">
+                <i class="bi bi-check-circle-fill check-icon"></i>
+                <span>Перегляд розкладу</span>
+              </div>
+
+              <div class="feature-item">
+                <i class="bi bi-check-circle-fill check-icon"></i>
+                <span>Облік відпрацьованих годин</span>
+              </div>
+
+              <div class="feature-item">
+                <i class="bi bi-check-circle-fill check-icon"></i>
+                <span>Табель для бухгалтерії</span>
+              </div>
+            </div>
+
+            <div class="info-preview card border-0 shadow-sm">
+              <div class="card-body">
+                <div class="d-flex align-items-center gap-2 fw-bold mb-2">
+                  <i class="bi bi-clock clock-icon"></i>
+                  <span>Сьогодні працюють</span>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <i class="bi bi-circle-fill circle-icon"></i>
+                  <span>Онлайн: 23 працівники</span>
+                </div>
+
+                <table class="table table-bordered mb-0">
+                  <tbody>
+                  <tr>
+                    <td class="d-flex justify-content-between align-items-center">
+                      <span>08:00 - 16:00</span>
+                      <span class="fw-bold">Іван</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="d-flex justify-content-between align-items-center">
+                      <span>10:00 - 19:00</span>
+                      <span class="fw-bold">Марія</span>
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="login-right">
+          <div class="form-card card shadow-sm border-0">
+            <div class="card-body p-4">
+              <h5 class="text-start text-black mb-3">Вхід до системи</h5>
+
+              <form
+                [formGroup]="form"
+                (ngSubmit)="login()">
+
+                <div class="form-floating mb-3">
+                  <input
+                    id="login"
+                    class="form-control"
+                    type="text"
+                    placeholder="+380XXXXXXXXX"
+                    formControlName="login">
+
+                  <label
+                    for="login"
+                    class="form-label">
+                    Телефон:
+                  </label>
+                </div>
+
+                <div class="form-floating mb-3 position-relative">
+                  <input
+                    class="form-control"
+                    id="floatingPassword"
+                    type="password"
+                    placeholder="Мінімум 6 символів"
+                    formControlName="password"
+                    [type]="isPasswordVisible() ? 'text' : 'password'">
+
+                  <button
+                    type="button"
+                    class="password-eye-btn"
+                    (click)="isPasswordVisible.set(!isPasswordVisible())">
+
+                    <i class="bi bi-eye-slash-fill"
+                       *ngIf="isPasswordVisible()">
+                    </i>
+
+                    <i class="bi bi-eye-fill"
+                       *ngIf="!isPasswordVisible()">
+                    </i>
+                  </button>
+
+                  <label
+                    class="form-label"
+                    for="floatingPassword">
+                    Пароль:
+                  </label>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-end gap-3 mt-4">
+                  <a
+                    class="fw-500"
+                    routerLink="/account/register">
+                    Зареєструватись
+                  </a>
+
+                  <button
+                    class="btn btn-primary"
+                    type="submit"
+                    [class.disabled]="!form.valid"
+                    [disabled]="!form.valid">
+                    Увійти
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

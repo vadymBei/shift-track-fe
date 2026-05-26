@@ -1,17 +1,21 @@
-<app-go-back path="/administration"></app-go-back>
-
-<div class="card shadow">
-  <div class="card-header">
-    <div class="row align-items-end">
-      <div class="col">
-        <strong>
-          Назва
-        </strong>
-      </div>
-    </div>
+<div class="row align-items-start justify-content-between mb-3">
+  <div class="col">
+    <h3 class="mb-1">Департаменти</h3>
+    <p class="text-secondary mb-0">Керуйте підрозділами компанії</p>
   </div>
 
-  <div class="card-body position-relative overflow-auto">
+  <div class="col-3">
+    <button
+      class="btn btn-primary btn-sm mt-2 ms-auto d-flex align-items-center gap-2"
+      (click)="openCreateDepartmentModal()">
+      <i class="text-white bi bi-plus"></i>
+      Додати департамент
+    </button>
+  </div>
+</div>
+
+<div class="main-card pt-3 pb-1 px-3 shadow">
+  <div class="departments-page__content position-relative">
     @if (isLoading()) {
       <div class="spinner-overlay">
         <div class="spinner-border text-primary" role="status">
@@ -21,41 +25,55 @@
     }
 
     @for (group of groupedDepartments(); track $index) {
-      <div class="mb-3">
-        <div class="row pt-3 pb-3 text-bg-primary">
-          <div class="col">
-            <strong>
-              Регіон: {{ group.unit.name }}
-            </strong>
+      <div class="card mb-3 shadow-sm">
+        <div class="region-card__header">
+          <div class="region-card__title-wrap">
+            <i class="bi bi-buildings region-card__icon"></i>
+
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <strong class="region-card__title">{{ group.unit.name }}</strong>
+              <span class="region-card__badge">{{ group.departments.length }} департаменти</span>
+            </div>
           </div>
         </div>
 
-        @for (department of group.departments; track department.id; let index = $index) {
-          <div class="row pt-3 pb-3" [ngClass]="{ 'bg-body-tertiary': index % 2 !== 0 }">
-            <div class="col-1">
-            </div>
+        <div class="region-card__list">
+          @for (department of group.departments; track department.id;) {
+            <div class="department-row">
+              <div class="department-row__left">
+                <i class="bi bi-building department-row__icon"></i>
+                <span class="department-row__name">{{ department.name }}</span>
+              </div>
 
-            <div class="col">
-              <strong>{{ department.name }}</strong>
-            </div>
+              <div class="department-row__actions">
+                <div class="dropdown dropdown-hover">
+                  <button class="btn btn-link p-0 text-secondary" type="button">
+                    <i class="bi bi-three-dots"></i>
+                  </button>
 
-            <div class="col-1 d-flex justify-content-between">
-              <i class="bi bi-pencil"
-                 (click)="openEditDepartmentModal(department)"
-              ></i>
-
-              <i class="bi bi-trash"
-                 (click)="openDeleteConfirmation(department)"
-              ></i>
+                  <ul class="dropdown-menu dropdown-menu-end p-2">
+                    <li>
+                      <a class="dropdown-item" role="button" (click)="openEditDepartmentModal(department)">
+                        <i class="bi bi-pencil"></i> Редагувати
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" role="button" (click)="openDeleteConfirmation(department)">
+                        <i class="bi bi-trash"></i> Видалити
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
-          </div>
-        }
+          }
+        </div>
+
+        <button type="button" class="region-card__add" (click)="openCreateDepartmentModal(group.unit.id)">
+          <i class="bi bi-plus-lg"></i>
+          <span class="text-secondary">Додати департамент</span>
+        </button>
       </div>
     }
   </div>
-
-  <button class="floating-action-button">
-    <i class="bi bi-plus"
-       (click)="openCreateDepartmentModal()"></i>
-  </button>
 </div>

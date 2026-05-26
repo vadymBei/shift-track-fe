@@ -2,7 +2,7 @@
   <div class="card-body">
     <div class="row mb-4">
       <div class="col">
-        <h6 class="h6">Додати посаду</h6>
+        <h5>Додати посаду</h5>
       </div>
 
       <div class="col-1">
@@ -47,10 +47,33 @@
             </label>
           </div>
 
-          <div class="row">
-            <div class="col d-flex justify-content-end">
+          <div class="form-floating mb-3">
+            <input
+              class="form-control"
+              type="number"
+              id="hourlyRate"
+              formControlName="hourlyRate">
+
+            <label
+              class="form-label"
+              for="hourlyRate">
+              Ставка:
+            </label>
+          </div>
+
+          <div class="row d-flex justify-content-end">
+            <div class="col-auto">
               <button
-                class="btn btn-lavender"
+                type="button"
+                class="btn btn-light shadow"
+                (click)="bsModalRef.hide()">
+                Скасувати
+              </button>
+            </div>
+
+            <div class="col-auto">
+              <button
+                class="btn btn-primary shadow"
                 type="submit"
                 form="createPositionForm"
                 [class.disabled]="!form.valid"

@@ -1,175 +1,135 @@
-<div class="card shadow mb-4">
-  <div class="card-body">
-    <form [formGroup]="form">
-      <div class="row mb-3">
-        <div class="col-3">
-          <div class="form-floating">
-            <select
-              class="form-control form-control-sm"
-              formControlName="unitId"
-              id="unit"
-              (change)="onUnitChange($event)">
-              @if (!wasUnitSelected) {
-                <option value="null">Оберіть регіон</option>
-              }
-              @for (unit of units(); track unit.id) {
-                <option value="{{unit.id}}">{{ unit.name }}</option>
-              }
-            </select>
+<div class="row align-items-start justify-content-between mb-3">
+  <div class="col">
+    <h3 class="mb-1">Заявки на відпустку</h3>
+    <p class="text-secondary mb-0">Керування та погодження відпусток</p>
+  </div>
 
-            <label class="form-label" for="unit">
-              Регіон:
-            </label>
-          </div>
-        </div>
-
-        <div class="col-3">
-          <div class="form-floating">
-            <select
-              class="form-control form-control-sm"
-              id="department"
-              formControlName="departmentId"
-              (change)="onDepartmentChange($event)">
-              @if (!wasDepartmentSelected) {
-                <option value="null">Оберіть департамент</option>
-              }
-              @for (department of departments(); track department.id) {
-                <option value="{{department.id}}">{{ department.name }}</option>
-              }
-            </select>
-
-            <label class="form-label" for="department">
-              Департамент:
-            </label>
-          </div>
-        </div>
-
-        <div class="col-3">
-          <div class="form-floating">
-            <select
-              class="form-control form-control-sm"
-              id="vacationStatus"
-              formControlName="vacationStatus"
-              (change)="onVacationStatusChange($event)">
-              <option value="None">Всі</option>
-              <option value="PendingApproval">Очікує затвердежння</option>
-              <option value="ApprovedByDepartmentDirector">Затверджено директором</option>
-              <option value="ApprovedByUnitDirector">Затверджено регіональним директором</option>
-              <option value="Rejected">Відхилено</option>
-            </select>
-
-            <label class="form-label" for="vacationStatus">
-              Статус:
-            </label>
-          </div>
-        </div>
-
-        <div class="col-3">
-          <div class="form-floating">
-            <input
-              class="form-control form-control-sm"
-              id="search"
-              type="text"
-              formControlName="searchPattern"
-              (input)="onSearchChange($event)">
-
-            <label class="form-label" for="search">
-              Пошук:
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-3">
-          <div class="form-floating">
-            <input
-              id="dateFrom"
-              type="date"
-              class="form-control"
-              (change)="onDateChange($event)"
-              formControlName="dateFrom">
-
-            <label
-              class="form-label"
-              for="dateFrom">
-              Дата початку:
-            </label>
-          </div>
-        </div>
-
-        <div class="col-3">
-          <div class="form-floating">
-            <input
-              class="form-control"
-              type="date"
-              id="dateTo"
-              (change)="onDateChange($event)"
-              formControlName="dateTo">
-
-            <label
-              class="form-label"
-              for="dateTo">
-              Дата закінчення:
-            </label>
-          </div>
-        </div>
-      </div>
-    </form>
+  <div class="col-12 col-md-auto">
+    <button
+      class="btn btn-primary btn-sm mt-2 ms-auto d-flex align-items-center gap-2"
+      (click)="openCreateVacationModal()">
+      <i class="text-white bi bi-plus"></i>
+      Створити заявку
+    </button>
   </div>
 </div>
 
-@if (vacations().length > 0) {
-  <div class="card shadow d-flex flex-column vacations-card">
-    <div class="card-header">
-      <div class="row">
-        <div class="col-2">
-          <strong>
-            П.І.Б.
-          </strong>
-        </div>
+<div class="main-card p-3 shadow mb-4">
+  <form [formGroup]="form">
+    <div class="row g-3">
+      <div class="col-12 col-md-3">
+        <div class="form-floating">
+          <select
+            class="form-control form-control-sm"
+            formControlName="unitId"
+            id="unit"
+            (change)="onUnitChange($event)">
+            @if (!wasUnitSelected) {
+              <option value="null">Оберіть регіон</option>
+            }
+            @for (unit of units(); track unit.id) {
+              <option value="{{unit.id}}">{{ unit.name }}</option>
+            }
+          </select>
 
-        <div class="col">
-          <strong>
-            Початок
-          </strong>
+          <label class="form-label" for="unit">
+            Регіон:
+          </label>
         </div>
+      </div>
 
-        <div class="col">
-          <strong>
-            Завершення
-          </strong>
+      <div class="col-12 col-md-3">
+        <div class="form-floating">
+          <select
+            class="form-control form-control-sm"
+            id="department"
+            formControlName="departmentId"
+            (change)="onDepartmentChange($event)">
+            @if (!wasDepartmentSelected) {
+              <option value="null">Оберіть департамент</option>
+            }
+            @for (department of departments(); track department.id) {
+              <option value="{{department.id}}">{{ department.name }}</option>
+            }
+          </select>
+
+          <label class="form-label" for="department">
+            Департамент:
+          </label>
         </div>
+      </div>
 
-        <div class="col-auto">
-          <strong>
-            Днів
-          </strong>
+      <div class="col-12 col-md-3">
+        <div class="form-floating">
+          <select
+            class="form-control form-control-sm"
+            id="vacationStatus"
+            formControlName="vacationStatus"
+            (change)="onVacationStatusChange($event)">
+            <option value="None">Всі</option>
+            <option value="PendingApproval">Очікує затвердежння</option>
+            <option value="ApprovedByDepartmentDirector">Затверджено директором</option>
+            <option value="ApprovedByUnitDirector">Затверджено регіональним директором</option>
+            <option value="Rejected">Відхилено</option>
+          </select>
+
+          <label class="form-label" for="vacationStatus">
+            Статус:
+          </label>
         </div>
+      </div>
 
-        <div class="col">
-          <strong>
-            Тип
-          </strong>
+      <div class="col-12 col-md-3">
+        <div class="form-floating">
+          <input
+            class="form-control form-control-sm"
+            id="search"
+            type="text"
+            formControlName="searchPattern"
+            (input)="onSearchChange($event)">
+
+          <label class="form-label" for="search">
+            Пошук:
+          </label>
         </div>
+      </div>
 
-        <div class="col">
-          <strong>
-            Створено
-          </strong>
+      <div class="col-12 col-md-3">
+        <div class="form-floating">
+          <input
+            id="dateFrom"
+            type="date"
+            class="form-control"
+            (change)="onDateChange($event)"
+            formControlName="dateFrom">
+
+          <label class="form-label" for="dateFrom">
+            Дата початку:
+          </label>
         </div>
+      </div>
 
-        <div class="col">
-          <strong>
-            Статус
-          </strong>
+      <div class="col-12 col-md-3">
+        <div class="form-floating">
+          <input
+            class="form-control"
+            type="date"
+            id="dateTo"
+            (change)="onDateChange($event)"
+            formControlName="dateTo">
+
+          <label class="form-label" for="dateTo">
+            Дата закінчення:
+          </label>
         </div>
-
-        <div class="col"></div>
       </div>
     </div>
+  </form>
+</div>
 
-    <div class="card-body pt-0 position-relative overflow-auto">
+@if (vacations().length > 0) {
+  <div class="main-card shadow p-3 ">
+    <div class="d-flex flex-column gap-3">
       @if (isLoading()) {
         <div class="spinner-overlay">
           <div class="spinner-border text-primary" role="status">
@@ -178,88 +138,63 @@
         </div>
       }
 
-      @for (vacation of vacations(); track vacation.id; let index = $index) {
-        <div
-          class="row pt-3 pb-3"
-          [ngClass]="{ 'bg-body-tertiary': index % 2 !== 0 }">
-          <div class="col-2 text-truncate">
-            <strong>{{ vacation.employee.fullName }}</strong>
-          </div>
+      @for (vacation of vacations(); track vacation.id) {
+        <div class="card border-0 shadow-sm">
+          <div class="card-body py-3">
+            <div class="row align-items-center g-3">
 
-          <div class="col text-truncate">
-            {{ vacation.startDate  | date: 'dd.MM.yyyy' }}
-          </div>
+              <div class="col-auto text-center border-end pe-3" style="min-width: 80px">
+                <div class="">
+                  {{ vacation.startDate | date: 'dd.MM.yyyy' }} - {{ vacation.endDate | date: 'dd.MM.yyyy' }}
+                </div>
+                <div class="text-secondary small mt-1">{{ vacation.daysCount }} днів</div>
+                <div class="border-start border-3 position-absolute top-0 start-0 h-100 rounded-start"
+                     [ngClass]="getStatusBorderClass(vacation.status)"
+                     style="width: 4px">
+                </div>
+              </div>
 
-          <div class="col text-truncate">
-            {{ vacation.endDate  | date: 'dd.MM.yyyy' }}
-          </div>
+              <div class="col">
+                <div class="fw-semibold fs-5 text-truncate">{{ vacation.employee.fullName }}</div>
+                <div class="text-secondary small mb-2">{{ getVacationTypeString(vacation.type) }}</div>
+              </div>
 
-          <div class="col-auto text-truncate">
-            {{ vacation.daysCount }}
-          </div>
+              <div class="col-auto d-flex align-items-center gap-2">
+              <span class="badge rounded-pill px-3 py-2" [ngClass]="getStatusBadgeClass(vacation.status)">
+                {{ getStatusLabel(vacation.status) }}
+              </span>
 
-          <div class="col text-truncate">
-            {{ getVacationTypeString(vacation.type) }}
-          </div>
+                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                  <button
+                    type="button"
+                    class="btn btn-light rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center"
+                    style="width: 34px; height: 34px;"
+                    (click)="downloadVacationRequest(vacation)">
+                    <i class="bi bi-download text-primary"></i>
+                  </button>
 
-          <div class="col text-truncate">
-            {{ vacation.createdAt  | date: 'dd.MM.yyyy' }}
-          </div>
+                  <button
+                    type="button"
+                    class="btn btn-light rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center"
+                    style="width: 34px; height: 34px;"
+                    (click)="openEditVacationModal(vacation)">
+                    <i class="bi bi-pencil text-success"></i>
+                  </button>
 
-          <div class="col d-flex status">
-            @if (vacation.status === VacationStatus.PendingApproval) {
-              <i class="bi bi-check2 status-pending-approval"
-                 tooltip="Очікує затвердження"
-                 placement="top"
-                 containerClass="custom-tooltip">
-              </i>
-            }
+                  <button
+                    type="button"
+                    class="btn btn-light rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center"
+                    style="width: 34px; height: 34px;"
+                    (click)="openDeleteConfirmation(vacation)">
+                    <i class="bi bi-trash text-danger"></i>
+                  </button>
+                </div>
+              </div>
 
-            @if (vacation.status === VacationStatus.ApprovedByDepartmentDirector) {
-              <i class="bi bi-check2-circle status-approved"
-                 tooltip="Затверджено директором"
-                 placement="top"
-                 containerClass="custom-tooltip">
-              </i>
-            }
-
-            @if (vacation.status === VacationStatus.ApprovedByUnitDirector) {
-              <i class="bi bi-person-check status-approved"
-                 tooltip="Затверджено регіональним директором"
-                 placement="top"
-                 containerClass="custom-tooltip">
-              </i>
-            }
-
-            @if (vacation.status === VacationStatus.Rejected) {
-              <i class="bi bi-x-circle status-rejected"
-                 tooltip="Відхилено"
-                 placement="top"
-                 containerClass="custom-tooltip">
-              </i>
-            }
-          </div>
-
-          <div class="col-1 d-flex justify-content-between">
-            <i class="bi bi-download"
-               (click)="downloadVacationRequest(vacation)"
-            ></i>
-
-            <i class="bi bi-pencil"
-               (click)="openEditVacationModal(vacation)"
-            ></i>
-
-            <i class="bi bi-trash"
-               (click)="openDeleteConfirmation(vacation)"
-            ></i>
+            </div>
           </div>
         </div>
       }
     </div>
   </div>
 }
-
-<button class="floating-action-button">
-  <i class="bi bi-plus"
-     (click)="openCreateVacationModal()"></i>
-</button>
