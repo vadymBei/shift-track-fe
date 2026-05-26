@@ -57,13 +57,10 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
     departmentId: 0
   });
 
-  // map business trip status to bootstrap border color classes
   private readonly STATUS_BORDER_CLASS: Record<BusinessTripStatus | string, string> = {
     [BusinessTripStatus.Approved]: 'border-success',
     [BusinessTripStatus.PendingApproval]: 'border-warning',
-    [BusinessTripStatus.InProgress]: 'border-primary',
-    [BusinessTripStatus.Completed]: 'border-secondary',
-    [BusinessTripStatus.Cancelled]: 'border-danger',
+    [BusinessTripStatus.Rejected]: 'border-danger',
     [BusinessTripStatus.None]: 'border-secondary'
   };
 
@@ -75,18 +72,14 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
   private readonly STATUS_BADGE_CLASS: Record<BusinessTripStatus | string, string> = {
     [BusinessTripStatus.Approved]: 'text-success bg-success-subtle',
     [BusinessTripStatus.PendingApproval]: 'text-warning bg-warning-subtle',
-    [BusinessTripStatus.InProgress]: 'text-primary bg-primary-subtle',
-    [BusinessTripStatus.Completed]: 'text-secondary bg-secondary-subtle',
-    [BusinessTripStatus.Cancelled]: 'text-danger bg-danger-subtle',
+    [BusinessTripStatus.Rejected]: 'text-danger bg-danger-subtle',
     [BusinessTripStatus.None]: 'text-secondary bg-secondary-subtle'
   };
 
   private readonly STATUS_LABEL: Record<BusinessTripStatus | string, string> = {
     [BusinessTripStatus.Approved]: 'Підтверджено',
     [BusinessTripStatus.PendingApproval]: 'Очікує підтвердження',
-    [BusinessTripStatus.InProgress]: 'Виконується',
-    [BusinessTripStatus.Completed]: 'Завершено',
-    [BusinessTripStatus.Cancelled]: 'Скасовано',
+    [BusinessTripStatus.Rejected]: 'Відхилено',
     [BusinessTripStatus.None]: 'Невідомо'
   };
 

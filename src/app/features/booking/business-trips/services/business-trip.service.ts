@@ -44,4 +44,12 @@ export class BusinessTripService {
   delete(id: number) {
     return this.httpClient.delete(`${this.path}/${id}`);
   }
+
+  approveBusinessTrip(id: number) {
+    return this.httpClient.put(`${this.path}/approve/${id}`, {});
+  }
+
+  rejectBusinessTrip(id: number) {
+    return this.httpClient.put(`${this.path}/reject/${id}`, {});
+  }
 }

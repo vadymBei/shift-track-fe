@@ -9,6 +9,8 @@ import {LocationService} from '../../services/location.service';
 import {Location} from '../../models/location.model';
 import {EmployeesService} from '../../../../organization/employees/services/employees.service';
 import {Employee} from '../../../../organization/employees/models/employee.model';
+import {AccountService} from '../../../../../core/account/services/account.service';
+import {DefaultRolesCatalog} from '../../../../../core/account/constants/default-roles-catalog.constants';
 
 @Component({
   selector: 'app-edit-business-trip-modal',
@@ -28,6 +30,7 @@ export class EditBusinessTripModalComponent implements OnInit, OnDestroy {
   private readonly businessTripService = inject(BusinessTripService);
   private readonly locationService = inject(LocationService);
   private readonly employeesService = inject(EmployeesService);
+  private readonly accountService = inject(AccountService);
   bsModalRef = inject(BsModalRef);
   fb = inject(FormBuilder);
 
@@ -257,6 +260,33 @@ export class EditBusinessTripModalComponent implements OnInit, OnDestroy {
         next: () => {
           this.bsModalRef.hide();
         },
+        error: () => {}
+      });
+  }
+
+  get canApproveOrReject(): boolean {
+    const roles = this.accountService.currentUser()?.roles ?? [];
+    return roles.includes(DefaultRolesCatalog.SYS_ADMIN) || roles.includes(DefaultRolesCatalog.UNIT_DIRECTOR);
+  }
+
+  approve(): void {
+    if (!this.businessTrip) return;
+
+    this.businessTripService.approveBusinessTrip(this.businessTrip.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => this.bsModalRef.hide(),
+        error: () => {}
+      });
+  }
+
+  reject(): void {
+    if (!this.businessTrip) return;
+
+    this.businessTripService.rejectBusinessTrip(this.businessTrip.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => this.bsModalRef.hide(),
         error: () => {}
       });
   }
