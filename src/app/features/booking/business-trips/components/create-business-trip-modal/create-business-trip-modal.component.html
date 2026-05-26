@@ -1,0 +1,275 @@
+<div class="card border-0">
+  <div class="card-body p-3">
+    <div class="row mb-3 align-items-center">
+      <div class="col">
+        <h5 class="mb-0 fw-semibold">Створити відрядження</h5>
+      </div>
+      <div class="col-auto">
+        <button class="btn-close" (click)="bsModalRef.hide()"></button>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="save()">
+
+      <div class="border rounded-3 p-3 mb-3">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="bi bi-calendar3 text-primary"></i>
+          <span class="fw-semibold small">Дати відрядження</span>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+          <div class="flex-fill bg-light border rounded-3 p-2">
+            <div class="text-muted" style="font-size: 0.72rem;">Дата початку</div>
+            <input
+              type="date"
+              class="form-control form-control-sm border-0 bg-transparent px-0 fw-bold"
+              formControlName="startDate">
+            <div class="text-muted" style="font-size: 0.75rem; text-transform: capitalize;" *ngIf="form.value.startDate">
+              {{ form.value.startDate | date:'EEEE' : '' : 'uk' }}
+            </div>
+          </div>
+
+          <i class="bi bi-arrow-right text-primary flex-shrink-0"></i>
+
+          <div class="flex-fill bg-light border rounded-3 p-2">
+            <div class="text-muted" style="font-size: 0.72rem;">Дата закінчення</div>
+            <input
+              type="date"
+              class="form-control form-control-sm border-0 bg-transparent px-0 fw-bold"
+              formControlName="endDate">
+            <div class="text-muted" style="font-size: 0.75rem; text-transform: capitalize;" *ngIf="form.value.endDate">
+              {{ form.value.endDate | date:'EEEE' : '' : 'uk' }}
+            </div>
+          </div>
+
+          <div
+            class="text-center rounded-3 px-3 py-2 flex-shrink-0"
+            style="background: #f0eeff; min-width: 90px;"
+            *ngIf="form.value.startDate && form.value.endDate">
+            <div style="font-size: 0.85rem;">
+              <i class="bi bi-hourglass-bottom text-primary"></i>
+            </div>
+            <div class="text-primary" style="font-size: 0.68rem; font-weight: 500;">Тривалість</div>
+            <div class="fw-bold" style="font-size: 1.3rem; line-height: 1.2;">
+              {{ getDurationDays() }} {{ getDurationDays() === 1 ? 'день' : getDurationDays() < 5 ? 'дні' : 'днів' }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="border rounded-3 p-3 mb-3">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="bi bi-people text-primary"></i>
+          <span class="fw-semibold small">Учасники</span>
+
+          <button
+            type="button"
+            class="btn btn-link btn-sm text-primary ms-auto p-0 text-decoration-none"
+            (click)="focusEmployeeSearch()">
+            + Додати учасника
+          </button>
+        </div>
+
+        <div class="text-danger small mb-2" *ngIf="selectedEmployees().length < 1">
+          Необхідно обрати щонайменше 1 учасника
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          <div
+            *ngFor="let employee of selectedEmployees()"
+            class="d-flex align-items-center gap-2 bg-light border rounded-3 px-2 py-1">
+            <div
+              class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
+              style="width:36px; height:36px; font-size:0.75rem; background: linear-gradient(135deg, #7c6ff7, #a78bfa);">
+              {{ getInitials(employee) }}
+            </div>
+            <div>
+              <div class="fw-semibold" style="font-size: 0.82rem;">{{ employee.fullName }}</div>
+              <div class="text-muted" style="font-size: 0.72rem;">{{ employee.position?.name || 'Співробітник' }}</div>
+            </div>
+            <button
+              type="button"
+              class="btn-close btn-close-sm ms-1"
+              style="font-size: 0.6rem;"
+              (click)="removeEmployee(employee)">
+            </button>
+          </div>
+        </div>
+
+        <div class="position-relative mt-2" *ngIf="showEmployeeSearch()">
+          <input
+            #employeeSearchInput
+            type="text"
+            class="form-control form-control-sm"
+            placeholder="Пошук співробітника..."
+            [value]="employeeSearchPattern()"
+            (input)="onEmployeeSearchInput($event)"
+            (blur)="onEmployeeSearchBlur()">
+
+          <ul
+            class="list-unstyled position-absolute w-100 bg-white border rounded-3 shadow-sm py-1 m-0 mt-1"
+            style="z-index: 1050; max-height: 220px; overflow-y: auto;"
+            *ngIf="showEmployeeDropdown() && employeeSearchResults().length > 0">
+            <li
+              *ngFor="let employee of employeeSearchResults()"
+              class="d-flex align-items-center gap-2 px-3 py-2 small dropdown-item-hover"
+              (mousedown)="selectEmployee(employee)">
+              <div
+                class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
+                style="width:30px; height:30px; font-size:0.7rem; background: linear-gradient(135deg, #7c6ff7, #a78bfa);">
+                {{ getInitials(employee) }}
+              </div>
+              <div>
+                <div class="fw-semibold">{{ employee.fullName }}</div>
+                <div class="text-muted small">{{ employee.position?.name || '' }}</div>
+              </div>
+              <span class="ms-auto text-success" *ngIf="isEmployeeSelected(employee)">✓</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="border rounded-3 p-3 mb-3">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="bi bi-bullseye text-primary"></i>
+          <span class="fw-semibold small">Мета відрядження</span>
+        </div>
+
+        <div class="position-relative">
+          <textarea
+            class="form-control"
+            formControlName="description"
+            placeholder="Введіть мету або опис відрядження..."
+            maxlength="300"
+            style="resize: none; height: 80px; font-size: 0.88rem;">
+          </textarea>
+          <div
+            class="position-absolute text-muted"
+            style="bottom: 8px; right: 12px; font-size: 0.72rem; pointer-events: none;">
+            {{ (form.value.description || '').length }}/300
+          </div>
+        </div>
+      </div>
+
+      <div class="border rounded-3 p-3 mb-3">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="bi bi-cash-stack text-primary"></i>
+          <span class="fw-semibold small">Орієнтовний бюджет</span>
+        </div>
+
+        <div class="input-group">
+          <input
+            type="number"
+            class="form-control"
+            formControlName="estimatedBudget"
+            placeholder="0.00"
+            min="0">
+          <span class="input-group-text">₴</span>
+        </div>
+      </div>
+
+      <div class="border rounded-3 p-3 mb-3">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="bi bi-globe-asia-australia text-primary"></i>
+          <span class="fw-semibold small">Маршрут поїздки</span>
+          <button
+            type="button"
+            class="btn btn-link btn-sm text-primary ms-auto p-0 text-decoration-none"
+            (click)="focusLocationSearch()">
+            + Додати зупинку
+          </button>
+        </div>
+
+        <div class="text-danger small mb-2" *ngIf="selectedLocations().length < 2">
+          Необхідно обрати щонайменше 2 локації (місто виїзду та місто прибуття)
+        </div>
+
+        <div class="mb-2" *ngIf="selectedLocations().length > 0">
+          <div
+            *ngFor="let location of selectedLocations(); let i = index; let last = last"
+            class="position-relative">
+
+            <div
+              *ngIf="i > 0"
+              class="bg-secondary-subtle"
+              style="width: 2px; height: 14px; margin-left: 19px;">
+            </div>
+
+            <div class="d-flex align-items-center gap-2 bg-light border rounded-3 px-3 py-2">
+              <div
+                class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
+                style="width:32px; height:32px; font-size:0.8rem;"
+                [style.background]="i === 0 ? 'linear-gradient(135deg,#34c97e,#20a060)' : (last && selectedLocations().length > 1) ? 'linear-gradient(135deg,#f06292,#e91e63)' : 'linear-gradient(135deg,#7c6ff7,#5b4de0)'">
+                {{ i + 1 }}
+              </div>
+
+              <div class="flex-fill">
+                <div class="fw-semibold" style="font-size: 0.88rem;">{{ location.displayName }}</div>
+                <div class="text-muted small">{{ location.country }}</div>
+              </div>
+
+              <div class="text-end" style="font-size: 0.72rem; font-weight: 500;">
+                <span *ngIf="i === 0" class="text-success">Відправлення</span>
+                <span *ngIf="last && selectedLocations().length > 1" class="text-danger">Прибуття</span>
+                <span *ngIf="!last && i !== 0" class="text-primary">Зупинка</span>
+              </div>
+
+              <button
+                type="button"
+                class="btn btn-link btn-sm p-0 text-danger"
+                (click)="removeLocation(location)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="position-relative mt-2" *ngIf="showLocationSearch()">
+          <input
+            #locationSearchInput
+            type="text"
+            class="form-control form-control-sm"
+            placeholder="Пошук міста..."
+            [value]="locationSearchPattern()"
+            (input)="onLocationSearchInput($event)"
+            (blur)="onLocationSearchBlur()">
+
+          <ul
+            class="list-unstyled position-absolute w-100 bg-white border rounded-3 shadow-sm py-1 m-0 mt-1"
+            style="z-index: 1050; max-height: 200px; overflow-y: auto;"
+            *ngIf="showLocationDropdown() && locationSearchResults().length > 0">
+            <li
+              *ngFor="let location of locationSearchResults()"
+              class="d-flex align-items-center gap-2 px-3 py-2 small dropdown-item-hover"
+              (mousedown)="selectLocation(location)">
+              <span class="flex-shrink-0">
+                <i class="bi bi-pin-map text-primary"></i>
+              </span>
+              <div>
+                <div class="fw-semibold">{{ location.displayName }}</div>
+                <div class="text-muted small">{{ location.country }}</div>
+              </div>
+              <span class="ms-auto text-success" *ngIf="isLocationSelected(location)">✓</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end gap-2 mt-2">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          (click)="bsModalRef.hide()">
+          Скасувати
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="!isFormValid">
+          Зберегти
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

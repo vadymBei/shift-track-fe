@@ -1,0 +1,182 @@
+<div class="row align-items-start justify-content-between mb-3">
+  <div class="col">
+    <h3 class="mb-1">Відрядження</h3>
+    <p class="text-secondary mb-0">Керуйте відрядженнями співробітників</p>
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-primary btn-sm mt-2 ms-auto d-flex align-items-center gap-2"
+            (click)="openCreateBusinessTripModal()">
+      <i class="bi bi-plus"></i>
+      Додати відрядження
+    </button>
+  </div>
+</div>
+
+<div class="main-card p-3 shadow mb-4"
+     [formGroup]="form">
+  <div class="row mb-3 g-3">
+    <div class="col-12 col-md-4 col-lg-3">
+      <div class="form-floating">
+        <select
+          class="form-select form-select-sm"
+          formControlName="unitId"
+          id="unit"
+          (change)="onUnitChange($event)">
+          <option value="null">Оберіть регіон</option>
+          @for (unit of units(); track unit.id) {
+            <option value="{{unit.id}}">{{ unit.name }}</option>
+          }
+        </select>
+
+        <label class="form-label" for="unit">
+          Регіон:
+        </label>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-4 col-lg-3">
+      <div class="form-floating">
+        <select
+          class="form-select form-select-sm"
+          id="department"
+          formControlName="departmentId"
+          (change)="onDepartmentChange($event)">
+          <option value="null">Оберіть департамент</option>
+          @for (department of departments(); track department.id) {
+            <option value="{{department.id}}">{{ department.name }}</option>
+          }
+        </select>
+
+        <label class="form-label" for="department">
+          Департамент:
+        </label>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-3">
+      <div class="form-floating">
+        <input
+          id="dateFrom"
+          type="date"
+          class="form-control"
+          (change)="onDateChange($event)"
+          formControlName="dateFrom">
+
+        <label class="form-label" for="dateFrom">
+          Дата початку:
+        </label>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-3">
+      <div class="form-floating">
+        <input
+          class="form-control"
+          type="date"
+          id="dateTo"
+          (change)="onDateChange($event)"
+          formControlName="dateTo">
+
+        <label class="form-label" for="dateTo">
+          Дата закінчення:
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-md-4 col-lg-3">
+      <div class="form-floating">
+        <input
+          class="form-control form-control-sm"
+          id="search"
+          type="text"
+          formControlName="searchPattern"
+          (input)="onSearchChange($event)">
+
+        <label class="form-label" for="search">
+          Пошук:
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+@if (businessTrips().length > 0) {
+  <div class="main-card shadow p-3">
+    <div class="d-flex flex-column gap-3">
+
+      @for (businessTrip of businessTrips(); track businessTrip.id) {
+        <div class="card border-0 shadow-sm">
+          <div class="card-body py-3">
+            <div class="row align-items-center g-3">
+
+              <div class="col-auto text-center border-end pe-3" style="min-width: 80px">
+                <div class="">
+                  {{ businessTrip.startDate | date: 'dd.MM.yyyy' }} - {{ businessTrip.endDate | date: 'dd.MM.yyyy' }}
+                </div>
+                <div
+                  class="text-secondary small mt-1">{{ getTripDays(businessTrip.startDate, businessTrip.endDate) }} {{ getTripDays(businessTrip.startDate, businessTrip.endDate) === 1 ? 'день' : 'дні' }}
+                </div>
+                <div class="border-start border-3 position-absolute top-0 start-0 h-100 rounded-start"
+                     [ngClass]="getStatusBorderClass(businessTrip.status)"
+                     style="width: 10px">
+                </div>
+              </div>
+
+              <div class="col">
+                <div class="fw-semibold fs-5">
+                  @if (businessTrip.locations.length > 0) {
+                    {{ businessTrip.locations[0].name }}
+                    <i class="bi bi-arrow-right"></i>
+                    {{ businessTrip.locations[businessTrip.locations.length - 1].name }}
+                  } @else {
+                    <span class="text-secondary">Локації відсутні</span>
+                  }
+                </div>
+                <div class="text-secondary small mb-2">Мета: {{businessTrip.description}}</div>
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                  <div class="d-flex align-items-center gap-1">
+                    <span class="text-secondary small">{{ businessTrip.participants.length }} учасники</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-auto d-flex align-items-center gap-2">
+                <span class="badge rounded-pill px-3 py-2"
+                      [ngClass]="getStatusBadgeClass(businessTrip.status)">
+                  {{ getStatusLabel(businessTrip.status) }}
+                </span>
+                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                  <button
+                    type="button"
+                    class="btn btn-light rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center"
+                    style="width: 34px; height: 34px;">
+                    <i class="bi bi-download text-primary"></i>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="btn btn-light rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center"
+                    style="width: 34px; height: 34px;"
+                    (click)="openEditBusinessTripModal(businessTrip)">
+                    <i class="bi bi-pencil text-success"></i>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="btn btn-light rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center"
+                    style="width: 34px; height: 34px;"
+                    (click)="openDeleteConfirmation(businessTrip)">
+                    <i class="bi bi-trash text-danger"></i>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}

@@ -1,9 +1,14 @@
-import {HttpInterceptorFn, HttpRequest} from '@angular/common/http';
+import {HttpContextToken, HttpInterceptorFn, HttpRequest} from '@angular/common/http';
 import {inject} from '@angular/core';
 import {catchError, switchMap, throwError} from 'rxjs';
 import {AccountService} from "../../core/account/services/account.service";
 
+export const BYPASS_TOKEN = new HttpContextToken<boolean>(() => false);
+
 export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
+  if (req.context.get(BYPASS_TOKEN)) {
+    return next(req);
+  }
   const accountService = inject(AccountService);
   const token = accountService.token();
 

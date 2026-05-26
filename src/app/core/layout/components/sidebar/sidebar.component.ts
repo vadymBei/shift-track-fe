@@ -33,7 +33,7 @@ export class SidebarComponent {
     {
       label: 'Відрядження',
       icon: 'bi bi-briefcase',
-      link: '/trips'
+      link: '/business-trips'
     },
     {
       label: 'Довідник',

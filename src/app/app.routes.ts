@@ -15,9 +15,9 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'trips',
+    path: 'business-trips',
     component: LayoutComponent,
-    loadChildren: () => import("./features/booking/trips/trips.routes"),
+    loadChildren: () => import("./features/booking/business-trips/business-trips.routes"),
     canActivate: [authGuard]
   },
   {

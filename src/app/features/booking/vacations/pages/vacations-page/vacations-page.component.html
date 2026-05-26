@@ -128,91 +128,73 @@
 </div>
 
 @if (vacations().length > 0) {
-  <div class="d-flex flex-column gap-3">
-    @if (isLoading()) {
-      <div class="spinner-overlay">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    }
-
-    @for (vacation of vacations(); track vacation.id) {
-      <div class="card shadow-sm border-0 rounded-4">
-        <div class="card-body d-flex align-items-center justify-content-between gap-3 py-3 px-4">
-          <div class="d-flex align-items-center gap-3 min-w-0">
-            <div class="min-w-0">
-              <div class="fw-bold text-dark text-truncate">
-                {{ vacation.employee.fullName }}
-              </div>
-
-              <div class="text-secondary small d-flex flex-wrap align-items-center gap-2">
-                <span class="d-inline-flex align-items-center gap-1">
-                  <i class="bi bi-calendar3"></i>
-                  {{ vacation.startDate | date: 'dd.MM.yyyy' }} – {{ vacation.endDate | date: 'dd.MM.yyyy' }}
-                </span>
-
-                <span>•</span>
-
-                <span class="d-inline-flex align-items-center gap-1">
-                  <i class="bi bi-clock"></i>
-                  {{ vacation.daysCount }} днів
-                </span>
-
-                <span>•</span>
-
-                <span>{{ getVacationTypeString(vacation.type) }}</span>
-              </div>
-            </div>
+  <div class="main-card shadow p-3 ">
+    <div class="d-flex flex-column gap-3">
+      @if (isLoading()) {
+        <div class="spinner-overlay">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
           </div>
+        </div>
+      }
 
-          <div class="d-flex align-items-center gap-3 flex-shrink-0">
-            @if (vacation.status === VacationStatus.PendingApproval) {
-              <span class="badge rounded-pill text-bg-warning-subtle text-warning-emphasis px-3 py-2">
-                Очікує
+      @for (vacation of vacations(); track vacation.id) {
+        <div class="card border-0 shadow-sm">
+          <div class="card-body py-3">
+            <div class="row align-items-center g-3">
+
+              <div class="col-auto text-center border-end pe-3" style="min-width: 80px">
+                <div class="">
+                  {{ vacation.startDate | date: 'dd.MM.yyyy' }} - {{ vacation.endDate | date: 'dd.MM.yyyy' }}
+                </div>
+                <div class="text-secondary small mt-1">{{ vacation.daysCount }} днів</div>
+                <div class="border-start border-3 position-absolute top-0 start-0 h-100 rounded-start"
+                     [ngClass]="getStatusBorderClass(vacation.status)"
+                     style="width: 4px">
+                </div>
+              </div>
+
+              <div class="col">
+                <div class="fw-semibold fs-5 text-truncate">{{ vacation.employee.fullName }}</div>
+                <div class="text-secondary small mb-2">{{ getVacationTypeString(vacation.type) }}</div>
+              </div>
+
+              <div class="col-auto d-flex align-items-center gap-2">
+              <span class="badge rounded-pill px-3 py-2" [ngClass]="getStatusBadgeClass(vacation.status)">
+                {{ getStatusLabel(vacation.status) }}
               </span>
-            }
 
-            @if (vacation.status === VacationStatus.ApprovedByDepartmentDirector || vacation.status === VacationStatus.ApprovedByUnitDirector) {
-              <span class="badge rounded-pill text-bg-success-subtle text-success-emphasis px-3 py-2">
-                Затверджено
-              </span>
-            }
+                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                  <button
+                    type="button"
+                    class="btn btn-light rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center"
+                    style="width: 34px; height: 34px;"
+                    (click)="downloadVacationRequest(vacation)">
+                    <i class="bi bi-download text-primary"></i>
+                  </button>
 
-            @if (vacation.status === VacationStatus.Rejected) {
-              <span class="badge rounded-pill text-bg-danger-subtle text-danger-emphasis px-3 py-2">
-                Відхилено
-              </span>
-            }
+                  <button
+                    type="button"
+                    class="btn btn-light rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center"
+                    style="width: 34px; height: 34px;"
+                    (click)="openEditVacationModal(vacation)">
+                    <i class="bi bi-pencil text-success"></i>
+                  </button>
 
-            <div class="d-flex align-items-center gap-2 flex-shrink-0">
-              <button
-                type="button"
-                class="btn btn-light rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center"
-                style="width: 34px; height: 34px;"
-                (click)="downloadVacationRequest(vacation)">
-                <i class="bi bi-download text-primary"></i>
-              </button>
+                  <button
+                    type="button"
+                    class="btn btn-light rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center"
+                    style="width: 34px; height: 34px;"
+                    (click)="openDeleteConfirmation(vacation)">
+                    <i class="bi bi-trash text-danger"></i>
+                  </button>
+                </div>
+              </div>
 
-              <button
-                type="button"
-                class="btn btn-light rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center"
-                style="width: 34px; height: 34px;"
-                (click)="openEditVacationModal(vacation)">
-                <i class="bi bi-pencil text-success"></i>
-              </button>
-
-              <button
-                type="button"
-                class="btn btn-light rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center"
-                style="width: 34px; height: 34px;"
-                (click)="openDeleteConfirmation(vacation)">
-                <i class="bi bi-trash text-danger"></i>
-              </button>
             </div>
           </div>
         </div>
-      </div>
-    }
+      }
+    </div>
   </div>
 }
