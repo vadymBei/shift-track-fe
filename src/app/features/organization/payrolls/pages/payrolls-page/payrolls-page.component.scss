@@ -11,7 +11,8 @@
 
 .stat-card,
 .table-card,
-.details-card {
+.details-card,
+.payroll-card {
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(10px);
@@ -87,6 +88,21 @@
 
 .salary-row.is-active {
   background: rgba(123, 77, 255, 0.08);
+}
+
+.payroll-card {
+  cursor: pointer;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    background: rgba(123, 77, 255, 0.04) !important;
+    box-shadow: 0 4px 18px rgba(123, 77, 255, 0.12) !important;
+  }
+
+  &.is-active {
+    background: rgba(123, 77, 255, 0.08) !important;
+    box-shadow: 0 4px 18px rgba(123, 77, 255, 0.18) !important;
+  }
 }
 
 .employee-avatar,
@@ -167,6 +183,10 @@
 
 .btn-outline-secondary {
   border-radius: 14px;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 
 @media (max-width: 1399.98px) {

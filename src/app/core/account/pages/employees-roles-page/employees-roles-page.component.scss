@@ -10,4 +10,15 @@
 
 .employee-role {
   cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background-color: #E7E0FD;
+    border-radius: 10px;
+    color: #423D4F !important;
+
+    i {
+      color: var(--primary-color);
+    }
+  }
 }
