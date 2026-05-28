@@ -2,6 +2,7 @@
 import {HttpClient, HttpParams} from "@angular/common/http";
 import {PayrollRequest} from "../models/payroll-request.model";
 import {PayrollSummary} from "../models/payroll-summary.model";
+import {MarkPayrollPaidRequest} from "../models/mark-payroll-paid-request.model";
 
 @Injectable({
   providedIn: 'root'
@@ -25,8 +26,17 @@ export class PayrollsService {
       }
     }
 
-    return this.httpClient.get<PayrollSummary>(this.path + '/by-period', {
-      params: filter
-    });
+    return this.httpClient.get<PayrollSummary>(this.path + '/by-period',
+      {
+        params: filter
+      });
+  }
+
+  markPayrollAsPaid(request: MarkPayrollPaidRequest) {
+    return this.httpClient.put(this.path + '/mark-as-paid',
+      {
+        employeeId: request.employeeId,
+        period: request.period.toISOString()
+      });
   }
 }

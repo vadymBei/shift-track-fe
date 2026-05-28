@@ -115,44 +115,45 @@
               </div>
             </div>
           } @else {
-            <div class="d-flex flex-column gap-2">
-              @for (payroll of payrolls; track trackById($index, payroll)) {
-                <div
-                  class="card payroll-card border-0 shadow-sm"
-                  [class.is-active]="selectedPayroll?.employeeId === payroll.employeeId"
-                  (click)="selectEmployee(payroll)"
-                  role="button">
-                  <div class="card-body py-3 px-3">
-                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="card table-card border-0 shadow-sm overflow-hidden">
+              <div class="salary-list-header">
+                <div class="salary-col-employee">Працівник</div>
+                <div class="salary-col-hours">Години</div>
+                <div class="salary-col-rate">Ставка</div>
+                <div class="salary-col-salary">Зарплата</div>
+                <div class="salary-col-status">Статус</div>
+              </div>
+              <div class="salary-list-body">
+                @for (payroll of payrolls; track trackById($index, payroll)) {
+                  <div
+                    class="salary-list-row"
+                    [class.is-active]="selectedPayroll?.employeeId === payroll.employeeId"
+                    (click)="selectEmployee(payroll)"
+                    role="button">
+                    <div class="salary-col-employee">
                       <div class="d-flex align-items-center gap-2">
+                        <div class="employee-avatar-placeholder">
+                          <i class="bi bi-person-fill"></i>
+                        </div>
                         <div>
                           <div class="fw-semibold">{{ payroll.employee.fullName }}</div>
                           <div class="text-muted small">{{ payroll.employee.position?.name }}</div>
                         </div>
                       </div>
+                    </div>
+                    <div class="salary-col-hours">{{ payroll.workedHours }}</div>
+                    <div class="salary-col-rate">₴{{ payroll.hourlyRate }}</div>
+                    <div class="salary-col-salary fw-semibold">₴{{ payroll.totalAmount }}</div>
+                    <div class="salary-col-status">
                       <span
                         class="badge rounded-pill"
                         [ngClass]="payroll.status === PayrollStatus.Paid ? 'text-bg-success-soft' : 'text-bg-warning-soft'">
                         {{ payroll.status === PayrollStatus.Paid ? 'Виплачено' : 'Очікує' }}
                       </span>
                     </div>
-                    <div class="d-flex gap-4 mt-2 flex-wrap">
-                      <div class="payroll-meta">
-                        <span class="text-muted small">Години</span>
-                        <span class="fw-semibold ms-1">{{ payroll.workedHours }}</span>
-                      </div>
-                      <div class="payroll-meta">
-                        <span class="text-muted small">Ставка</span>
-                        <span class="ms-1">₴{{ payroll.hourlyRate }}</span>
-                      </div>
-                      <div class="payroll-meta">
-                        <span class="text-muted small">Зарплата</span>
-                        <span class="fw-semibold ms-1">₴{{ payroll.totalAmount }}</span>
-                      </div>
-                    </div>
                   </div>
-                </div>
-              }
+                }
+              </div>
             </div>
           }
         </div>
@@ -163,6 +164,9 @@
               <div class="card-body p-3 p-xl-4">
                 <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
                   <div class="d-flex align-items-center gap-3">
+                    <div class="detail-avatar-placeholder">
+                      <i class="bi bi-person-fill"></i>
+                    </div>
                     <div>
                       <div class="fw-semibold fs-5 lh-1 mb-1">{{ selectedPayroll.employee.fullName }}</div>
                       <div class="text-muted small">{{ selectedPayroll.employee.position?.name }}</div>
@@ -204,13 +208,14 @@
 
                 @if (selectedPayroll.paidAt) {
                   <div class="detail-block">
-                    <div class="text-muted small mb-1">Дата виплати</div>
+                    <div class="text-muted small">Дата виплати</div>
                     <div class="fw-medium">{{ selectedPayroll.paidAt | date: 'dd.MM.yyyy' }}</div>
                   </div>
                 }
 
                 @if (selectedPayroll.status !== PayrollStatus.Paid) {
-                  <button class="btn btn-primary w-100 mb-3">
+                  <button class="btn btn-primary w-100"
+                  (click)="markPayrollAsPaid(selectedPayroll.employeeId)">
                     Позначити як виплачене
                   </button>
                 }

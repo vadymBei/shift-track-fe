@@ -1,5 +1,5 @@
 import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
-import {DecimalPipe, DatePipe, NgClass} from "@angular/common";
+import {DatePipe, DecimalPipe, NgClass} from "@angular/common";
 import {FormBuilder, FormGroup, ReactiveFormsModule} from "@angular/forms";
 import {Unit} from "../../../structure/models/unit.model";
 import {Department} from "../../../structure/models/department.model";
@@ -11,7 +11,9 @@ import {DepartmentService} from "../../../structure/services/department.service"
 import {PayrollSummary} from "../../models/payroll-summary.model";
 import {PayrollsService} from "../../services/payrolls-service";
 import {Payroll} from "../../models/payroll.model";
+import {EmployeeShift} from "../../../timesheet/models/employee-shift.model";
 import {PayrollStatus} from "../../enums/payroll-status.enum";
+import {MarkPayrollPaidRequest} from "../../models/mark-payroll-paid-request.model";
 
 @Component({
   selector: 'app-payrolls-page',
@@ -20,12 +22,12 @@ import {PayrollStatus} from "../../enums/payroll-status.enum";
     NgClass,
     DecimalPipe,
     DatePipe,
-    ReactiveFormsModule
+    ReactiveFormsModule,
   ],
   templateUrl: './payrolls-page.component.html',
   styleUrl: './payrolls-page.component.scss'
 })
-export class PayrollsPageComponent implements OnInit, OnDestroy{
+export class PayrollsPageComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private readonly searchSubject$ = new Subject<string>();
 
@@ -39,6 +41,7 @@ export class PayrollsPageComponent implements OnInit, OnDestroy{
   wasDepartmentSelected = false;
   wasUnitSelected = false;
   showPayrolls = false;
+  shiftsExpanded = false;
   selectedPayroll: Payroll | null = null;
   form: FormGroup = this.fb.group({
     unitId: [null],
@@ -52,6 +55,10 @@ export class PayrollsPageComponent implements OnInit, OnDestroy{
   request = signal<PayrollRequest>({
     period: new Date(),
     departmentId: 0
+  });
+  markPayrollPaidRequest = signal<MarkPayrollPaidRequest>({
+    employeeId: 0,
+    period: new Date()
   });
 
   ngOnInit() {
@@ -106,6 +113,7 @@ export class PayrollsPageComponent implements OnInit, OnDestroy{
 
     this.showPayrolls = false;
     this.wasUnitSelected = true;
+    this.selectedPayroll = null;
   }
 
   onDepartmentChange(event: Event): void {
@@ -118,10 +126,12 @@ export class PayrollsPageComponent implements OnInit, OnDestroy{
       this.getPayrolls();
 
       this.wasDepartmentSelected = true;
+      this.selectedPayroll = null;
     }
   }
 
   onPeriodChange(event: Event): void {
+    this.selectedPayroll = null;
     this.getPayrolls();
   }
 
@@ -130,7 +140,7 @@ export class PayrollsPageComponent implements OnInit, OnDestroy{
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   }
 
-  getPayrolls(){
+  getPayrolls() {
     if (this.form.value.departmentId === undefined
       || this.form.value.period === new Date()) {
       this.payrollSummary.set(null);
@@ -151,10 +161,28 @@ export class PayrollsPageComponent implements OnInit, OnDestroy{
 
   selectEmployee(payroll: Payroll): void {
     this.selectedPayroll = payroll;
+    this.shiftsExpanded = false;
+  }
+
+  markPayrollAsPaid(employeeId: number) {
+    const [year, month] = (this.form.value.period as string).split('-').map(Number);
+
+    this.markPayrollPaidRequest.set({
+      employeeId: employeeId,
+      period: new Date(year, month, 1)
+    });
+
+    this.payrollsService.markPayrollAsPaid(this.markPayrollPaidRequest())
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.selectedPayroll = null;
+        this.getPayrolls();
+      });
   }
 
   closeDetails(): void {
     this.selectedPayroll = null;
+    this.shiftsExpanded = false;
   }
 
   trackById(_: number, payroll: Payroll): number {
