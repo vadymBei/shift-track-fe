@@ -11,7 +11,8 @@
 
 .stat-card,
 .table-card,
-.details-card {
+.details-card,
+.payroll-card {
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(10px);
@@ -57,36 +58,81 @@
   font-size: 0.9rem;
 }
 
-.salary-table {
-  margin-bottom: 0;
+.salary-list-header,
+.salary-list-row {
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
 }
 
-.salary-table thead th {
-  padding: 1rem 1rem;
+.salary-list-header {
   font-size: 0.92rem;
   color: #8a8aa0;
   font-weight: 600;
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
   border-bottom: 1px solid rgba(140, 140, 170, 0.12);
   background: rgba(255, 255, 255, 0.5);
 }
 
-.salary-table tbody td {
-  padding: 0.95rem 1rem;
+.salary-list-row {
+  padding-top: 0.95rem;
+  padding-bottom: 0.95rem;
   border-bottom: 1px solid rgba(140, 140, 170, 0.1);
-  vertical-align: middle;
-}
-
-.salary-row {
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  transition: background-color 0.2s ease;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  &:hover {
+    background: rgba(123, 77, 255, 0.04);
+  }
+
+  &.is-active {
+    background: rgba(123, 77, 255, 0.08);
+  }
 }
 
-.salary-row:hover {
-  background: rgba(123, 77, 255, 0.04);
+.salary-col-employee {
+  flex: 0 0 40%;
+  min-width: 0;
 }
 
-.salary-row.is-active {
-  background: rgba(123, 77, 255, 0.08);
+.salary-col-hours {
+  flex: 0 0 15%;
+  min-width: 0;
+}
+
+.salary-col-rate {
+  flex: 0 0 15%;
+  min-width: 0;
+}
+
+.salary-col-salary {
+  flex: 0 0 15%;
+  min-width: 0;
+}
+
+.salary-col-status {
+  flex: 0 0 15%;
+  min-width: 0;
+}
+
+.payroll-card {
+  cursor: pointer;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    background: rgba(123, 77, 255, 0.04) !important;
+    box-shadow: 0 4px 18px rgba(123, 77, 255, 0.12) !important;
+  }
+
+  &.is-active {
+    background: rgba(123, 77, 255, 0.08) !important;
+    box-shadow: 0 4px 18px rgba(123, 77, 255, 0.18) !important;
+  }
 }
 
 .employee-avatar,
@@ -105,6 +151,78 @@
 .detail-avatar {
   width: 56px;
   height: 56px;
+}
+
+.employee-avatar-placeholder {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(123, 77, 255, 0.1);
+  color: #7b4dff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.detail-avatar-placeholder {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(123, 77, 255, 0.1);
+  color: #7b4dff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.shifts-list {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(140, 140, 170, 0.14);
+}
+
+.shifts-list-header,
+.shifts-list-row {
+  display: flex;
+  align-items: center;
+  padding: 0.45rem 0.75rem;
+}
+
+.shifts-list-header {
+  font-size: 0.8rem;
+  color: #8a8aa0;
+  font-weight: 600;
+  background: rgba(248, 249, 252, 0.9);
+  border-bottom: 1px solid rgba(140, 140, 170, 0.12);
+}
+
+.shifts-list-row {
+  font-size: 0.85rem;
+  border-bottom: 1px solid rgba(140, 140, 170, 0.08);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.shift-col-date {
+  flex: 0 0 30%;
+  min-width: 0;
+}
+
+.shift-col-time {
+  flex: 0 0 25%;
+  min-width: 0;
+}
+
+.shift-col-hours {
+  flex: 0 0 20%;
+  min-width: 0;
+  text-align: right;
 }
 
 .text-bg-success-soft {
@@ -169,6 +287,10 @@
   border-radius: 14px;
 }
 
+.cursor-pointer {
+  cursor: pointer;
+}
+
 @media (max-width: 1399.98px) {
   .details-card {
     position: static;
@@ -184,8 +306,8 @@
     border-radius: 20px;
   }
 
-  .salary-table thead th,
-  .salary-table tbody td {
+  .salary-list-header,
+  .salary-list-row {
     padding-inline: 0.75rem;
   }
 }

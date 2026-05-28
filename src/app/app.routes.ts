@@ -43,9 +43,9 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'salary',
+    path: 'payrolls',
     component: LayoutComponent,
-    loadChildren: () => import("./features/organization/salary/salary.routes"),
+    loadChildren: () => import("./features/organization/payrolls/payrolls.routes"),
     canActivate: [authGuard]
   },
 ];

@@ -43,7 +43,7 @@ export class SidebarComponent {
     {
       label: 'Зарплати',
       icon: 'bi bi-cash-coin',
-      link: '/salary'
+      link: '/payrolls'
     },
     {
       label: 'Адміністрування',

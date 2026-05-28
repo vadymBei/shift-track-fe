@@ -1,7 +1,7 @@
 <div
-  class="card shadow"
+  class="main-card p-3 shadow"
   style="height: 80vh;">
-  <div class="card-body">
+  <div class="">
     <div class="row mb-3">
       <div class="col-3">
         <form [formGroup]="form">
@@ -117,9 +117,7 @@
             class="row mb-1 pt-2 pb-2 bg-gray-hover"
             [ngClass]="{'bg-primary': employeeRoleUnit.id === employeeRoleUnitId, 'bg-gray-hover': employeeRoleUnit.id !== employeeRoleUnitId}">
             <div class="col">
-              <span
-                class="employee-role"
-                (click)="selectEmployeeRoleUnit(employeeRoleUnit.id)"
+              <span (click)="selectEmployeeRoleUnit(employeeRoleUnit.id)"
               >{{ employeeRoleUnit.unit.name }}
               </span>
             </div>
