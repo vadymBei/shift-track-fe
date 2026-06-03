@@ -1,6 +1,5 @@
 ﻿import {Employee} from "../../employees/models/employee.model";
 import {PayrollStatus} from "../enums/payroll-status.enum";
-import {EmployeeShift} from "../../timesheet/models/employee-shift.model";
 
 export interface Payroll {
   year: number;
@@ -12,5 +11,4 @@ export interface Payroll {
   employee: Employee;
   status: PayrollStatus
   paidAt: Date | null;
-  employeeShifts: EmployeeShift[];
 }

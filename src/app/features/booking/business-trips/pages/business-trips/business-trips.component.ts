@@ -122,6 +122,10 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
   }
 
   getBusinessTrips(): void {
+    if (this.form.value.departmentId === null
+      || this.form.value.departmentId === undefined)
+      return;
+
     this.request.update(req => ({
       ...req,
       startDate: this.form.value.dateFrom,
@@ -219,8 +223,7 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
       }));
 
       this.businessTrips.set([]);
-    }
-    else {
+    } else {
       this.request.update(req => ({
         ...req,
         departmentId: Number(departmentId)
@@ -294,7 +297,7 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
       });
   }
 
-  deleteBusinessTrip(id: number){
+  deleteBusinessTrip(id: number) {
     this.businessTripService.delete(id).pipe(takeUntil(this.destroy$))
       .subscribe(val => {
         this.getBusinessTrips();

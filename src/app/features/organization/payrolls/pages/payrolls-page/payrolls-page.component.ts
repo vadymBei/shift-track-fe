@@ -11,7 +11,6 @@ import {DepartmentService} from "../../../structure/services/department.service"
 import {PayrollSummary} from "../../models/payroll-summary.model";
 import {PayrollsService} from "../../services/payrolls-service";
 import {Payroll} from "../../models/payroll.model";
-import {EmployeeShift} from "../../../timesheet/models/employee-shift.model";
 import {PayrollStatus} from "../../enums/payroll-status.enum";
 import {MarkPayrollPaidRequest} from "../../models/mark-payroll-paid-request.model";
 
