@@ -23,6 +23,7 @@ import {debounceTime} from "rxjs/operators";
 import {DepartmentService} from "../../../../organization/structure/services/department.service";
 import {UnitService} from "../../../../organization/structure/services/unit.service";
 import {AccountService} from "../../../../../core/account/services/account.service";
+import {Vacation} from "../../../vacations/models/vacation.model";
 
 @Component({
   selector: 'app-business-trips',
@@ -268,6 +269,27 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
     ref.onHidden?.subscribe({
       next: () => this.getBusinessTrips()
     })
+  }
+
+  downloadBusinessTripOrder(businessTrip: BusinessTrip): void {
+    this.businessTripService.downloadBusinessTripOrder(businessTrip.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob: Blob) => {
+          const url = window.URL.createObjectURL(blob);
+
+          const link = document.createElement('a');
+          link.href = url;
+
+          link.download = `Наказ на відрядження ${businessTrip.id} ${moment(businessTrip.startDate).format('DD/MM/YYYY')}-${moment(businessTrip.endDate).format('DD/MM/YYYY')}.pdf`;
+
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          window.URL.revokeObjectURL(url);
+        }
+      });
   }
 
   openEditBusinessTripModal(businessTrip: BusinessTrip) {

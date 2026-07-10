@@ -29,6 +29,26 @@ i {
   font-size: 15px;
 }
 
+.employee-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+}
+
+.employee-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #423D4F;
+  white-space: nowrap;
+}
+
+.employee-position {
+  font-size: 0.72rem;
+  color: #8f8aa0;
+  white-space: nowrap;
+}
+
 .account button:hover {
   background-color: rgba(255, 255, 255, 0.1);
 }

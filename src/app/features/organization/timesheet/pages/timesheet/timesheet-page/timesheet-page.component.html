@@ -1,193 +1,196 @@
-<div class="card shadow mb-3">
-  <div class="card-body">
-    <div class="row mb-3"
-         [formGroup]="form">
-      <div class="col-3">
-        <div class="form-floating">
-          <select
-            class="form-control form-control-sm"
-            formControlName="unitId"
-            id="unit"
-            (change)="onUnitChange($event)">
-            @if (!wasUnitSelected) {
-              <option value="null">Оберіть регіон</option>
-            }
-            @for (unit of units(); track unit.id) {
-              <option value="{{unit.id}}">{{ unit.name }}</option>
-            }
-          </select>
+<div class="row align-items-start justify-content-between mb-3">
+  <div class="col">
+    <h3 class="mb-1">Табель</h3>
+    <p class="text-secondary mb-0">Облік відпрацьованих годин</p>
+  </div>
+</div>
 
-          <label
-            class="form-label"
-            for="unit"
-          >Регіон:
-          </label>
-        </div>
+<div class="main-card p-3 shadow mb-3">
+  <div class="row"
+       [formGroup]="form">
+    <div class="col-3">
+      <div class="form-floating">
+        <select
+          class="form-control form-control-sm"
+          formControlName="unitId"
+          id="unit"
+          (change)="onUnitChange($event)">
+          @if (!wasUnitSelected) {
+            <option value="null">Оберіть регіон</option>
+          }
+          @for (unit of units(); track unit.id) {
+            <option value="{{unit.id}}">{{ unit.name }}</option>
+          }
+        </select>
+
+        <label
+          class="form-label"
+          for="unit"
+        >Регіон:
+        </label>
       </div>
+    </div>
 
-      <div class="col-3">
-        <div class="form-floating">
-          <select
-            class="form-control form-control-sm"
-            id="department"
-            formControlName="departmentId"
-            (change)="onDepartmentChange($event)">
-            @if (!wasDepartmentSelected) {
-              <option value="null">Оберіть департамент</option>
-            }
-            @for (department of departments(); track department.id) {
-              <option value="{{department.id}}">{{ department.name }}</option>
-            }
-          </select>
+    <div class="col-3">
+      <div class="form-floating">
+        <select
+          class="form-control form-control-sm"
+          id="department"
+          formControlName="departmentId"
+          (change)="onDepartmentChange($event)">
+          @if (!wasDepartmentSelected) {
+            <option value="null">Оберіть департамент</option>
+          }
+          @for (department of departments(); track department.id) {
+            <option value="{{department.id}}">{{ department.name }}</option>
+          }
+        </select>
 
-          <label
-            class="form-label"
-            for="department"
-          >Департамент:
-          </label>
-        </div>
+        <label
+          class="form-label"
+          for="department"
+        >Департамент:
+        </label>
       </div>
+    </div>
 
-      <div class="col-3">
-        <div class="form-floating">
-          <input
-            class="form-control form-control-sm"
-            id="search"
-            type="text"
-            (input)="onSearchChange($event)">
+    <div class="col-3">
+      <div class="form-floating">
+        <input
+          class="form-control form-control-sm"
+          id="search"
+          type="text"
+          (input)="onSearchChange($event)">
 
-          <label class="form-label" for="search">
-            Пошук працівника:
-          </label>
-        </div>
+        <label class="form-label" for="search">
+          Пошук працівника:
+        </label>
       </div>
+    </div>
 
-      <div class="col-3">
-        <div class="form-floating">
-          <input
-            class="form-control form-control-sm"
-            id="month"
-            type="month"
-            formControlName="period"
-            (input)="onPeriodChange($event)">
+    <div class="col-3">
+      <div class="form-floating">
+        <input
+          class="form-control form-control-sm"
+          id="month"
+          type="month"
+          formControlName="period"
+          (input)="onPeriodChange($event)">
 
-          <label
-            class="form-label"
-            for="month"
-          >Табель за:
-          </label>
-        </div>
+        <label
+          class="form-label"
+          for="month"
+        >Табель за:
+        </label>
       </div>
     </div>
   </div>
 </div>
 
 @if (showTimesheet) {
-  <div class="card shadow">
-    <div class="card-body">
-      <div class="row mb-1 d-flex justify-content-between">
-        <div class="col-4"
-             [formGroup]="form">
-          <div class="form-check form-check-inline">
-            <input class="form-check-input"
-                   type="radio"
-                   formControlName="displayMode"
-                   id="shiftCode"
-                   value="shifts">
+  <div class="main-card p-3 shadow">
+    <div class="row mb-1 d-flex justify-content-between">
+      <div class="col-4"
+           [formGroup]="form">
+        <div class="form-check form-check-inline">
+          <input class="form-check-input"
+                 type="radio"
+                 formControlName="displayMode"
+                 id="shiftCode"
+                 value="shifts">
 
-            <label class="form-check-label"
-                   for="shiftCode">
-              Зміни
-            </label>
-          </div>
-
-          <div class="form-check form-check-inline">
-            <input class="form-check-input"
-                   type="radio"
-                   formControlName="displayMode"
-                   id="shiftHours"
-                   value="hours">
-
-            <label
-              class="form-check-label"
-              for="shiftHours">
-              Години
-            </label>
-
-          </div>
+          <label class="form-check-label"
+                 for="shiftCode">
+            Зміни
+          </label>
         </div>
 
-        <div class="col-3 d-flex justify-content-end">
-          <button
-            class="btn btn-primary d-flex align-items-center justify-content-center gap-2"
-            (click)="exportToExcel()">
-            <img
-              src="assets/icons/excel.svg"
-              alt="Excel icon"
-              height="25">
-            Експорт в Excel
-          </button>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input"
+                 type="radio"
+                 formControlName="displayMode"
+                 id="shiftHours"
+                 value="hours">
+
+          <label
+            class="form-check-label"
+            for="shiftHours">
+            Години
+          </label>
+
         </div>
       </div>
 
-      <div class="timesheet-wrapper border-top">
-        <div class="names-column">
-          <div class="header-cell p-2 border-bottom fw-bold">
-            ПІБ
-          </div>
+      <div class="col-3 d-flex justify-content-end">
+        <button
+          class="btn btn-primary d-flex align-items-center justify-content-center gap-2"
+          (click)="exportToExcel()">
+          <img
+            src="assets/icons/excel.svg"
+            alt="Excel icon"
+            height="25">
+          Експорт в Excel
+        </button>
+      </div>
+    </div>
 
-          <div
-            class="name-cell p-2 border-bottom"
-            *ngFor="let employeeTimesheet of timesheet().employeeTimesheets">
-            {{ employeeTimesheet.employee.fullName }}
-          </div>
+    <div class="timesheet-wrapper border-top">
+      <div class="names-column">
+        <div class="header-cell p-2 border-bottom fw-bold">
+          ПІБ
         </div>
 
-        <div class="calendar-column">
-          <div class="calendar-content">
-            <div class="calendar-header d-flex border-bottom">
-              <div
-                class="text-center p-2 day-cell"
-                *ngFor="let day of getDays()"
-                [ngStyle]="{'background-color': isWeekend(day.dayOfMonth) ? '#f5f5f5' : 'inherit'}">
-                <div class="day-content">
-                  <div class="day-of-month">
-                    {{ day.dayOfMonth }}
-                  </div>
+        <div
+          class="name-cell p-2 border-bottom"
+          *ngFor="let employeeTimesheet of timesheet().employeeTimesheets">
+          {{ employeeTimesheet.employee.fullName }}
+        </div>
+      </div>
 
-                  <div class="day-of-week">
-                    {{ day.dayOfWeek }}
-                  </div>
+      <div class="calendar-column">
+        <div class="calendar-content">
+          <div class="calendar-header d-flex border-bottom">
+            <div
+              class="text-center p-2 day-cell"
+              *ngFor="let day of getDays()"
+              [ngStyle]="{'background-color': isWeekend(day.dayOfMonth) ? '#f5f5f5' : 'inherit'}">
+              <div class="day-content">
+                <div class="day-of-month">
+                  {{ day.dayOfMonth }}
                 </div>
-              </div>
 
-              <div class="text-center p-2 bg-light summary-cell">
-                <strong>Роб. год</strong>
-              </div>
-              <div class="text-center p-2 bg-light summary-cell">
-                <strong>Роб. днів</strong>
+                <div class="day-of-week">
+                  {{ day.dayOfWeek }}
+                </div>
               </div>
             </div>
 
-            <div class="calendar-data">
+            <div class="text-center p-2 bg-light summary-cell">
+              <strong>Роб. год</strong>
+            </div>
+            <div class="text-center p-2 bg-light summary-cell">
+              <strong>Роб. днів</strong>
+            </div>
+          </div>
+
+          <div class="calendar-data">
+            <div
+              class="d-flex border-bottom"
+              *ngFor="let employeeTimesheet of timesheet().employeeTimesheets; trackBy: trackByEmployeeId">
               <div
-                class="d-flex border-bottom"
-                *ngFor="let employeeTimesheet of timesheet().employeeTimesheets; trackBy: trackByEmployeeId">
-                <div
-                  class="text-center p-2 employee-shift"
-                  *ngFor="let day of getDays(); trackBy: trackByDay"
-                  [ngStyle]="getCellStyle(day.dayOfMonth, employeeTimesheet.employee.id)"
-                  (click)="openEditEmployeeShiftModal(employeeTimesheet.employee, day.dayOfMonth, getEmployeeShiftForDay(employeeTimesheet.employee.id, day.dayOfMonth))">
-                  {{ getCellContent(getEmployeeShiftForDay(employeeTimesheet.employee.id, day.dayOfMonth)) }}
-                </div>
+                class="text-center p-2 employee-shift"
+                *ngFor="let day of getDays(); trackBy: trackByDay"
+                [ngStyle]="getCellStyle(day.dayOfMonth, employeeTimesheet.employee.id)"
+                (click)="openEditEmployeeShiftModal(employeeTimesheet.employee, day.dayOfMonth, getEmployeeShiftForDay(employeeTimesheet.employee.id, day.dayOfMonth))">
+                {{ getCellContent(getEmployeeShiftForDay(employeeTimesheet.employee.id, day.dayOfMonth)) }}
+              </div>
 
-                <div class="text-center p-2 bg-light summary-cell">
-                  {{ getEmployeeTotalWorkHours(employeeTimesheet.employee.id) }}
-                </div>
+              <div class="text-center p-2 bg-light summary-cell">
+                {{ getEmployeeTotalWorkHours(employeeTimesheet.employee.id) }}
+              </div>
 
-                <div class="text-center p-2 bg-light summary-cell">
-                  {{ getEmployeeTotalWorkDays(employeeTimesheet.employee.id) }}
-                </div>
+              <div class="text-center p-2 bg-light summary-cell">
+                {{ getEmployeeTotalWorkDays(employeeTimesheet.employee.id) }}
               </div>
             </div>
           </div>
