@@ -8,12 +8,22 @@
     <div class="dropdown account">
       <button
         type="button"
-        class="btn d-flex align-items-center justify-content-center"
+        class="btn d-flex align-items-center justify-content-around"
         data-bs-toggle="dropdown"
         aria-expanded="false"
         (click)="isDropdownMenuOpened = !isDropdownMenuOpened">
-        <span class="text-primary d-flex align-items-center justify-content-around">
+        <span class="d-flex align-items-center gap-2">
           <i class="bi bi-person-fill"></i>
+
+          <div class="employee-info">
+            <span class="employee-name">
+              {{ accountService.currentUser()?.employee?.name }} {{ accountService.currentUser()?.employee?.surname }}
+            </span>
+            <span class="employee-position">
+              {{ accountService.currentUser()?.employee?.position?.name }}
+            </span>
+          </div>
+
           @if (isDropdownMenuOpened) {
             <i class="bi bi-chevron-compact-up"></i>
           } @else {

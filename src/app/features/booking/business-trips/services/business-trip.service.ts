@@ -52,4 +52,11 @@ export class BusinessTripService {
   rejectBusinessTrip(id: number) {
     return this.httpClient.put(`${this.path}/reject/${id}`, {});
   }
+
+  downloadBusinessTripOrder(businessTripId: number) {
+    return this.httpClient.get(`${this.path}/download/order/${businessTripId}`,
+      {
+        responseType: 'blob'
+      });
+  }
 }

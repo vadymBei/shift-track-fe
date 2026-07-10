@@ -23,6 +23,7 @@ import {debounceTime} from "rxjs/operators";
 import {DepartmentService} from "../../../../organization/structure/services/department.service";
 import {UnitService} from "../../../../organization/structure/services/unit.service";
 import {AccountService} from "../../../../../core/account/services/account.service";
+import {Vacation} from "../../../vacations/models/vacation.model";
 
 @Component({
   selector: 'app-business-trips',
@@ -122,6 +123,10 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
   }
 
   getBusinessTrips(): void {
+    if (this.form.value.departmentId === null
+      || this.form.value.departmentId === undefined)
+      return;
+
     this.request.update(req => ({
       ...req,
       startDate: this.form.value.dateFrom,
@@ -219,8 +224,7 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
       }));
 
       this.businessTrips.set([]);
-    }
-    else {
+    } else {
       this.request.update(req => ({
         ...req,
         departmentId: Number(departmentId)
@@ -267,6 +271,27 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
     })
   }
 
+  downloadBusinessTripOrder(businessTrip: BusinessTrip): void {
+    this.businessTripService.downloadBusinessTripOrder(businessTrip.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob: Blob) => {
+          const url = window.URL.createObjectURL(blob);
+
+          const link = document.createElement('a');
+          link.href = url;
+
+          link.download = `Наказ на відрядження ${businessTrip.id} ${moment(businessTrip.startDate).format('DD/MM/YYYY')}-${moment(businessTrip.endDate).format('DD/MM/YYYY')}.pdf`;
+
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          window.URL.revokeObjectURL(url);
+        }
+      });
+  }
+
   openEditBusinessTripModal(businessTrip: BusinessTrip) {
     const ref = this.modalService.show(
       EditBusinessTripModalComponent,
@@ -294,7 +319,7 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
       });
   }
 
-  deleteBusinessTrip(id: number){
+  deleteBusinessTrip(id: number) {
     this.businessTripService.delete(id).pipe(takeUntil(this.destroy$))
       .subscribe(val => {
         this.getBusinessTrips();

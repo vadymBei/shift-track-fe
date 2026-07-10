@@ -109,15 +109,16 @@ export class CreateBusinessTripModalComponent implements OnInit, OnDestroy {
   }
 
   getDurationDays(): number {
-    const start = this.form.value.startDate;
-    const end = this.form.value.endDate;
+    const startDate = this.form.value.startDate;
+    const endDate = this.form.value.endDate;
 
-    if (!start || !end)
+    if (!startDate || !endDate)
       return 0;
 
-    const diff = new Date(end).getTime() - new Date(start).getTime();
+    if(startDate === endDate)
+      return 1;
 
-    return Math.max(0, Math.round(diff / (1000 * 60 * 60 * 24)));
+    return moment(endDate).diff(moment(startDate), 'days') + 1;
   }
 
   getInitials(employee: Employee): string {

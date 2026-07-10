@@ -1,16 +1,4 @@
 <div class="sidebar-background d-flex flex-column vh-100">
-  <div class="row">
-    <div class="col d-flex justify-content-center align-items-center">
-      <span class="employee-name">{{ accountService.currentUser()?.employee?.fullName }}</span>
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col d-flex justify-content-center align-items-center">
-      <span class="employee-position">{{ accountService.currentUser()?.employee?.position?.name }}</span>
-    </div>
-  </div>
-
   <div class="w-100 h-100 d-flex">
     <nav class="navbar w-100 h-100 d-flex flex-column">
       @if (isUserLoaded()) {
