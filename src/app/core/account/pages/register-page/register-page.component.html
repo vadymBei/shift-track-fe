@@ -1,229 +1,171 @@
 <div class="register-page-wrapper">
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-10">
-        <div class="register-card shadow mt-5 mt-xl-10 mb-4">
-          <div class="register-card-body p-5">
-            <div class="row">
-              <div class="col">
-                <div class="d-flex align-items-center gap-2 mb-4">
-                  <img class="logo" src="/assets/icons/cube_large.svg" alt="ShiftTrack">
-                  <h3 class="text-primary mb-0">ShiftTrack</h3>
-                </div>
-              </div>
+  <app-theme-toggle class="theme-toggle"/>
+
+  <p-card styleClass="register-card">
+    <div class="brand">
+      <img class="brand-logo" src="/assets/icons/cube_large.svg" alt="">
+      <span class="brand-name">ShiftTrack</span>
+    </div>
+
+    <p-card styleClass="form-card">
+      <ng-template pTemplate="title">Реєстрація</ng-template>
+      <ng-template pTemplate="subtitle">Створіть акаунт, щоб керувати змінами та табелем</ng-template>
+
+      <form class="register-form" [formGroup]="form" (ngSubmit)="register()">
+        <fieldset class="form-section">
+          <legend class="section-title">Особисті дані</legend>
+
+          <div class="form-grid">
+            <div class="field">
+              <p-floatlabel variant="in">
+                <input pInputText id="surname" autocomplete="family-name" formControlName="surname" [fluid]="true"/>
+                <label for="surname">Прізвище</label>
+              </p-floatlabel>
+              @if (isInvalid('surname')) {
+                <p-message severity="error" variant="simple" size="small">Вкажіть прізвище</p-message>
+              }
             </div>
-            <div class="card">
-              <div class="card-body">
-                <div class="row justify-content-around">
-                  <div class="col">
-                    <div class="row justify-content-start">
-                      <div class="col-auto">
-                        <h3>Реєстрація</h3>
-                      </div>
-                    </div>
 
-                    <form
-                      id="registerForm"
-                      class="login-form"
-                      [formGroup]="form"
-                      (ngSubmit)="register()">
+            <div class="field">
+              <p-floatlabel variant="in">
+                <input pInputText id="name" autocomplete="given-name" formControlName="name" [fluid]="true"/>
+                <label for="name">Ім'я</label>
+              </p-floatlabel>
+              @if (isInvalid('name')) {
+                <p-message severity="error" variant="simple" size="small">Вкажіть ім'я</p-message>
+              }
+            </div>
 
-                      <div class="row justify-content-around">
-                        <div class="col-lg-6 col-md-6">
-                          <div class="form-floating mb-3">
-                            <input
-                              class="form-control"
-                              id="surname"
-                              type="text"
-                              formControlName="surname">
+            <div class="field">
+              <p-floatlabel variant="in">
+                <input pInputText id="patronymic" autocomplete="additional-name" formControlName="patronymic" [fluid]="true"/>
+                <label for="patronymic">По батькові</label>
+              </p-floatlabel>
+              @if (isInvalid('patronymic')) {
+                <p-message severity="error" variant="simple" size="small">Вкажіть по батькові</p-message>
+              }
+            </div>
 
-                            <label class="form-label" for="surname">
-                              Прізвище:
-                            </label>
-                          </div>
-                        </div>
-
-                        <div class="col-lg-6 col-md-6">
-                          <div class="form-floating mb-3">
-                            <input
-                              class="form-control"
-                              id="name"
-                              type="text"
-                              formControlName="name">
-
-                            <label
-                              class="form-label"
-                              for="name">
-                              Ім'я:
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div class="row justify-content-around">
-                        <div class="col-lg-6 col-md-6">
-                          <div class="form-floating mb-3">
-                            <input
-                              class="form-control"
-                              id="patronymic"
-                              type="text"
-                              formControlName="patronymic">
-
-                            <label
-                              class="form-label"
-                              for="patronymic">
-                              По-батькові:
-                            </label>
-                          </div>
-                        </div>
-
-                        <div class="col-lg-6 col-md-6">
-                          <div class="form-floating mb-3">
-
-                            <input
-                              class="form-control"
-                              id="phoneNumber"
-                              type="text"
-                              formControlName="phoneNumber">
-
-                            <label
-                              class="form-label"
-                              for="phoneNumber">
-                              Телефон:
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div class="row justify-content-around">
-                        <div class="col-lg-6 col-md-6">
-                          <div class="form-floating mb-3">
-                            <input
-                              class="form-control"
-                              id="email"
-                              type="email"
-                              formControlName="email">
-
-                            <label
-                              class="form-label"
-                              for="email">
-                              Email:
-                            </label>
-                          </div>
-                        </div>
-
-                        <div class="col-lg-6 col-md-6">
-                          <div class="form-floating mb-3">
-                            <select
-                              formControlName="gender"
-                              class="form-select"
-                              id="gender">
-                              <option [ngValue]="null">Не вказано</option>
-                              <option [ngValue]="'Male'">Чоловік</option>
-                              <option [ngValue]="'Female'">Жінка</option>
-                            </select>
-
-                            <label
-                              class="form-label"
-                              for="gender">
-                              Стать:
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div class="row justify-content-around">
-                        <div class="col-lg-6 col-md-6">
-                          <div class="form-floating mb-3">
-                            <input
-                              class="form-control"
-                              id="password"
-                              type="password"
-                              formControlName="password"
-                              [type]="isPasswordVisible() ? 'text' : 'password'">
-
-                            <button
-                              type="button"
-                              class="password-eye-btn"
-                              (click)="isPasswordVisible.set(!isPasswordVisible())">
-
-                              <i class="bi bi-eye-slash-fill"
-                                 *ngIf="isPasswordVisible()">
-                              </i>
-
-                              <i class="bi bi-eye-fill"
-                                 *ngIf="!isPasswordVisible()">
-                              </i>
-                            </button>
-
-                            <label
-                              class="form-label"
-                              for="password">
-                              Пароль:
-                            </label>
-                          </div>
-                        </div>
-
-                        <div class="col-lg-6 col-md-6">
-                          <div class="form-floating mb-3">
-                            <input
-                              class="form-control"
-                              id="confirmPassword"
-                              type="password"
-                              formControlName="confirmPassword"
-                              [type]="isConfirmPasswordVisible() ? 'text' : 'password'">
-
-                            <button
-                              type="button"
-                              class="password-eye-btn"
-                              (click)="isConfirmPasswordVisible.set(!isConfirmPasswordVisible())">
-
-                              <i class="bi bi-eye-slash-fill"
-                                 *ngIf="isConfirmPasswordVisible()">
-                              </i>
-
-                              <i class="bi bi-eye-fill"
-                                 *ngIf="!isConfirmPasswordVisible()">
-                              </i>
-                            </button>
-
-                            <label
-                              class="form-label"
-                              for="confirmPassword">
-                              Підтвердження паролю:
-                            </label>
-
-                            <div *ngIf="form.errors?.['passwordsNotMatch'] && form.get('confirmPassword')?.touched">
-                              <p style="color: var(--pink-color)">Паролі не співпадають</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div class="row justify-content-between align-items-end p-0">
-                          <div class="col">
-                            <span style="font-size: 13px;">Вже маєте акаунт? </span> <a
-                            routerLink="/account/login">Увійти</a>
-                          </div>
-
-                          <div class="col d-flex justify-content-end">
-                            <button
-                              class="btn btn-primary"
-                              type="submit"
-                              form="registerForm"
-                              [class.disabled]="!form.valid" [disabled]="!form.valid">
-                              Створити акаунт
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              </div>
+            <div class="field">
+              <p-floatlabel variant="in">
+                <p-select
+                  inputId="gender"
+                  formControlName="gender"
+                  [options]="genderOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  [fluid]="true"/>
+                <label for="gender">Стать</label>
+              </p-floatlabel>
+              @if (isInvalid('gender')) {
+                <p-message severity="error" variant="simple" size="small">Оберіть стать</p-message>
+              }
             </div>
           </div>
+        </fieldset>
+
+        <fieldset class="form-section">
+          <legend class="section-title">Контакти</legend>
+
+          <div class="form-grid">
+            <div class="field">
+              <p-floatlabel variant="in">
+                <p-iconfield>
+                  <p-inputicon styleClass="pi pi-phone"/>
+                  <input
+                    pInputText
+                    id="phoneNumber"
+                    type="tel"
+                    autocomplete="tel"
+                    [pKeyFilter]="phoneKeyFilter"
+                    formControlName="phoneNumber"
+                    [fluid]="true"/>
+                </p-iconfield>
+                <label for="phoneNumber">Телефон</label>
+              </p-floatlabel>
+              @if (isInvalid('phoneNumber')) {
+                <p-message severity="error" variant="simple" size="small">Вкажіть номер телефону</p-message>
+              } @else {
+                <small class="hint">Буде вашим логіном, у форматі +380XXXXXXXXX</small>
+              }
+            </div>
+
+            <div class="field">
+              <p-floatlabel variant="in">
+                <p-iconfield>
+                  <p-inputicon styleClass="pi pi-envelope"/>
+                  <input pInputText id="email" type="email" autocomplete="email" formControlName="email" [fluid]="true"/>
+                </p-iconfield>
+                <label for="email">Email</label>
+              </p-floatlabel>
+              @if (isInvalid('email')) {
+                <p-message severity="error" variant="simple" size="small">Вкажіть коректний email</p-message>
+              }
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-section">
+          <legend class="section-title">Пароль</legend>
+
+          <div class="form-grid">
+            <div class="field">
+              <p-floatlabel variant="in">
+                <p-password
+                  inputId="password"
+                  formControlName="password"
+                  autocomplete="new-password"
+                  [toggleMask]="true"
+                  [feedback]="true"
+                  promptLabel="Мінімум 6 символів, мала латинська літера та цифра"
+                  weakLabel="Слабкий"
+                  mediumLabel="Середній"
+                  strongLabel="Надійний"
+                  appendTo="body"
+                  [fluid]="true"/>
+                <label for="password">Пароль</label>
+              </p-floatlabel>
+              @if (isInvalid('password')) {
+                <p-message severity="error" variant="simple" size="small">
+                  Мінімум 6 символів, принаймні одна мала латинська літера та одна цифра
+                </p-message>
+              }
+            </div>
+
+            <div class="field">
+              <p-floatlabel variant="in">
+                <p-password
+                  inputId="confirmPassword"
+                  formControlName="confirmPassword"
+                  autocomplete="new-password"
+                  [toggleMask]="true"
+                  [feedback]="false"
+                  [fluid]="true"/>
+                <label for="confirmPassword">Підтвердження пароля</label>
+              </p-floatlabel>
+              @if (isInvalid('confirmPassword')) {
+                <p-message severity="error" variant="simple" size="small">Повторіть пароль</p-message>
+              } @else if (passwordsMismatch) {
+                <p-message severity="error" variant="simple" size="small">Паролі не збігаються</p-message>
+              }
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="form-actions">
+          <span class="login-hint">
+            Вже маєте акаунт?
+            <a class="link" routerLink="/account/login">Увійти</a>
+          </span>
+
+          <p-button
+            type="submit"
+            label="Створити акаунт"
+            icon="pi pi-user-plus"
+            [loading]="isLoading()"
+            [disabled]="form.invalid"/>
         </div>
-      </div>
-    </div>
-  </div>
+      </form>
+    </p-card>
+  </p-card>
 </div>

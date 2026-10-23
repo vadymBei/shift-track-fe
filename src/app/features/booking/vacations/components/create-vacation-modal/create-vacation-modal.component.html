@@ -1,124 +1,110 @@
-<div class="card">
-  <div class="card-body">
-    <div class="row mb-4">
-      <div class="col">
-        <h5>Додати відпустку</h5>
+<div class="vacation-dialog">
+  <header class="dialog-header">
+    <div>
+      <h2 class="dialog-title">Нова заявка на відпустку</h2>
+      <p class="dialog-subtitle">
+        {{ employee()?.fullName }}
+        @if (employee()?.position?.name) {
+          · {{ employee()?.position?.name }}
+        }
+        @if (employee()?.department?.name) {
+          · {{ employee()?.department?.name }}
+        }
+      </p>
+    </div>
+    <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" ariaLabel="Закрити" (onClick)="close()"/>
+  </header>
+
+  <form class="dialog-body" [formGroup]="form" (ngSubmit)="save()">
+    <div class="field">
+      <label class="field-label" for="vacationType">Тип відпустки</label>
+      <p-select
+        inputId="vacationType"
+        formControlName="type"
+        [options]="typeGroups"
+        [group]="true"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Оберіть тип відпустки"
+        appendTo="body"
+        [fluid]="true"/>
+      @if (form.controls.type.invalid && form.controls.type.touched) {
+        <p-message severity="error" variant="simple" size="small">Оберіть тип відпустки</p-message>
+      }
+    </div>
+
+    <div class="period-row">
+      <div class="field period-calendar">
+        <span class="field-label">Період</span>
+        <p-datepicker
+          formControlName="period"
+          selectionMode="range"
+          [inline]="true"
+          [minDate]="today"
+          [readonlyInput]="true"
+          styleClass="vacation-calendar"/>
+        @if (isPeriodIncomplete) {
+          <p-message severity="error" variant="simple" size="small">Оберіть дату початку та закінчення</p-message>
+        }
       </div>
 
-      <div class="col-1">
-        <button class="btn-close" (click)="bsModalRef.hide()">
-        </button>
+      <div class="period-summary">
+        <span class="field-label">Підсумок</span>
+
+        <div class="summary-card">
+          @if (endDate()) {
+            <div class="summary-days">
+              <span class="summary-number">{{ daysCount() }}</span>
+              <span class="summary-unit">календарних {{ daysLabel() }}</span>
+            </div>
+            <div class="summary-line">
+              <i class="pi pi-calendar"></i>
+              <span>{{ startDate() | date: 'EEEEEE, d MMMM' }} — {{ endDate() | date: 'EEEEEE, d MMMM y' }}</span>
+            </div>
+            <div class="summary-line">
+              <i class="pi pi-arrow-right"></i>
+              <span>Перший день після відпустки: {{ returnDate() | date: 'EEEE, d MMMM' }}</span>
+            </div>
+          } @else {
+            <div class="summary-empty">
+              <i class="pi pi-calendar-plus"></i>
+              <span>Оберіть на календарі першу та останню дату відпустки</span>
+            </div>
+          }
+        </div>
+
+        <div class="approval">
+          <span class="approval-title">Погодження</span>
+          <span class="approval-step"><span class="step-dot">1</span>Директор департаменту</span>
+          <span class="approval-step"><span class="step-dot">2</span>Регіональний директор</span>
+        </div>
       </div>
     </div>
 
-    <form
-      id="createVacationForm"
-      [formGroup]="form"
-      (ngSubmit)="save()">
-      <div class="row">
-        <div class="col">
-          <div class="form-floating mb-3">
-            <select
-              formControlName="type"
-              id="type"
-              class="form-select">
-              <option [ngValue]="null">Не обрано</option>
-              <option [ngValue]="'YearMainVacation'">Основна щорічна відпустка</option>
-              <option [ngValue]="'VacationWithoutSalaryByFamily'">Відпустка без збереження з/п за згодою сторін за
-                сімейними обставинами
-              </option>
-              <option [ngValue]="'VacationWithoutSalaryByPregnancy'">Відпустка у зв'язку з вагітністю та пологами
-              </option>
-              <option [ngValue]="'VacationWithoutSalaryByChild3Years'">Відпустка для догляду за дитиною до досягнення
-                нею 3-го віку
-              </option>
-              <option [ngValue]="'VacationWithoutSalaryByChild6Years'">Відпустка для догляду за дитиною до досягнення
-                нею 6-го віку
-              </option>
-              <option [ngValue]="'BonusVacation'">Бонусна відпустка</option>
-            </select>
+    <div class="field">
+      <label class="field-label" for="comment">
+        Коментар <span class="optional">(необов'язково)</span>
+      </label>
+      <textarea
+        pTextarea
+        id="comment"
+        formControlName="comment"
+        rows="3"
+        maxlength="100"
+        placeholder="Наприклад: на зв'язку телефоном"
+        [autoResize]="true"
+        class="comment"></textarea>
+      <small class="counter">{{ commentLength() }} / 100</small>
+    </div>
 
-            <label class="form-label" for="type">
-              Тип відпустки:
-            </label>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col">
-          <div class="form-floating mb-3">
-            <div class="form-floating mb-3">
-              <input
-                id="startDate"
-                type="date"
-                class="form-control"
-                formControlName="startDate">
-
-              <label
-                class="form-label"
-                for="startDate">
-                Дата початку:
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div class="col">
-          <div class="form-floating mb-3">
-            <input
-              class="form-control"
-              type="date"
-              id="endDate"
-              formControlName="endDate">
-
-            <label
-              class="form-label"
-              for="endDate">
-              Дата закінчення:
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col">
-          <div class="form-floating mb-3">
-            <input
-              class="form-control"
-              type="text"
-              id="comment"
-              formControlName="comment">
-
-            <label
-              class="form-label"
-              for="comment">
-              Коментар:
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <div class="row d-flex justify-content-end">
-        <div class="col-auto">
-          <button
-            type="button"
-            class="btn btn-light shadow"
-            (click)="bsModalRef.hide()">
-            Скасувати
-          </button>
-        </div>
-
-        <div class="col-auto">
-          <button
-            class="btn btn-primary shadow"
-            type="submit"
-            form="createVacationForm"
-            [class.disabled]="!form.valid"
-            [disabled]="!form.valid"
-          >Зберегти
-          </button>
-        </div>
-      </div>
-    </form>
-  </div>
+    <footer class="dialog-footer">
+      <p-button label="Скасувати" [text]="true" severity="secondary" (onClick)="close()"/>
+      <p-button
+        type="submit"
+        label="Подати заявку"
+        icon="pi pi-send"
+        [loading]="isSaving()"
+        [disabled]="form.invalid || !endDate()"/>
+    </footer>
+  </form>
 </div>

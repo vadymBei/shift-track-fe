@@ -1,151 +1,140 @@
-<div
-  class="main-card p-3 shadow"
-  style="height: 80vh;">
-  <div class="">
-    <div class="row mb-3">
-      <div class="col-3">
-        <form [formGroup]="form">
-          <div class="form-floating">
-            <select
-              class="form-control form-control-sm"
-              formControlName="unitId"
-              id="unit"
-              (change)="onUnitChange($event)">
-              <option value="null">Всі</option>
-              @for (unit of units(); track unit.id) {
-                <option value="{{unit.id}}">{{ unit.name }}</option>
-              }
-            </select>
-
-            <label class="form-label" for="unit">
-              Регіон:
-            </label>
-          </div>
-        </form>
-      </div>
+<div class="page">
+  <header class="page-header">
+    <div>
+      <a class="back-link" routerLink="/administration"><i class="pi pi-arrow-left"></i>Адміністрування</a>
+      <h1 class="page-title">Ролі та доступи</h1>
+      <p class="page-subtitle">Хто що може бачити й змінювати в системі</p>
     </div>
+  </header>
 
-    <div class="row mb-2">
-      <div class="col">
-        <strong>Користувачі</strong>
+  <div class="roles-layout">
+    <aside class="people glass">
+      <div class="people-filters">
+        <p-select [options]="units()" optionLabel="name" optionValue="id" [ngModel]="unitId()"
+                  (ngModelChange)="onUnitChange($event)" [showClear]="true" placeholder="Усі регіони"
+                  [filter]="units().length > 8" [fluid]="true"/>
+        <p-iconfield>
+          <p-inputicon styleClass="pi pi-search"/>
+          <input pInputText type="search" placeholder="Пошук працівника" [ngModel]="search()"
+                 (ngModelChange)="search.set($event)" class="search-input"/>
+        </p-iconfield>
       </div>
 
-      <div class="col d-flex justify-content-between">
-        <strong>Роль</strong>
-
-        <button
-          *ngIf="showCreateEmployeeRoleButton"
-          class="btn btn-add btn-primary rounded-circle d-flex justify-content-center align-items-center"
-          (click)="openCreateEmployeeRoleModal()">
-          +
-        </button>
+      <div class="people-count">
+        {{ visibleEmployees().length }} {{ visibleEmployees().length === 1 ? 'працівник' : 'працівників' }}
       </div>
 
-      <div class="col d-flex justify-content-between">
-        <strong>Регіон</strong>
-
-        <button
-          *ngIf="showCreateEmployeeRoleUnitButton"
-          class="btn btn-add btn-primary rounded-circle d-flex justify-content-center align-items-center"
-          (click)="openCreateEmployeeRoleUnitModal()">
-          +
-        </button>
+      <div class="people-list">
+        @if (employeesLoading() && !employees().length) {
+          @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+            <div class="person skeleton-person">
+              <p-skeleton shape="circle" size="36px"/>
+              <div class="person-text"><p-skeleton width="70%" height="14px"/><p-skeleton width="45%" height="11px"/></div>
+            </div>
+          }
+        } @else {
+          @for (employee of visibleEmployees(); track employee.id) {
+            <button type="button" class="person" [class.active]="selected()?.id === employee.id"
+                    (click)="selectEmployee(employee)">
+              <p-avatar [label]="initials(employee)" shape="circle" styleClass="app-avatar person-avatar"/>
+              <span class="person-text">
+                <span class="person-name">{{ employee.fullName }}</span>
+                <span class="person-meta">
+                  {{ employee.position?.name || 'Без посади' }}@if (employee.department?.name) { · {{ employee.department?.name }} }
+                </span>
+              </span>
+              <i class="pi pi-angle-right person-arrow"></i>
+            </button>
+          } @empty {
+            <div class="list-empty">Нікого не знайдено</div>
+          }
+        }
       </div>
+    </aside>
 
-      <div class="col d-flex justify-content-between">
-        <strong>Департамент</strong>
-
-        <button
-          *ngIf="showCreateEmployeeRoleUnitDepartmentButton"
-          class="btn btn-add btn-primary rounded-circle d-flex justify-content-center align-items-center"
-          (click)="openCreateEmployeeRoleUnitDepartmentModal()">
-          +
-        </button>
-      </div>
-    </div>
-
-    <div class="row" style="height: calc(98% - 100px);">
-      <div class="col me-3">
-        <div class="card h-100 d-flex flex-column">
-          <div class="card-body overflow-auto position-relative">
-            @if (isLoading()) {
-              <div class="spinner-overlay">
-                <div class="spinner-border text-primary" role="status">
-                  <span class="visually-hidden">Loading...</span>
-                </div>
-              </div>
-            }
-
-            @for (employee of employees(); track employee.id; ) {
-              <div class="row mb-1 pt-2 pb-2 employee-name"
-                   [ngClass]="{'bg-primary': employee.id === employeeId, 'bg-gray-hover': employee.id !== employeeId}">
-                <div class="col">
-                  <span (click)="selectEmployee(employee.id)">
-                    <strong class="text-truncate">{{ employee.fullName }}</strong>
-                  </span>
-                </div>
-              </div>
-            }
+    <section class="details">
+      @if (selected(); as employee) {
+        <div class="profile glass">
+          <p-avatar [label]="initials(employee)" shape="circle" size="xlarge" styleClass="app-avatar profile-avatar"/>
+          <div class="profile-text">
+            <h2>{{ employee.fullName }}</h2>
+            <span>
+              {{ employee.position?.name || 'Без посади' }}
+              @if (employee.department?.name) { · {{ employee.department?.name }} }
+            </span>
           </div>
+          <p-button label="Призначити роль" icon="pi pi-plus" (onClick)="openAssignRole()"/>
         </div>
-      </div>
 
-      <div class="col me-3">
-        @for (employeeRole of employeeRoles(); track employeeRole.id; ) {
-          <div class="row mb-1 pt-2 pb-2 bg-gray-hover"
-               [ngClass]="{'bg-primary': employeeRole.id === employeeRoleId, 'bg-gray-hover': employeeRole.id !== employeeRoleId}">
-            <div class="col">
-              <span
-                class="employee-role"
-                (click)="selectEmployeeRole(employeeRole.id)"
-              >{{ employeeRole.role.name }}
-              </span>
-            </div>
+        @if (rolesLoading() && !roles().length) {
+          @for (i of [1, 2]; track i) { <p-skeleton height="140px" borderRadius="16px"/> }
+        } @else {
+          @for (node of roles(); track node.employeeRole.id) {
+            <article class="role-card surface">
+              <header class="role-head">
+                <span class="role-icon"><i [class]="roleMeta(node.employeeRole.role).icon"></i></span>
+                <div class="role-text">
+                  <div class="role-title-row">
+                    <h3>{{ roleTitle(node.employeeRole.role) }}</h3>
+                    @if (scopeMeta[node.employeeRole.scope]; as scope) {
+                      <p-tag [value]="scope.label" [severity]="scope.severity" [rounded]="true"/>
+                    }
+                  </div>
+                  <span class="role-desc">{{ roleMeta(node.employeeRole.role).description || node.employeeRole.role.name }}</span>
+                </div>
+                <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" ariaLabel="Видалити роль"
+                          pTooltip="Видалити роль" tooltipPosition="left" (onClick)="confirmDeleteRole(node)"/>
+              </header>
 
-            <div class="col-2">
-              <i
-                class="bi bi-trash"
-                 (click)="openDeleteEmployeeRoleConfirmationModal(employeeRole)"></i>
-            </div>
-          </div>
+              <div class="access">
+                @for (unit of node.units; track unit.roleUnit.id) {
+                  <div class="access-unit">
+                    <div class="unit-head">
+                      <i class="pi pi-map-marker"></i>
+                      <span class="unit-name">{{ unit.roleUnit.unit.name }}</span>
+                      @if (unit.roleUnit.scope === RoleScope.global) {
+                        <span class="unit-scope">усі департаменти</span>
+                      }
+                      <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" size="small"
+                                ariaLabel="Прибрати регіон" pTooltip="Прибрати регіон" tooltipPosition="left"
+                                (onClick)="confirmDeleteUnit(unit)" styleClass="unit-remove"/>
+                    </div>
+                    <div class="chips">
+                      @for (dep of unit.departments; track dep.id) {
+                        <span class="dep-chip">
+                          <i class="pi pi-building"></i>{{ dep.department.name }}
+                          <button type="button" class="chip-remove" aria-label="Прибрати департамент"
+                                  (click)="confirmDeleteDepartment(dep)"><i class="pi pi-times"></i></button>
+                        </span>
+                      }
+                      <button type="button" class="add-chip" (click)="openAddDepartment(node, unit)">
+                        <i class="pi pi-plus"></i>Департамент
+                      </button>
+                    </div>
+                  </div>
+                } @empty {
+                  <div class="access-empty">
+                    @if (node.employeeRole.scope === RoleScope.global) {
+                      Глобальна роль — діє в усіх регіонах
+                    } @else {
+                      Регіони ще не призначено
+                    }
+                  </div>
+                }
+                <button type="button" class="add-unit" (click)="openAddUnit(node)">
+                  <i class="pi pi-plus"></i>Додати регіон
+                </button>
+              </div>
+            </article>
+          } @empty {
+            <app-empty-state class="surface narrow" icon="pi pi-shield" heading="У працівника ще немає ролей" hint="Призначте роль, щоб надати доступ до розділів системи">
+              <p-button label="Призначити роль" icon="pi pi-plus" [outlined]="true" (onClick)="openAssignRole()"/>
+            </app-empty-state>
+          }
         }
-      </div>
-
-      <div class="col me-3">
-        @for (employeeRoleUnit of employeeRoleUnits(); track employeeRoleUnit.id; ) {
-          <div
-            class="row mb-1 pt-2 pb-2 bg-gray-hover"
-            [ngClass]="{'bg-primary': employeeRoleUnit.id === employeeRoleUnitId, 'bg-gray-hover': employeeRoleUnit.id !== employeeRoleUnitId}">
-            <div class="col">
-              <span (click)="selectEmployeeRoleUnit(employeeRoleUnit.id)"
-              >{{ employeeRoleUnit.unit.name }}
-              </span>
-            </div>
-
-            <div class="col-2">
-              <i
-                class="bi bi-trash"
-                 (click)="openDeleteEmployeeRoleUnitConfirmationModal(employeeRoleUnit)"></i>
-            </div>
-          </div>
-        }
-      </div>
-
-      <div class="col me-3">
-        @for (employeeRoleUnitDepartment of employeeRoleUnitDepartments(); track employeeRoleUnitDepartment.id; ) {
-          <div class="row mb-1 pt-2 pb-2 bg-gray-hover">
-            <div class="col">
-              <span class="employee-role">{{ employeeRoleUnitDepartment.department.name }}</span>
-            </div>
-
-            <div class="col-2">
-              <i
-                class="bi bi-trash"
-                 (click)="openDeleteEmployeeRoleUnitDepartmentConfirmationModal(employeeRoleUnitDepartment)"></i>
-            </div>
-          </div>
-        }
-      </div>
-    </div>
+      } @else {
+        <app-empty-state class="surface tall narrow" icon="pi pi-user" heading="Оберіть працівника" hint="Тут з'являться його ролі, регіони й департаменти, до яких він має доступ"/>
+      }
+    </section>
   </div>
 </div>

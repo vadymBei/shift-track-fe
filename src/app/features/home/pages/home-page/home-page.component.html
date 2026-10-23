@@ -1,0 +1,290 @@
+<div class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">{{ greeting() }}</h1>
+      <p class="page-subtitle today">{{ todayLabel() }}</p>
+    </div>
+    <div class="page-actions">
+      <p-button label="Відпустка" icon="pi pi-plus" severity="secondary" [outlined]="true"
+                routerLink="/vacations" [queryParams]="{create: 1}"/>
+      <p-button label="Відрядження" icon="pi pi-plus" severity="secondary" [outlined]="true"
+                routerLink="/business-trips" [queryParams]="{create: 1}"/>
+    </div>
+  </header>
+
+  @if (data(); as d) {
+    <div class="grid">
+      <section class="card glass today-card span-2">
+        <span class="card-label"><i class="pi pi-clock"></i>Сьогодні</span>
+        @if (weekLoading()) {
+          <div class="today-main">
+            <p-skeleton width="72px" height="72px" borderRadius="20px"/>
+            <div class="today-text"><p-skeleton width="220px" height="24px"/><p-skeleton width="120px" height="18px"/></div>
+          </div>
+        } @else if (weekError()) {
+          <div class="today-note"><i class="pi pi-exclamation-circle"></i>Не вдалося завантажити ваші зміни</div>
+        } @else {
+        @switch (shiftState().kind) {
+          @case ('none') {
+            <div class="today-main">
+              <app-shift-chip size="xl" placeholder="?"/>
+              <div class="today-text">
+                <h2>Зміну ще не заплановано</h2>
+                <span>Графік на сьогодні в табелі порожній</span>
+              </div>
+            </div>
+          }
+          @default {
+            @let shift = todayShift()!.shift!;
+            <div class="today-main">
+              <app-shift-chip [shift]="shift" size="xl"/>
+              <div class="today-text">
+                <h2>{{ shift.description }}</h2>
+                @if (dayRange(todayShift())) { <span class="today-time">{{ dayRange(todayShift()) }}</span> }
+              </div>
+            </div>
+
+            @let state = shiftState();
+            @if (state.kind === 'active') {
+              <div class="shift-progress">
+                <div class="shift-progress-head">
+                  <span class="live"><span class="live-dot"></span>Зміна триває</span>
+                  <span>лишилось <b>{{ state.left }}</b></span>
+                </div>
+                <p-progressbar [value]="state.progress" [showValue]="false" styleClass="today-bar"/>
+              </div>
+            } @else if (state.kind === 'upcoming') {
+              <div class="today-note"><i class="pi pi-hourglass"></i>Почнеться через <b>{{ state.startsIn }}</b></div>
+            } @else if (state.kind === 'done') {
+              <div class="today-note"><i class="pi pi-check-circle"></i>Зміну завершено. Гарного відпочинку!</div>
+            } @else if (state.kind === 'off') {
+              @switch (state.shift.type) {
+                @case ('Vacation') { <div class="today-note"><i class="pi pi-sun"></i>Ви у відпустці — гарного відпочинку!</div> }
+                @case ('DayOff') { <div class="today-note"><i class="pi pi-home"></i>Сьогодні вихідний</div> }
+                @case ('Holiday') { <div class="today-note"><i class="pi pi-star"></i>Сьогодні святковий день</div> }
+                @default { <div class="today-note"><i class="pi pi-info-circle"></i>Сьогодні не робоча зміна</div> }
+              }
+            }
+          }
+        }
+
+        }
+
+        @if (nextShift(); as next) {
+          <div class="next">
+            <span class="muted">Наступна зміна</span>
+            <app-shift-chip [shift]="next.shift" size="sm"/>
+            <b>{{ relativeDay(next.date) }}</b>
+            @if (dayRange(next)) { <span class="muted">{{ dayRange(next) }}</span> }
+          </div>
+        }
+      </section>
+
+      <section class="card glass balance-card">
+        <span class="card-label"><i class="pi pi-sun"></i>Щорічна відпустка</span>
+        @if (balanceLoading()) {
+          <p-skeleton width="140px" height="48px"/>
+          <p-skeleton height="10px" borderRadius="999px"/>
+          <p-skeleton width="200px" height="14px"/>
+        } @else if (balanceError()) {
+          <div class="today-note"><i class="pi pi-exclamation-circle"></i>Не вдалося завантажити баланс відпустки</div>
+        } @else if (balance()) {
+          @let b = balance()!;
+          <div class="balance-main">
+            <span class="balance-number">{{ b.available }}</span>
+            <span class="balance-unit">{{ plural(b.available, 'день', 'дні', 'днів') }} доступно<br>з {{ b.totalDays }} на рік</span>
+          </div>
+          <div class="balance-bar" [pTooltip]="'Використано ' + b.usedDays + ' · заплановано ' + b.plannedDays + ' · доступно ' + b.available" tooltipPosition="top">
+            <span class="used" [style.width.%]="b.usedPct"></span>
+            <span class="planned" [style.width.%]="b.plannedPct"></span>
+          </div>
+          <div class="balance-legend">
+            <span><i class="dot used"></i>Використано {{ b.usedDays }}</span>
+            <span><i class="dot planned"></i>Заплановано {{ b.plannedDays }}</span>
+          </div>
+        }
+        @if (d.upcomingAbsence; as a) {
+          <div class="upcoming">
+            <i [class]="kindIcon(a.kind)"></i>
+            <div>
+              <b>{{ period(a.startDate, a.endDate) }}</b>
+              <span class="muted">{{ a.title }} · {{ inDays(a.startDate) }}</span>
+            </div>
+          </div>
+        }
+      </section>
+
+      <section class="card glass span-3">
+        <div class="card-head">
+          <span class="card-label"><i class="pi pi-calendar"></i>Мій тиждень</span>
+          <span class="muted">{{ weekHours() | number: '1.0-1' : 'uk' }} год · <a routerLink="/timesheet">Табель</a></span>
+        </div>
+        <div class="week">
+          @if (weekLoading()) {
+            @for (i of [1, 2, 3, 4, 5, 6, 7]; track i) { <p-skeleton height="120px" borderRadius="12px"/> }
+          }
+          @for (day of week(); track day.date) {
+            <div class="day" [class.today]="isToday(day.date)" [class.past]="isPast(day.date)">
+              <span class="day-name">{{ dayName(day.date) }}</span>
+              <span class="day-number">{{ dayNumber(day.date) }}</span>
+              @if (day.shift; as s) {
+                <app-shift-chip [shift]="s" class="day-chip"/>
+                <span class="day-time">{{ dayRange(day) || s.description }}</span>
+              } @else {
+                <app-shift-chip class="day-chip"/>
+                <span class="day-time">не заплановано</span>
+              }
+            </div>
+          }
+        </div>
+      </section>
+
+      @if (isManager()) {
+        <section class="card glass span-2">
+          <div class="card-head">
+            <span class="card-label"><i class="pi pi-inbox"></i>Чекають вашого рішення
+              @if (pendingTotal()) { <span class="count">{{ pendingTotal() }}</span> }
+            </span>
+            <div class="head-links">
+              @if (pendingVacations()) {
+                <a routerLink="/vacations" [queryParams]="{status: 'PendingApproval'}">Відпустки · {{ pendingVacations() }}</a>
+              }
+              @if (pendingTrips()) {
+                <a routerLink="/business-trips" [queryParams]="{status: 'PendingApproval'}">Відрядження · {{ pendingTrips() }}</a>
+              }
+            </div>
+          </div>
+          <div class="list">
+            @for (item of d.pendingApprovals; track item.kind + item.id) {
+              <a class="list-row" [routerLink]="reviewLink(item)" [queryParams]="{status: 'PendingApproval'}">
+                <p-avatar [label]="initials(item.employee.fullName)" shape="circle" styleClass="app-avatar row-avatar"/>
+                <span class="row-main">
+                  <span class="row-title">{{ item.employee.fullName }}</span>
+                  <span class="row-sub"><i [class]="kindIcon(item.kind)"></i>{{ item.title }}</span>
+                </span>
+                <span class="row-side">
+                  <b>{{ period(item.startDate, item.endDate) }}</b>
+                  <span class="muted">{{ days(item.startDate, item.endDate) }} дн. · {{ submitted(item.createdAt) }}</span>
+                </span>
+                <i class="pi pi-angle-right row-arrow"></i>
+              </a>
+            } @empty {
+              <div class="list-empty"><i class="pi pi-check-circle"></i>Усі заявки розглянуто</div>
+            }
+          </div>
+        </section>
+
+        <ng-container [ngTemplateOutlet]="teamCard"/>
+      }
+
+      <section class="card glass" [class.span-3]="isManager()" [class.span-2]="!isManager()">
+        <div class="card-head">
+          <span class="card-label"><i class="pi pi-list"></i>Мої заявки</span>
+        </div>
+        <div class="list">
+          @for (request of d.myRequests; track request.kind + request.id) {
+            @let status = requestStatus(request);
+            <a class="list-row" [routerLink]="request.kind === 'vacation' ? '/vacations' : '/business-trips'">
+              <span class="kind-icon"><i [class]="kindIcon(request.kind)"></i></span>
+              <span class="row-main">
+                <span class="row-title">{{ request.title }}</span>
+                <span class="row-sub">{{ period(request.startDate, request.endDate) }} · {{ days(request.startDate, request.endDate) }} дн.</span>
+              </span>
+              <p-tag [value]="status.label" [severity]="status.severity" [rounded]="true"/>
+            </a>
+          } @empty {
+            <div class="list-empty"><i class="pi pi-inbox"></i>Заявок ще немає</div>
+          }
+        </div>
+      </section>
+
+      @if (!isManager()) {
+        <ng-container [ngTemplateOutlet]="teamCard"/>
+      }
+    </div>
+  } @else if (isLoading()) {
+    <div class="grid">
+      <p-skeleton height="200px" borderRadius="24px" styleClass="span-2"/>
+      <p-skeleton height="200px" borderRadius="24px"/>
+      <p-skeleton height="150px" borderRadius="24px" styleClass="span-3"/>
+    </div>
+  }
+</div>
+
+<ng-template #teamCard>
+  <section class="card glass team-card">
+    <div class="card-head">
+      <span class="card-label"><i class="pi pi-users"></i>Команда сьогодні</span>
+      @if (department(); as dep) {
+        <a routerLink="/timesheet" class="head-link">{{ dep.name }}</a>
+      }
+    </div>
+
+    @if (!user()) {
+      <p-skeleton height="64px"/>
+      <p-skeleton height="24px"/>
+    } @else if (!department()) {
+      <div class="team-empty">
+        <i class="pi pi-building"></i>
+        <b>Вас ще не додано до департаменту</b>
+        <span>Коли адміністратор призначить вам департамент і посаду, тут з'явиться ваша команда та її зміни на сьогодні.</span>
+        @if (isManager()) {
+          <p-button label="Призначити в адмініструванні" icon="pi pi-arrow-right" iconPos="right" [text]="true" size="small"
+                    routerLink="/administration/employees"/>
+        }
+      </div>
+    } @else if (teamLoading() && !team()) {
+      <p-skeleton height="64px"/>
+      <p-skeleton height="24px"/>
+      <p-skeleton height="24px"/>
+    } @else if (teamError()) {
+      <div class="team-empty">
+        <i class="pi pi-exclamation-circle"></i>
+        <span>Не вдалося завантажити табель</span>
+      </div>
+    } @else if (team()) {
+      @let t = team()!;
+      @if (!t.total) {
+        <div class="team-empty">
+          <i class="pi pi-users"></i>
+          <span>У департаменті ще немає працівників</span>
+        </div>
+      } @else {
+        <div class="team-stats" [style.grid-template-columns]="'repeat(' + teamStats().length + ', minmax(0, 1fr))'">
+          @for (stat of teamStats(); track stat.label) {
+            <div class="team-stat" [pTooltip]="stat.tooltip" tooltipPosition="top" [tooltipDisabled]="!stat.tooltip"
+                 tooltipStyleClass="pre-line-tooltip">
+              <b>{{ stat.value }}</b><span>{{ stat.label }}</span>
+            </div>
+          }
+        </div>
+
+        @if (t.notPlanned === t.total) {
+          <div class="team-note">
+            <i class="pi pi-info-circle"></i>
+            <span>Табель на сьогодні ще не заповнено. <a routerLink="/timesheet">Відкрити табель</a></span>
+          </div>
+        } @else if (!t.working.length) {
+          <div class="team-note"><i class="pi pi-moon"></i><span>Сьогодні ніхто не працює</span></div>
+        } @else {
+          <div class="team-list">
+            @for (member of t.working.slice(0, teamListLimit); track member.employeeId) {
+              <div class="team-row">
+                <app-shift-chip [shift]="member.shift" size="sm" [tooltip]="member.shift.description"/>
+                <span class="team-name">{{ member.fullName }}@if (isMe(member)) { <span class="muted"> (ви)</span> }</span>
+                @if (isWorkingNow(member)) {
+                  <span class="now-badge" pTooltip="Зараз на зміні" tooltipPosition="left"><span class="live-dot"></span>зараз</span>
+                } @else {
+                  <span class="muted">{{ timeRange(member.shift) }}</span>
+                }
+              </div>
+            }
+            @if (t.working.length > teamListLimit) {
+              <a routerLink="/timesheet" class="more-link">і ще {{ t.working.length - teamListLimit }} — у табелі</a>
+            }
+          </div>
+        }
+      }
+    }
+  </section>
+</ng-template>

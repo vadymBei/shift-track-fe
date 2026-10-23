@@ -1,105 +1,86 @@
-import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
+import {Component, computed, inject, OnDestroy, OnInit, signal} from '@angular/core';
+import {RouterLink} from '@angular/router';
+import {finalize, Subject, takeUntil} from 'rxjs';
+import {PrimeTemplate} from 'primeng/api';
+import {TableModule} from 'primeng/table';
+import {Button} from 'primeng/button';
+import {IconField} from 'primeng/iconfield';
+import {InputIcon} from 'primeng/inputicon';
+import {InputText} from 'primeng/inputtext';
+import {Tooltip} from 'primeng/tooltip';
+import {DialogService} from 'primeng/dynamicdialog';
+import {ConfirmService} from '../../../../../../shared/services/confirm.service';
+import {NotificationService} from '../../../../../../shared/services/notification.service';
 import {PositionService} from '../../../services/position.service';
-import {BsModalService} from 'ngx-bootstrap/modal';
-import {delay, finalize, Subject, takeUntil} from 'rxjs';
 import {Position} from '../../../models/position.model';
-import {CommonModule} from '@angular/common';
-import {
-  CreatePositionModalComponent
-} from '../../../components/positions/create-position-modal/create-position-modal.component';
-import {
-  EditPositionModalComponent
-} from '../../../components/positions/edit-position-modal/edit-position-modal.component';
-import {
-  DeleteConfirmationModalComponent
-} from '../../../../../../shared/components/delete-confirmation-modal/delete-confirmation-modal.component';
+import {PositionDialogComponent, PositionDialogData} from '../../../components/position-dialog/position-dialog.component';
+import {EmptyStateComponent} from '../../../../../../shared/components/empty-state/empty-state.component';
 
 @Component({
   selector: 'app-positions-page',
   standalone: true,
-  imports: [
-    CommonModule,
-  ],
+  imports: [EmptyStateComponent, RouterLink, PrimeTemplate, TableModule, Button, IconField, InputIcon, InputText, Tooltip],
+  providers: [DialogService],
   templateUrl: './positions-page.component.html',
   styleUrl: './positions-page.component.scss'
 })
 export class PositionsPageComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
-
   private readonly positionService = inject(PositionService);
-  readonly modalService = inject(BsModalService);
+  private readonly dialogService = inject(DialogService);
+  private readonly confirmService = inject(ConfirmService);
+  private readonly notifications = inject(NotificationService);
 
-  positions = signal<Position[]>([]);
-  isLoading = signal(false);
+  readonly positions = signal<Position[]>([]);
+  readonly isLoading = signal(false);
+  readonly search = signal('');
+
+  readonly filteredPositions = computed(() => {
+    const query = this.search().trim().toLowerCase();
+    return !query
+      ? this.positions()
+      : this.positions().filter(p => [p.name, p.description].some(v => v?.toLowerCase().includes(query)));
+  });
 
   ngOnInit(): void {
-    this.getPositions();
+    this.loadPositions();
+  }
+
+  loadPositions(): void {
+    this.isLoading.set(true);
+    this.positionService.getPositions()
+      .pipe(finalize(() => this.isLoading.set(false)), takeUntil(this.destroy$))
+      .subscribe(positions => this.positions.set(positions));
+  }
+
+  openDialog(position?: Position): void {
+    const ref = this.dialogService.open(PositionDialogComponent, {
+      showHeader: false,
+      modal: true,
+      width: '480px',
+      breakpoints: {'520px': '95vw'},
+      contentStyle: {padding: '0'},
+      focusOnShow: false,
+      data: {position} satisfies PositionDialogData
+    });
+    ref.onClose.pipe(takeUntil(this.destroy$)).subscribe(changed => changed && this.loadPositions());
+  }
+
+  confirmDelete(position: Position): void {
+    this.confirmService.confirmDelete({
+      entityName: 'посаду',
+      itemName: position.name,
+      onConfirm: () => this.positionService.deletePosition(position.id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          this.notifications.success('Посаду видалено');
+          this.loadPositions();
+        })
+    });
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  getPositions() {
-    this.isLoading.set(true);
-
-    this.positionService.getPositions()
-      .pipe(
-        delay(500),
-        finalize(() => {
-          this.isLoading.set(false);
-        }),
-        takeUntil(this.destroy$))
-      .subscribe(positions => {
-        this.positions.set(positions);
-      });
-  }
-
-  openCreatePositionModal() {
-    const ref = this.modalService.show(
-      CreatePositionModalComponent,
-      {
-        class: 'modal-dialog-centered'
-      });
-
-    ref.onHidden?.subscribe({
-      next: () => this.getPositions()
-    });
-  }
-
-  openEditPositionModal(position: Position) {
-    const ref = this.modalService.show(
-      EditPositionModalComponent,
-      {
-        class: 'modal-dialog-centered',
-        initialState: {
-          position: position
-        }
-      });
-
-    ref.onHidden?.subscribe({
-      next: () => this.getPositions()
-    });
-  }
-
-  openDeleteConfirmation(position: Position): void {
-    this.modalService.show(DeleteConfirmationModalComponent,
-      {
-        class: 'modal-dialog-centered',
-        initialState: {
-          itemName: position.name,
-          entityName: 'посаду',
-          onConfirm: () => this.deletePosition(position.id)
-        }
-      });
-  }
-
-  deletePosition(positionId: number) {
-    this.positionService.deletePosition(positionId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => this.getPositions()
-      })
   }
 }

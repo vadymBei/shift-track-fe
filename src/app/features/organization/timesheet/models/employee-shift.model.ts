@@ -4,8 +4,8 @@ export interface EmployeeShift {
   id: number;
   date: Date;
   employeeId: number;
-  endTime: Date;
-  startTime: Date;
+  startTime?: string | null;
+  endTime?: string | null;
   shiftId: number;
   shift: Shift;
 }

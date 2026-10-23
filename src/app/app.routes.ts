@@ -1,22 +1,30 @@
 import {Routes} from '@angular/router';
-import {LayoutComponent} from './core/layout/components/layout/layout.component';
 import {authGuard} from './core/account/guards/auth.guard';
-import {LoginPageComponent} from './core/account/pages/login-page/login-page.component';
+
+const loadLayout = () => import('./core/layout/components/layout/layout.component')
+  .then(m => m.LayoutComponent);
 
 export const routes: Routes = [
   {
     path: '',
-    component: LoginPageComponent
+    loadComponent: () => import('./core/account/pages/login-page/login-page.component')
+      .then(m => m.LoginPageComponent)
+  },
+  {
+    path: 'home',
+    loadComponent: loadLayout,
+    loadChildren: () => import("./features/home/home.routes"),
+    canActivate: [authGuard]
   },
   {
     path: 'employees',
-    component: LayoutComponent,
+    loadComponent: loadLayout,
     loadChildren: () => import("./features/organization/employees/employees.routes"),
     canActivate: [authGuard]
   },
   {
     path: 'business-trips',
-    component: LayoutComponent,
+    loadComponent: loadLayout,
     loadChildren: () => import("./features/booking/business-trips/business-trips.routes"),
     canActivate: [authGuard]
   },
@@ -26,25 +34,25 @@ export const routes: Routes = [
   },
   {
     path: 'timesheet',
-    component: LayoutComponent,
+    loadComponent: loadLayout,
     loadChildren: () => import("./features/organization/timesheet/timesheet.routes"),
     canActivate: [authGuard]
   },
   {
     path: 'administration',
-    component: LayoutComponent,
+    loadComponent: loadLayout,
     loadChildren: () => import("./core/administration/administration.routes"),
     canActivate: [authGuard]
   },
   {
     path: 'vacations',
-    component: LayoutComponent,
+    loadComponent: loadLayout,
     loadChildren: () => import("./features/booking/vacations/vacations.routes"),
     canActivate: [authGuard]
   },
   {
     path: 'payrolls',
-    component: LayoutComponent,
+    loadComponent: loadLayout,
     loadChildren: () => import("./features/organization/payrolls/payrolls.routes"),
     canActivate: [authGuard]
   },

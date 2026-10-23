@@ -1,0 +1,24 @@
+<button
+  pRipple
+  type="button"
+  class="user-chip"
+  [class.compact]="compact()"
+  aria-haspopup="true"
+  aria-label="Меню користувача"
+  (click)="menu.toggle($event)">
+  @if (photoUrl(); as photo) {
+    <p-avatar [image]="photo" shape="circle" styleClass="user-avatar has-photo" [ariaLabel]="initials()"/>
+  } @else {
+    <p-avatar [label]="initials()" shape="circle" styleClass="user-avatar"/>
+  }
+
+  @if (!compact()) {
+    <span class="user-info">
+      <span class="user-name">{{ employee()?.name }} {{ employee()?.surname }}</span>
+      <span class="user-position">{{ employee()?.position?.name }}</span>
+    </span>
+    <i class="pi pi-angle-up user-chevron"></i>
+  }
+</button>
+
+<p-menu #menu [model]="items" [popup]="true" appendTo="body"/>

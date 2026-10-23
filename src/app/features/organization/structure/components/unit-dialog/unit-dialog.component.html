@@ -1,0 +1,44 @@
+<div class="form-dialog">
+  <header class="form-dialog-header">
+    <div>
+      <h2 class="form-dialog-title">{{ unit ? 'Редагувати регіон' : 'Новий регіон' }}</h2>
+      <p class="form-dialog-subtitle">Регіон об'єднує департаменти (магазини, офіси) однієї території</p>
+    </div>
+    <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" ariaLabel="Закрити" (onClick)="close()"/>
+  </header>
+
+  <form class="form-dialog-body" [formGroup]="form" (ngSubmit)="save()">
+    <div class="form-field">
+      <label for="unitCode">Код</label>
+      <input pInputText id="unitCode" formControlName="code" maxlength="10" placeholder="Напр. KYIV" [fluid]="true"/>
+      @if (isInvalid('code')) {
+        <p-message severity="error" variant="simple" size="small">Вкажіть код (до 10 символів)</p-message>
+      }
+    </div>
+
+    <div class="form-field">
+      <label for="unitName">Назва</label>
+      <input pInputText id="unitName" formControlName="name" maxlength="100" placeholder="Напр. Київ" [fluid]="true"/>
+      @if (isInvalid('name')) {
+        <p-message severity="error" variant="simple" size="small">Вкажіть назву</p-message>
+      }
+    </div>
+
+    <div class="form-field">
+      <label for="unitDescription">Опис</label>
+      <textarea pTextarea id="unitDescription" formControlName="description" rows="2" maxlength="100"
+                placeholder="Напр. Київський регіон" [autoResize]="true"></textarea>
+      <div class="form-field-footer">
+        @if (isInvalid('description')) {
+          <p-message severity="error" variant="simple" size="small">Вкажіть опис</p-message>
+        }
+        <span class="counter">{{ form.controls.description.value?.length ?? 0 }} / 100</span>
+      </div>
+    </div>
+
+    <footer class="form-dialog-footer">
+      <p-button label="Скасувати" [text]="true" severity="secondary" (onClick)="close()"/>
+      <p-button type="submit" [label]="unit ? 'Зберегти' : 'Додати регіон'" icon="pi pi-check" [loading]="isSaving()"/>
+    </footer>
+  </form>
+</div>

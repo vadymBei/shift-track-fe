@@ -1,0 +1,146 @@
+@use '../vacation-dialog';
+
+.dialog-header.with-border {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--p-content-border-color);
+}
+
+.employee {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+:host ::ng-deep .employee-avatar {
+  flex-shrink: 0;
+}
+
+.title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.dialog-body {
+  padding-top: 20px;
+}
+
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.fields {
+  display: flex;
+  flex: 1 1 340px;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.approval {
+  display: flex;
+  flex: 1 1 240px;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+:host ::ng-deep .approval-timeline {
+  .p-timeline-event-opposite {
+    display: none;
+  }
+
+  .p-timeline-event-content {
+    padding-bottom: 16px;
+  }
+}
+
+.marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  box-sizing: border-box;
+
+  i {
+    font-size: 12px;
+  }
+}
+
+.marker-done {
+  background: var(--p-green-500);
+  color: #ffffff;
+}
+
+.marker-current {
+  border: 2px solid var(--p-orange-500);
+  background: var(--p-content-background);
+  color: var(--p-orange-600);
+}
+
+.marker-waiting {
+  border: 2px solid var(--p-content-border-color);
+  background: var(--p-content-background);
+  color: var(--p-text-muted-color);
+}
+
+.marker-rejected {
+  background: var(--p-red-500);
+  color: #ffffff;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.step-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.step-subtitle {
+  font-size: 13px;
+  color: var(--p-text-muted-color);
+}
+
+.step-muted .step-title {
+  color: var(--p-text-muted-color);
+}
+
+.hint,
+.counter {
+  font-size: 12px;
+  color: var(--p-text-muted-color);
+}
+
+.hint b {
+  color: var(--p-text-color);
+}
+
+.counter {
+  align-self: flex-end;
+}
+
+.comment {
+  width: 100%;
+}
+
+.dialog-footer {
+  justify-content: space-between;
+}
+
+.footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

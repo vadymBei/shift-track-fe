@@ -1,201 +1,206 @@
-<div class="row align-items-start justify-content-between mb-3">
-  <div class="col">
-    <h3 class="mb-1">Табель</h3>
-    <p class="text-secondary mb-0">Облік відпрацьованих годин</p>
-  </div>
-</div>
-
-<div class="main-card p-3 shadow mb-3">
-  <div class="row"
-       [formGroup]="form">
-    <div class="col-3">
-      <div class="form-floating">
-        <select
-          class="form-control form-control-sm"
-          formControlName="unitId"
-          id="unit"
-          (change)="onUnitChange($event)">
-          @if (!wasUnitSelected) {
-            <option value="null">Оберіть регіон</option>
-          }
-          @for (unit of units(); track unit.id) {
-            <option value="{{unit.id}}">{{ unit.name }}</option>
-          }
-        </select>
-
-        <label
-          class="form-label"
-          for="unit"
-        >Регіон:
-        </label>
-      </div>
+<div class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Табель</h1>
+      <p class="page-subtitle">Графік змін і облік відпрацьованого часу</p>
     </div>
-
-    <div class="col-3">
-      <div class="form-floating">
-        <select
-          class="form-control form-control-sm"
-          id="department"
-          formControlName="departmentId"
-          (change)="onDepartmentChange($event)">
-          @if (!wasDepartmentSelected) {
-            <option value="null">Оберіть департамент</option>
-          }
-          @for (department of departments(); track department.id) {
-            <option value="{{department.id}}">{{ department.name }}</option>
-          }
-        </select>
-
-        <label
-          class="form-label"
-          for="department"
-        >Департамент:
-        </label>
-      </div>
+    <div class="page-actions">
+      <p-button label="Скопіювати графік" icon="pi pi-copy" severity="secondary" [outlined]="true"
+                [disabled]="!form.value.departmentId || !rows().length" (onClick)="openCopyDialog()"
+                [pTooltip]="selectedRows().length ? 'Для обраних працівників (' + selectedRows().length + ')' : 'Для всіх працівників у списку'"
+                tooltipPosition="bottom"/>
+      <p-button label="Експорт в Excel" icon="pi pi-file-excel" severity="secondary" [outlined]="true"
+                [disabled]="!form.value.departmentId" [loading]="isExporting()" (onClick)="exportToExcel()"
+                [pTooltip]="displayMode() === 'hours' ? 'Експорт з годинами' : 'Експорт з кодами змін'" tooltipPosition="bottom"/>
     </div>
+  </header>
 
-    <div class="col-3">
-      <div class="form-floating">
-        <input
-          class="form-control form-control-sm"
-          id="search"
-          type="text"
-          (input)="onSearchChange($event)">
+  <section class="filters glass" [formGroup]="form">
+    <p-floatlabel variant="in">
+      <p-select inputId="unit" formControlName="unitId" [options]="units()" optionLabel="name" optionValue="id"
+                [filter]="units().length > 8" (onChange)="onUnitChange($event.value)" [fluid]="true"/>
+      <label for="unit">Регіон</label>
+    </p-floatlabel>
 
-        <label class="form-label" for="search">
-          Пошук працівника:
-        </label>
-      </div>
+    <p-floatlabel variant="in">
+      <p-select inputId="department" formControlName="departmentId" [options]="departments()" optionLabel="name"
+                optionValue="id" [filter]="departments().length > 8"
+                [emptyMessage]="form.value.unitId ? 'Немає доступних департаментів' : 'Спочатку оберіть регіон'"
+                (onChange)="onFiltersChange()" [fluid]="true"/>
+      <label for="department">Департамент</label>
+    </p-floatlabel>
+
+    <p-iconfield>
+      <p-inputicon styleClass="pi pi-search"/>
+      <input pInputText type="search" placeholder="Пошук працівника" [ngModel]="search()"
+             (ngModelChange)="search.set($event)" [ngModelOptions]="{standalone: true}" class="search-input"/>
+    </p-iconfield>
+
+    <div class="month">
+      <p-button icon="pi pi-chevron-left" [rounded]="true" [text]="true" severity="secondary"
+                ariaLabel="Попередній місяць" (onClick)="shiftMonth(-1)"/>
+      <p-floatlabel variant="in" class="month-picker">
+        <p-datepicker inputId="period" formControlName="period" view="month" dateFormat="MM yy"
+                      [readonlyInput]="true" (onSelect)="onFiltersChange()" appendTo="body" [fluid]="true"/>
+        <label for="period">Місяць</label>
+      </p-floatlabel>
+      <p-button icon="pi pi-chevron-right" [rounded]="true" [text]="true" severity="secondary"
+                ariaLabel="Наступний місяць" (onClick)="shiftMonth(1)"/>
     </div>
+  </section>
 
-    <div class="col-3">
-      <div class="form-floating">
-        <input
-          class="form-control form-control-sm"
-          id="month"
-          type="month"
-          formControlName="period"
-          (input)="onPeriodChange($event)">
-
-        <label
-          class="form-label"
-          for="month"
-        >Табель за:
-        </label>
-      </div>
-    </div>
-  </div>
-</div>
-
-@if (showTimesheet) {
-  <div class="main-card p-3 shadow">
-    <div class="row mb-1 d-flex justify-content-between">
-      <div class="col-4"
-           [formGroup]="form">
-        <div class="form-check form-check-inline">
-          <input class="form-check-input"
-                 type="radio"
-                 formControlName="displayMode"
-                 id="shiftCode"
-                 value="shifts">
-
-          <label class="form-check-label"
-                 for="shiftCode">
-            Зміни
-          </label>
-        </div>
-
-        <div class="form-check form-check-inline">
-          <input class="form-check-input"
-                 type="radio"
-                 formControlName="displayMode"
-                 id="shiftHours"
-                 value="hours">
-
-          <label
-            class="form-check-label"
-            for="shiftHours">
-            Години
-          </label>
-
-        </div>
-      </div>
-
-      <div class="col-3 d-flex justify-content-end">
-        <button
-          class="btn btn-primary d-flex align-items-center justify-content-center gap-2"
-          (click)="exportToExcel()">
-          <img
-            src="assets/icons/excel.svg"
-            alt="Excel icon"
-            height="25">
-          Експорт в Excel
-        </button>
-      </div>
-    </div>
-
-    <div class="timesheet-wrapper border-top">
-      <div class="names-column">
-        <div class="header-cell p-2 border-bottom fw-bold">
-          ПІБ
-        </div>
-
-        <div
-          class="name-cell p-2 border-bottom"
-          *ngFor="let employeeTimesheet of timesheet().employeeTimesheets">
-          {{ employeeTimesheet.employee.fullName }}
-        </div>
-      </div>
-
-      <div class="calendar-column">
-        <div class="calendar-content">
-          <div class="calendar-header d-flex border-bottom">
-            <div
-              class="text-center p-2 day-cell"
-              *ngFor="let day of getDays()"
-              [ngStyle]="{'background-color': isWeekend(day.dayOfMonth) ? '#f5f5f5' : 'inherit'}">
-              <div class="day-content">
-                <div class="day-of-month">
-                  {{ day.dayOfMonth }}
-                </div>
-
-                <div class="day-of-week">
-                  {{ day.dayOfWeek }}
-                </div>
-              </div>
-            </div>
-
-            <div class="text-center p-2 bg-light summary-cell">
-              <strong>Роб. год</strong>
-            </div>
-            <div class="text-center p-2 bg-light summary-cell">
-              <strong>Роб. днів</strong>
-            </div>
+  @if (!form.value.departmentId) {
+    <app-empty-state class="surface" icon="pi pi-calendar" heading="Оберіть регіон і департамент" hint="Після цього тут з'явиться табель працівників за обраний місяць"/>
+  } @else {
+    <section class="content glass">
+      <div class="surface content-surface">
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <h2 class="month-title">{{ monthTitle() }}</h2>
+            @if (drag()) {
+              <span class="drag-hint"><i class="pi pi-th-large"></i>{{ dragSummary() }}</span>
+            }
+            @if (!isCurrentMonth) {
+              <p-button label="Поточний місяць" [text]="true" size="small" (onClick)="goToCurrentMonth()"/>
+            }
           </div>
 
-          <div class="calendar-data">
-            <div
-              class="d-flex border-bottom"
-              *ngFor="let employeeTimesheet of timesheet().employeeTimesheets; trackBy: trackByEmployeeId">
-              <div
-                class="text-center p-2 employee-shift"
-                *ngFor="let day of getDays(); trackBy: trackByDay"
-                [ngStyle]="getCellStyle(day.dayOfMonth, employeeTimesheet.employee.id)"
-                (click)="openEditEmployeeShiftModal(employeeTimesheet.employee, day.dayOfMonth, getEmployeeShiftForDay(employeeTimesheet.employee.id, day.dayOfMonth))">
-                {{ getCellContent(getEmployeeShiftForDay(employeeTimesheet.employee.id, day.dayOfMonth)) }}
-              </div>
-
-              <div class="text-center p-2 bg-light summary-cell">
-                {{ getEmployeeTotalWorkHours(employeeTimesheet.employee.id) }}
-              </div>
-
-              <div class="text-center p-2 bg-light summary-cell">
-                {{ getEmployeeTotalWorkDays(employeeTimesheet.employee.id) }}
-              </div>
-            </div>
+          <div class="toolbar-stats">
+            <span class="stat-chip"><i class="pi pi-users"></i>{{ stats().employees }} працівн.</span>
+            <span class="stat-chip"><i class="pi pi-clock"></i>{{ stats().hours | number: '1.0-1' : 'uk' }} год</span>
+            <span class="stat-chip" pTooltip="Частка заповнених клітинок табеля" tooltipPosition="bottom">
+              <i class="pi pi-chart-pie"></i>Заповнено {{ stats().filledPercent }}%
+            </span>
           </div>
+
+          <p-selectbutton [options]="displayOptions" [ngModel]="displayMode()" (ngModelChange)="displayMode.set($event)"
+                          optionLabel="label" optionValue="value" [allowEmpty]="false" size="small">
+            <ng-template pTemplate="item" let-option>
+              <i [class]="option.icon"></i><span>{{ option.label }}</span>
+            </ng-template>
+          </p-selectbutton>
         </div>
+
+        @if (legend().length) {
+          <div class="legend">
+            @for (shift of legend(); track shift.id) {
+              <span class="legend-item" [pTooltip]="shift.description" tooltipPosition="top">
+                <span class="legend-swatch" [style.background]="shift.color"></span>
+                <b>{{ shift.code }}</b>
+                @if (shift.startTime && shift.endTime) {
+                  <span class="legend-time">{{ shortTime(shift.startTime) }}–{{ shortTime(shift.endTime) }}</span>
+                }
+              </span>
+            }
+          </div>
+        }
+
+        @if (selectedRows().length) {
+          <div class="bulk-bar">
+            <span class="bulk-count">{{ selectedRows().length }}</span>
+            <span class="bulk-text">Обрано працівників — призначте їм зміну на потрібні дні</span>
+            <p-button label="Скасувати" [text]="true" severity="secondary" size="small" (onClick)="clearSelection()"/>
+            <p-button label="Призначити зміну" icon="pi pi-calendar-plus" size="small" (onClick)="openBulkDialog()"/>
+          </div>
+        }
+
+        @if (!isLoading() && rows().length && !stats().filled) {
+          <div class="hint">
+            <i class="pi pi-info-circle"></i>
+            <span>Табель за {{ monthTitle() }} ще не заповнено. Натисніть на клітинку, щоб призначити зміну,
+              протягніть мишкою по рядку — на кілька днів, а через кілька рядків — одразу кільком працівникам.</span>
+          </div>
+        }
+
+        @if (isLoading() && !timesheet()) {
+          <div class="skeleton">
+            @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+              <div class="skeleton-row">
+                <p-skeleton shape="circle" size="32px"/>
+                <p-skeleton width="180px" height="14px"/>
+                <p-skeleton height="34px" styleClass="skeleton-cells"/>
+              </div>
+            }
+          </div>
+        } @else if (!rows().length) {
+          <app-empty-state icon="pi pi-users" heading="У департаменті немає працівників" hint="Додайте працівників у розділі «Адміністрування → Працівники»"/>
+        } @else {
+          <div class="sheet-scroll" #sheetScroll [class.is-loading]="isLoading()">
+            <table class="sheet" [class.hours-mode]="displayMode() === 'hours'" [class.dragging]="!!drag()">
+              <thead>
+                <tr>
+                  <th class="col-name">
+                    <div class="name-head">
+                      <p-checkbox [binary]="true" [ngModel]="allVisibleSelected()" [indeterminate]="someVisibleSelected()"
+                                  (onChange)="toggleAllVisible()" ariaLabel="Обрати всіх"/>
+                      <span>Працівник</span>
+                    </div>
+                  </th>
+                  @for (day of days(); track day.day) {
+                    <th class="col-day" [class.weekend]="day.weekend" [class.today]="day.today">
+                      <span class="day-num">{{ day.day }}</span>
+                      <span class="day-wd">{{ day.weekday }}</span>
+                    </th>
+                  }
+                  <th class="col-total total-days" pTooltip="Робочих днів" tooltipPosition="top">Днів</th>
+                  <th class="col-total total-hours" pTooltip="Робочих годин" tooltipPosition="top">Год</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                @for (row of visibleRows(); track row.employee.id; let rowIndex = $index) {
+                  <tr [class.row-selected]="isSelected(row)">
+                    <th class="col-name" scope="row">
+                      <div class="employee">
+                        <p-checkbox [binary]="true" [ngModel]="isSelected(row)" (onChange)="toggleRow(row)"
+                                    [ariaLabel]="'Обрати ' + row.employee.fullName"/>
+                        <p-avatar [label]="row.initials" shape="circle" styleClass="app-avatar employee-avatar"/>
+                        <div class="employee-text">
+                          <span class="employee-name">{{ row.employee.fullName }}</span>
+                          @if (row.employee.position?.name) {
+                            <span class="employee-position">{{ row.employee.position?.name }}</span>
+                          }
+                        </div>
+                      </div>
+                    </th>
+
+                    @for (day of days(); track day.day) {
+                      @let s = row.shifts[day.day];
+                      <td class="col-day" [class.weekend]="day.weekend" [class.today]="day.today"
+                          [class.selected]="isInDrag(rowIndex, day.day)"
+                          (mousedown)="onCellMouseDown($event, rowIndex, day.day)"
+                          (mouseenter)="onCellMouseEnter(rowIndex, day.day)"
+                          [pTooltip]="cellTooltip(row, day)" tooltipPosition="top" [showDelay]="400">
+                        @if (s?.shift) {
+                          <span class="chip" [style.background]="cellBackground(s)" [style.color]="cellColor(s)">
+                            @if (displayMode() === 'hours' && hasTime(s)) {
+                              <span class="chip-time">{{ shortTime(s!.shift.startTime) }}</span>
+                              <span class="chip-time">{{ shortTime(s!.shift.endTime) }}</span>
+                            } @else {
+                              {{ s!.shift.code }}
+                            }
+                          </span>
+                        } @else {
+                          <span class="chip empty-chip"><i class="pi pi-plus"></i></span>
+                        }
+                      </td>
+                    }
+
+                    <td class="col-total total-days">{{ row.totalWorkDays }}</td>
+                    <td class="col-total total-hours">{{ row.totalWorkHours | number: '1.0-1' : 'uk' }}</td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td [attr.colspan]="days().length + 3" class="no-match">
+                      Нікого не знайдено за запитом «{{ search() }}»
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
       </div>
-    </div>
-  </div>
-}
+    </section>
+  }
+</div>

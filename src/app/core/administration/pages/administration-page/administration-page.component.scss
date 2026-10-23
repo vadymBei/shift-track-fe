@@ -1,18 +1,111 @@
-i {
-  color: var(--primary-color);
-  cursor: default;
-  font-size: 40px;
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.count-btn {
-  cursor: pointer;
-  width: 100%;
-  padding: 0.2rem 1rem;
-  border-radius: 5px;
-  background: linear-gradient(90deg, #ffffff 0%, rgba(234, 227, 253) 100%);
-  box-shadow: 0 4px 14px rgba(13, 110, 253, 0.12);
+.section-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color);
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 170px;
+  padding: 18px;
+  border-radius: var(--app-radius-xl);
+  color: var(--p-text-color);
+  text-decoration: none;
+  box-sizing: border-box;
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, border-color 0.15s ease-out;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--p-primary-color) 35%, transparent);
+
+    .tile-arrow {
+      color: var(--p-primary-color);
+      transform: translateX(3px);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary-color);
+    outline-offset: 2px;
+  }
+}
+
+.tile-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--app-radius-md);
+  background: var(--p-highlight-background);
+  color: var(--p-highlight-color);
 
   i {
-    font-size: 20px;
+    font-size: 18px;
   }
+}
+
+.tile-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tile-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.tile-description {
+  font-size: 13px;
+  color: var(--p-text-muted-color);
+}
+
+.tile-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--app-glass-border);
+}
+
+.tile-count {
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+
+  small {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--p-text-muted-color);
+  }
+}
+
+.muted {
+  color: var(--p-text-muted-color);
+}
+
+.tile-arrow {
+  font-size: 14px;
+  color: var(--p-text-muted-color);
+  transition: transform 0.15s ease-out, color 0.15s ease-out;
 }

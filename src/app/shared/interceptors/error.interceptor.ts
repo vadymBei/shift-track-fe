@@ -1,8 +1,11 @@
-import {HttpErrorResponse, HttpInterceptorFn} from "@angular/common/http";
+import {HttpContextToken, HttpErrorResponse, HttpInterceptorFn} from "@angular/common/http";
 import {inject} from "@angular/core";
 import {catchError, throwError} from "rxjs";
 import {BackendError} from "../models/errors/backend-error";
 import {ErrorService} from "../services/error.service";
+import {isAuthEndpoint} from "../constants/auth-endpoints";
+
+export const SKIP_ERROR_NOTIFICATION = new HttpContextToken<boolean>(() => false);
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const errorService = inject(ErrorService);
@@ -10,9 +13,11 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((httpError: HttpErrorResponse) => {
       const backendError = httpError.error as BackendError;
-      const isRefreshRequest = req.url.includes('system/auth/tokens/refresh');
+      if (req.context.get(SKIP_ERROR_NOTIFICATION)) {
+        return throwError(() => httpError);
+      }
 
-      if (httpError.status === 401 && isRefreshRequest) {
+      if (httpError.status === 401 && !isAuthEndpoint(req.url)) {
         return throwError(() => httpError);
       }
 

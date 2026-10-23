@@ -3,8 +3,8 @@
   YearMainVacation = 'YearMainVacation',
   VacationWithoutSalaryByFamily = 'VacationWithoutSalaryByFamily',
   VacationWithoutSalaryByPregnancy = 'VacationWithoutSalaryByPregnancy',
-  VacationWithoutSalaryByChild3years = 'VacationWithoutSalaryByChild3years',
-  VacationWithoutSalaryByChild6years = 'VacationWithoutSalaryByChild6years',
+  VacationWithoutSalaryByChild3years = 'VacationWithoutSalaryByChild3Years',
+  VacationWithoutSalaryByChild6years = 'VacationWithoutSalaryByChild6Years',
   BonusVacation = 'BonusVacation'
 
 }

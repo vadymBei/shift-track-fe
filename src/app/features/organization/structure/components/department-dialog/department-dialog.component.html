@@ -1,0 +1,43 @@
+<div class="form-dialog">
+  <header class="form-dialog-header">
+    <div>
+      <h2 class="form-dialog-title">{{ department ? 'Редагувати департамент' : 'Новий департамент' }}</h2>
+      <p class="form-dialog-subtitle">Департамент — магазин, склад чи офіс у складі регіону</p>
+    </div>
+    <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" ariaLabel="Закрити" (onClick)="close()"/>
+  </header>
+
+  <form class="form-dialog-body" [formGroup]="form" (ngSubmit)="save()">
+    <div class="form-field">
+      <label for="departmentUnit">Регіон</label>
+      <p-select
+        inputId="departmentUnit"
+        formControlName="unitId"
+        [options]="units()"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="Оберіть регіон"
+        [filter]="units().length > 8"
+        appendTo="body"
+        [fluid]="true"/>
+      @if (department) {
+        <small class="form-field-footer">Регіон існуючого департаменту змінити не можна</small>
+      } @else if (isInvalid('unitId')) {
+        <p-message severity="error" variant="simple" size="small">Оберіть регіон</p-message>
+      }
+    </div>
+
+    <div class="form-field">
+      <label for="departmentName">Назва</label>
+      <input pInputText id="departmentName" formControlName="name" maxlength="100" placeholder="Напр. Магазин №12" [fluid]="true"/>
+      @if (isInvalid('name')) {
+        <p-message severity="error" variant="simple" size="small">Вкажіть назву</p-message>
+      }
+    </div>
+
+    <footer class="form-dialog-footer">
+      <p-button label="Скасувати" [text]="true" severity="secondary" (onClick)="close()"/>
+      <p-button type="submit" [label]="department ? 'Зберегти' : 'Додати департамент'" icon="pi pi-check" [loading]="isSaving()"/>
+    </footer>
+  </form>
+</div>

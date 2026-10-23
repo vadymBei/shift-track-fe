@@ -1,207 +1,245 @@
-import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
-import {DatePipe, DecimalPipe, NgClass} from "@angular/common";
-import {FormBuilder, FormGroup, ReactiveFormsModule} from "@angular/forms";
-import {Unit} from "../../../structure/models/unit.model";
-import {Department} from "../../../structure/models/department.model";
-import {PayrollRequest} from "../../models/payroll-request.model";
-import {debounceTime} from "rxjs/operators";
-import {catchError, of, Subject, takeUntil} from "rxjs";
-import {UnitService} from "../../../structure/services/unit.service";
-import {DepartmentService} from "../../../structure/services/department.service";
-import {PayrollSummary} from "../../models/payroll-summary.model";
-import {PayrollsService} from "../../services/payrolls-service";
-import {Payroll} from "../../models/payroll.model";
-import {PayrollStatus} from "../../enums/payroll-status.enum";
-import {MarkPayrollPaidRequest} from "../../models/mark-payroll-paid-request.model";
+import {Component, computed, inject, OnDestroy, OnInit, signal} from '@angular/core';
+import {DatePipe, DecimalPipe} from '@angular/common';
+import {FormBuilder, FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {catchError, finalize, forkJoin, map, Observable, of, Subject, takeUntil} from 'rxjs';
+import moment from 'moment';
+import {PrimeTemplate} from 'primeng/api';
+import {TableModule} from 'primeng/table';
+import {Button} from 'primeng/button';
+import {Select} from 'primeng/select';
+import {SelectButton} from 'primeng/selectbutton';
+import {DatePicker} from 'primeng/datepicker';
+import {FloatLabel} from 'primeng/floatlabel';
+import {Tag} from 'primeng/tag';
+import {Avatar} from 'primeng/avatar';
+import {Tooltip} from 'primeng/tooltip';
+import {ProgressBar} from 'primeng/progressbar';
+import {Drawer} from 'primeng/drawer';
+import {Skeleton} from 'primeng/skeleton';
+import {AccountService} from '../../../../../core/account/services/account.service';
+import {ConfirmService} from '../../../../../shared/services/confirm.service';
+import {NotificationService} from '../../../../../shared/services/notification.service';
+import {UnitService} from '../../../structure/services/unit.service';
+import {DepartmentService} from '../../../structure/services/department.service';
+import {Unit} from '../../../structure/models/unit.model';
+import {Department} from '../../../structure/models/department.model';
+import {PayrollsService} from '../../services/payrolls-service';
+import {PayrollSummary} from '../../models/payroll-summary.model';
+import {Payroll} from '../../models/payroll.model';
+import {PayrollStatus} from '../../enums/payroll-status.enum';
+import {personInitials} from '../../../../../shared/utils/text.utils';
+import {EmptyStateComponent} from '../../../../../shared/components/empty-state/empty-state.component';
+
+type StatusFilter = 'all' | PayrollStatus;
 
 @Component({
   selector: 'app-payrolls-page',
   standalone: true,
-  imports: [
-    NgClass,
-    DecimalPipe,
-    DatePipe,
-    ReactiveFormsModule,
+  imports: [EmptyStateComponent, 
+    DatePipe, DecimalPipe, FormsModule, ReactiveFormsModule, PrimeTemplate, TableModule, Button, Select, SelectButton,
+    DatePicker, FloatLabel, Tag, Avatar, Tooltip, ProgressBar, Drawer, Skeleton
   ],
   templateUrl: './payrolls-page.component.html',
   styleUrl: './payrolls-page.component.scss'
 })
 export class PayrollsPageComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
-  private readonly searchSubject$ = new Subject<string>();
-
   private readonly fb = inject(FormBuilder);
+  private readonly accountService = inject(AccountService);
   private readonly unitService = inject(UnitService);
   private readonly departmentService = inject(DepartmentService);
   private readonly payrollsService = inject(PayrollsService);
+  private readonly confirmService = inject(ConfirmService);
+  private readonly notifications = inject(NotificationService);
+  private isInitialLoad = true;
 
   readonly PayrollStatus = PayrollStatus;
+  readonly maxMonth = moment().endOf('month').toDate();
 
-  wasDepartmentSelected = false;
-  wasUnitSelected = false;
-  showPayrolls = false;
-  shiftsExpanded = false;
-  selectedPayroll: Payroll | null = null;
-  form: FormGroup = this.fb.group({
-    unitId: [null],
-    departmentId: [null],
-    displayMode: ['shifts'],
-    period: [this.formatCurrentDate()]
-  });
-  payrollSummary = signal<PayrollSummary | null>(null);
-  units = signal<Unit[]>([]);
-  departments = signal<Department[]>([]);
-  request = signal<PayrollRequest>({
-    period: new Date(),
-    departmentId: 0
-  });
-  markPayrollPaidRequest = signal<MarkPayrollPaidRequest>({
-    employeeId: 0,
-    period: new Date()
+  readonly form = this.fb.group({
+    unitId: this.fb.control<number | null>(null),
+    departmentId: this.fb.control<number | null>(null),
+    period: this.fb.control<Date>(moment().startOf('month').toDate(), {nonNullable: true})
   });
 
-  ngOnInit() {
-    this.getUnitsByRoles();
+  readonly statusOptions = [
+    {label: 'Усі', value: 'all' as StatusFilter},
+    {label: 'Очікують', value: PayrollStatus.Pending as StatusFilter},
+    {label: 'Виплачено', value: PayrollStatus.Paid as StatusFilter}
+  ];
 
-    this.searchSubject$
-      .pipe(
-        debounceTime(500),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(searchPattern => {
-      });
-  }
+  readonly units = signal<Unit[]>([]);
+  readonly departments = signal<Department[]>([]);
+  readonly summary = signal<PayrollSummary | null>(null);
+  readonly isLoading = signal(false);
+  readonly statusFilter = signal<StatusFilter>('all');
+  readonly selected = signal<Payroll | null>(null);
+  readonly payingIds = signal<Set<number>>(new Set());
 
-  getUnitsByRoles(): void {
+  selectedRows: Payroll[] = [];
+
+  readonly payrolls = computed(() => this.summary()?.payrolls ?? []);
+  readonly visiblePayrolls = computed(() => {
+    const filter = this.statusFilter();
+    return filter === 'all' ? this.payrolls() : this.payrolls().filter(p => p.status === filter);
+  });
+
+  readonly stats = computed(() => {
+    const list = this.payrolls();
+    const paid = list.filter(p => p.status === PayrollStatus.Paid);
+    const paidAmount = paid.reduce((sum, p) => sum + p.totalAmount, 0);
+    const total = this.summary()?.totalAmount ?? 0;
+    return {
+      total,
+      employees: this.summary()?.totalEmployees ?? list.length,
+      hours: this.summary()?.totalWorkedHours ?? 0,
+      paidCount: paid.length,
+      pendingCount: list.length - paid.length,
+      paidAmount,
+      pendingAmount: total - paidAmount,
+      paidPercent: total > 0 ? Math.round(paidAmount / total * 100) : 0
+    };
+  });
+
+  ngOnInit(): void {
     this.unitService.getUnitsByRoles()
-      .pipe(
-        catchError(error => {
-          return of([] as Unit[]);
-        }),
-        takeUntil(this.destroy$)
-      )
+      .pipe(catchError(() => of([] as Unit[])), takeUntil(this.destroy$))
       .subscribe(units => {
         this.units.set(units);
+        const userUnitId = this.accountService.currentUser()?.employee?.department?.unit?.id;
+        if (this.isInitialLoad && userUnitId && units.some(u => u.id === userUnitId)) {
+          this.form.patchValue({unitId: userUnitId}, {emitEvent: false});
+          this.loadDepartments(userUnitId);
+        } else {
+          this.isInitialLoad = false;
+        }
       });
   }
 
-  getDepartmentsByRoles(unitId: number): void {
+  onUnitChange(unitId: number | null): void {
+    this.isInitialLoad = false;
+    this.form.patchValue({departmentId: null}, {emitEvent: false});
+    this.departments.set([]);
+    this.summary.set(null);
+    this.selected.set(null);
+    if (unitId) {
+      this.loadDepartments(unitId);
+    }
+  }
+
+  private loadDepartments(unitId: number): void {
     this.departmentService.getDepartmentsByRoles(unitId)
-      .pipe(
-        catchError(error => {
-          return of([] as Department[]);
-        }),
-        takeUntil(this.destroy$)
-      )
+      .pipe(catchError(() => of([] as Department[])), takeUntil(this.destroy$))
       .subscribe(departments => {
         this.departments.set(departments);
+        const userDepartmentId = this.accountService.currentUser()?.employee?.departmentId;
+        if (this.isInitialLoad && userDepartmentId && departments.some(d => d.id === userDepartmentId)) {
+          this.form.patchValue({departmentId: userDepartmentId}, {emitEvent: false});
+          this.loadPayrolls();
+        }
+        this.isInitialLoad = false;
       });
   }
 
-  onUnitChange(event: Event): void {
-    const selectElement = event.target as HTMLSelectElement;
-    const unitId = selectElement.value;
+  onFiltersChange(): void {
+    this.selected.set(null);
+    this.loadPayrolls();
+  }
 
-    if (unitId !== 'null') {
-      this.wasDepartmentSelected = false;
-      this.getDepartmentsByRoles(Number(unitId));
+  shiftMonth(delta: number): void {
+    const next = moment(this.form.controls.period.value).add(delta, 'month').startOf('month');
+    if (next.isAfter(this.maxMonth)) return;
+    this.form.controls.period.setValue(next.toDate());
+    this.onFiltersChange();
+  }
+
+  get canGoNext(): boolean {
+    return moment(this.form.controls.period.value).add(1, 'month').isBefore(this.maxMonth);
+  }
+
+  loadPayrolls(): void {
+    const {departmentId, period} = this.form.getRawValue();
+    this.selectedRows = [];
+    if (!departmentId) {
+      this.summary.set(null);
+      return;
     }
 
-    this.departments.set([]);
-    this.form.get('departmentId')?.setValue(null);
-
-    this.showPayrolls = false;
-    this.wasUnitSelected = true;
-    this.selectedPayroll = null;
+    this.isLoading.set(true);
+    this.payrollsService.getPayrollsByPeriod({
+      departmentId,
+      period: moment(period).format('YYYY-MM') as unknown as Date
+    })
+      .pipe(finalize(() => this.isLoading.set(false)), takeUntil(this.destroy$))
+      .subscribe(summary => {
+        this.summary.set(summary);
+        const current = this.selected();
+        if (current) {
+          this.selected.set(summary.payrolls.find(p => p.employeeId === current.employeeId) ?? null);
+        }
+      });
   }
 
-  onDepartmentChange(event: Event): void {
-    const selectElement = event.target as HTMLSelectElement;
-    const departmentId = selectElement.value;
-
-    if (departmentId !== 'null') {
-      this.payrollSummary.set(null);
-
-      this.getPayrolls();
-
-      this.wasDepartmentSelected = true;
-      this.selectedPayroll = null;
-    }
+  initials(payroll: Payroll): string {
+    return personInitials(payroll.employee);
   }
 
-  onPeriodChange(event: Event): void {
-    this.selectedPayroll = null;
-    this.getPayrolls();
+  readonly isRowSelectable = (event: {data: Payroll}) => event.data.status !== PayrollStatus.Paid;
+
+  get selectedTotal(): number {
+    return this.selectedRows.reduce((sum, p) => sum + p.totalAmount, 0);
   }
 
-  private formatCurrentDate(): string {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  private markPaid$(payroll: Payroll): Observable<boolean> {
+    const period = moment(this.form.controls.period.value);
+    return this.payrollsService.markPayrollAsPaid({
+      employeeId: payroll.employeeId,
+      period: new Date(period.year(), period.month() + 1, 1)
+    }).pipe(map(() => true), catchError(() => of(false)));
   }
 
-  getPayrolls() {
-    if (this.form.value.departmentId === undefined
-      || this.form.value.period === new Date()) {
-      this.payrollSummary.set(null);
-    }
-
-    this.request.update(val => ({
-      ...val,
-      departmentId: this.form.value.departmentId,
-      period: this.form.value.period
-    }));
-
-    this.payrollsService.getPayrollsByPeriod(this.request())
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(summary => this.payrollSummary.set(summary));
-
-    this.showPayrolls = true;
-  }
-
-  selectEmployee(payroll: Payroll): void {
-    this.selectedPayroll = payroll;
-    this.shiftsExpanded = false;
-  }
-
-  markPayrollAsPaid(employeeId: number) {
-    const [year, month] = (this.form.value.period as string).split('-').map(Number);
-
-    this.markPayrollPaidRequest.set({
-      employeeId: employeeId,
-      period: new Date(year, month, 1)
+  confirmPay(payroll: Payroll): void {
+    this.confirmService.confirm({
+      header: 'Підтвердження виплати',
+      message: `Позначити зарплату ${payroll.employee.fullName} (${this.formatMoney(payroll.totalAmount)}) як виплачену?`,
+      acceptLabel: 'Позначити виплаченою',
+      acceptSeverity: 'success',
+      icon: 'pi pi-wallet',
+      onConfirm: () => this.pay([payroll])
     });
+  }
 
-    this.payrollsService.markPayrollAsPaid(this.markPayrollPaidRequest())
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.selectedPayroll = null;
-        this.getPayrolls();
+  confirmPaySelected(): void {
+    const items = [...this.selectedRows];
+    this.confirmService.confirm({
+      header: 'Масова виплата',
+      message: `Позначити як виплачені зарплати обраних працівників (${items.length}) на суму ${this.formatMoney(this.selectedTotal)}?`,
+      acceptLabel: 'Позначити виплаченими',
+      acceptSeverity: 'success',
+      icon: 'pi pi-wallet',
+      onConfirm: () => this.pay(items)
+    });
+  }
+
+  private pay(items: Payroll[]): void {
+    this.payingIds.set(new Set(items.map(p => p.employeeId)));
+    forkJoin(items.map(p => this.markPaid$(p)))
+      .pipe(finalize(() => this.payingIds.set(new Set())), takeUntil(this.destroy$))
+      .subscribe(results => {
+        const ok = results.filter(Boolean).length;
+        const failed = results.length - ok;
+        if (ok) this.notifications.success(ok === 1 ? 'Зарплату позначено виплаченою' : `Позначено виплаченими: ${ok}`);
+        if (failed) this.notifications.warn(`Не вдалося обробити: ${failed}`);
+        this.loadPayrolls();
       });
   }
 
-  closeDetails(): void {
-    this.selectedPayroll = null;
-    this.shiftsExpanded = false;
+  isPaying(payroll: Payroll): boolean {
+    return this.payingIds().has(payroll.employeeId);
   }
 
-  trackById(_: number, payroll: Payroll): number {
-    return payroll.employeeId;
-  }
-
-  get totalSalary(): number {
-    return this.payrollSummary()?.totalAmount ?? 0;
-  }
-
-  get totalHours(): number {
-    return this.payrollSummary()?.totalWorkedHours ?? 0;
-  }
-
-  get totalEmployees(): number {
-    return this.payrollSummary()?.totalEmployees ?? 0;
-  }
-
-  get payrolls(): Payroll[] {
-    return this.payrollSummary()?.payrolls ?? [];
+  private formatMoney(value: number): string {
+    return `${new Intl.NumberFormat('uk-UA', {maximumFractionDigits: 2}).format(value)} ₴`;
   }
 
   ngOnDestroy(): void {

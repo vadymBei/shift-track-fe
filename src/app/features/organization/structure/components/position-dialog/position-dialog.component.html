@@ -1,0 +1,55 @@
+<div class="form-dialog">
+  <header class="form-dialog-header">
+    <div>
+      <h2 class="form-dialog-title">{{ position ? 'Редагувати посаду' : 'Нова посада' }}</h2>
+      <p class="form-dialog-subtitle">Погодинна ставка використовується для розрахунку зарплати</p>
+    </div>
+    <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" ariaLabel="Закрити" (onClick)="close()"/>
+  </header>
+
+  <form class="form-dialog-body" [formGroup]="form" (ngSubmit)="save()">
+    <div class="form-field">
+      <label for="positionName">Назва</label>
+      <input pInputText id="positionName" formControlName="name" maxlength="100" placeholder="Напр. Касир" [fluid]="true"/>
+      @if (isInvalid('name')) {
+        <p-message severity="error" variant="simple" size="small">Вкажіть назву</p-message>
+      }
+    </div>
+
+    <div class="form-field">
+      <label for="positionRate">Ставка, грн/год</label>
+      <p-inputnumber
+        inputId="positionRate"
+        formControlName="hourlyRate"
+        mode="decimal"
+        locale="uk-UA"
+        [minFractionDigits]="0"
+        [maxFractionDigits]="2"
+        [min]="0"
+        [max]="1000"
+        suffix=" ₴/год"
+        placeholder="0 ₴/год"
+        [fluid]="true"/>
+      @if (isInvalid('hourlyRate')) {
+        <p-message severity="error" variant="simple" size="small">Вкажіть ставку від 0 до 1000 грн</p-message>
+      }
+    </div>
+
+    <div class="form-field">
+      <label for="positionDescription">Опис обов'язків</label>
+      <textarea pTextarea id="positionDescription" formControlName="description" rows="2" maxlength="100"
+                placeholder="Напр. Обслуговування покупців на касі" [autoResize]="true"></textarea>
+      <div class="form-field-footer">
+        @if (isInvalid('description')) {
+          <p-message severity="error" variant="simple" size="small">Опишіть обов'язки</p-message>
+        }
+        <span class="counter">{{ form.controls.description.value?.length ?? 0 }} / 100</span>
+      </div>
+    </div>
+
+    <footer class="form-dialog-footer">
+      <p-button label="Скасувати" [text]="true" severity="secondary" (onClick)="close()"/>
+      <p-button type="submit" [label]="position ? 'Зберегти' : 'Додати посаду'" icon="pi pi-check" [loading]="isSaving()"/>
+    </footer>
+  </form>
+</div>

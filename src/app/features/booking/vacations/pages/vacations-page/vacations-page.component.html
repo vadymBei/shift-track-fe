@@ -1,200 +1,223 @@
-<div class="row align-items-start justify-content-between mb-3">
-  <div class="col">
-    <h3 class="mb-1">Заявки на відпустку</h3>
-    <p class="text-secondary mb-0">Керування та погодження відпусток</p>
-  </div>
-
-  <div class="col-12 col-md-auto">
-    <button
-      class="btn btn-primary btn-sm mt-2 ms-auto d-flex align-items-center gap-2"
-      (click)="openCreateVacationModal()">
-      <i class="text-white bi bi-plus"></i>
-      Створити заявку
-    </button>
-  </div>
-</div>
-
-<div class="main-card p-3 shadow mb-4">
-  <form [formGroup]="form">
-    <div class="row g-3">
-      <div class="col-12 col-md-3">
-        <div class="form-floating">
-          <select
-            class="form-control form-control-sm"
-            formControlName="unitId"
-            id="unit"
-            (change)="onUnitChange($event)">
-            @if (!wasUnitSelected) {
-              <option value="null">Оберіть регіон</option>
-            }
-            @for (unit of units(); track unit.id) {
-              <option value="{{unit.id}}">{{ unit.name }}</option>
-            }
-          </select>
-
-          <label class="form-label" for="unit">
-            Регіон:
-          </label>
-        </div>
-      </div>
-
-      <div class="col-12 col-md-3">
-        <div class="form-floating">
-          <select
-            class="form-control form-control-sm"
-            id="department"
-            formControlName="departmentId"
-            (change)="onDepartmentChange($event)">
-            @if (!wasDepartmentSelected) {
-              <option value="null">Оберіть департамент</option>
-            }
-            @for (department of departments(); track department.id) {
-              <option value="{{department.id}}">{{ department.name }}</option>
-            }
-          </select>
-
-          <label class="form-label" for="department">
-            Департамент:
-          </label>
-        </div>
-      </div>
-
-      <div class="col-12 col-md-3">
-        <div class="form-floating">
-          <select
-            class="form-control form-control-sm"
-            id="vacationStatus"
-            formControlName="vacationStatus"
-            (change)="onVacationStatusChange($event)">
-            <option value="None">Всі</option>
-            <option value="PendingApproval">Очікує затвердежння</option>
-            <option value="ApprovedByDepartmentDirector">Затверджено директором</option>
-            <option value="ApprovedByUnitDirector">Затверджено регіональним директором</option>
-            <option value="Rejected">Відхилено</option>
-          </select>
-
-          <label class="form-label" for="vacationStatus">
-            Статус:
-          </label>
-        </div>
-      </div>
-
-      <div class="col-12 col-md-3">
-        <div class="form-floating">
-          <input
-            class="form-control form-control-sm"
-            id="search"
-            type="text"
-            formControlName="searchPattern"
-            (input)="onSearchChange($event)">
-
-          <label class="form-label" for="search">
-            Пошук:
-          </label>
-        </div>
-      </div>
-
-      <div class="col-12 col-md-3">
-        <div class="form-floating">
-          <input
-            id="dateFrom"
-            type="date"
-            class="form-control"
-            (change)="onDateChange($event)"
-            formControlName="dateFrom">
-
-          <label class="form-label" for="dateFrom">
-            Дата початку:
-          </label>
-        </div>
-      </div>
-
-      <div class="col-12 col-md-3">
-        <div class="form-floating">
-          <input
-            class="form-control"
-            type="date"
-            id="dateTo"
-            (change)="onDateChange($event)"
-            formControlName="dateTo">
-
-          <label class="form-label" for="dateTo">
-            Дата закінчення:
-          </label>
-        </div>
-      </div>
+<div class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Заявки на відпустку</h1>
+      <p class="page-subtitle">Керування та погодження відпусток</p>
     </div>
-  </form>
-</div>
 
-@if (vacations().length > 0) {
-  <div class="main-card shadow p-3 ">
-    <div class="d-flex flex-column gap-3">
-      @if (isLoading()) {
-        <div class="spinner-overlay">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-        </div>
-      }
+    <div class="page-actions">
+      <p-selectbutton
+        [options]="viewOptions"
+        [ngModel]="view()"
+        (ngModelChange)="onViewChange($event)"
+        optionLabel="label"
+        optionValue="value"
+        [allowEmpty]="false"
+        ariaLabelledBy="view-label">
+        <ng-template pTemplate="item" let-option>
+          <i [class]="option.icon"></i>
+          <span>{{ option.label }}</span>
+        </ng-template>
+      </p-selectbutton>
 
-      @for (vacation of vacations(); track vacation.id) {
-        <div class="card border-0 shadow-sm">
-          <div class="card-body py-3">
-            <div class="row align-items-center g-3">
+      <p-button label="Створити заявку" icon="pi pi-plus" (onClick)="openCreate()"/>
+    </div>
+  </header>
 
-              <div class="col-auto text-center border-end pe-3" style="min-width: 80px">
-                <div class="">
-                  {{ vacation.startDate | date: 'dd.MM.yyyy' }} - {{ vacation.endDate | date: 'dd.MM.yyyy' }}
-                </div>
-                <div class="text-secondary small mt-1">{{ vacation.daysCount }} днів</div>
-                <div class="border-start border-3 position-absolute top-0 start-0 h-100 rounded-start"
-                     [ngClass]="getStatusBorderClass(vacation.status)"
-                     style="width: 4px">
-                </div>
-              </div>
+  <section class="filters glass" [formGroup]="form">
+    <p-floatlabel variant="in">
+      <p-select
+        inputId="unit"
+        formControlName="unitId"
+        [options]="units()"
+        optionLabel="name"
+        optionValue="id"
+        [filter]="units().length > 8"
+        (onChange)="onUnitChange($event.value)"
+        [fluid]="true"/>
+      <label for="unit">Регіон</label>
+    </p-floatlabel>
 
-              <div class="col">
-                <div class="fw-semibold fs-5 text-truncate">{{ vacation.employee.fullName }}</div>
-                <div class="text-secondary small mb-2">{{ getVacationTypeString(vacation.type) }}</div>
-              </div>
+    <p-floatlabel variant="in">
+      <p-select
+        inputId="department"
+        formControlName="departmentId"
+        [options]="departments()"
+        optionLabel="name"
+        optionValue="id"
+        [filter]="departments().length > 8"
+        [emptyMessage]="form.value.unitId ? 'Немає доступних департаментів' : 'Спочатку оберіть регіон'"
+        (onChange)="onFiltersChange()"
+        [fluid]="true"/>
+      <label for="department">Департамент</label>
+    </p-floatlabel>
 
-              <div class="col-auto d-flex align-items-center gap-2">
-              <span class="badge rounded-pill px-3 py-2" [ngClass]="getStatusBadgeClass(vacation.status)">
-                {{ getStatusLabel(vacation.status) }}
-              </span>
+    <p-floatlabel variant="in">
+      <p-select
+        inputId="status"
+        formControlName="status"
+        [options]="statusOptions"
+        optionLabel="label"
+        optionValue="value"
+        (onChange)="onFiltersChange()"
+        [fluid]="true"/>
+      <label for="status">Статус</label>
+    </p-floatlabel>
 
-                <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                  <button
-                    type="button"
-                    class="btn btn-light rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center"
-                    style="width: 34px; height: 34px;"
-                    (click)="downloadVacationRequest(vacation)">
-                    <i class="bi bi-download text-primary"></i>
-                  </button>
+    @if (view() === 'list') {
+      <p-floatlabel variant="in">
+        <p-datepicker
+          inputId="period"
+          formControlName="period"
+          selectionMode="range"
+          dateFormat="dd.mm.y"
+          [readonlyInput]="true"
+          [showIcon]="true"
+          iconDisplay="input"
+          (onSelect)="onPeriodChange()"
+          appendTo="body"
+          [fluid]="true"/>
+        <label for="period">Період</label>
+      </p-floatlabel>
+    }
 
-                  <button
-                    type="button"
-                    class="btn btn-light rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center"
-                    style="width: 34px; height: 34px;"
-                    (click)="openEditVacationModal(vacation)">
-                    <i class="bi bi-pencil text-success"></i>
-                  </button>
+    <p-floatlabel variant="in">
+      <p-iconfield>
+        <p-inputicon styleClass="pi pi-search"/>
+        <input pInputText id="search" formControlName="searchPattern" (input)="onSearchInput()" [fluid]="true"/>
+      </p-iconfield>
+      <label for="search">Пошук працівника</label>
+    </p-floatlabel>
+  </section>
 
-                  <button
-                    type="button"
-                    class="btn btn-light rounded-circle shadow-sm p-0 d-inline-flex align-items-center justify-content-center"
-                    style="width: 34px; height: 34px;"
-                    (click)="openDeleteConfirmation(vacation)">
-                    <i class="bi bi-trash text-danger"></i>
-                  </button>
-                </div>
-              </div>
-
+  <section class="content glass">
+    <div class="surface content-surface">
+      @if (view() === 'list') {
+        @if (selectedVacations.length) {
+          <div class="bulk-bar">
+            <span class="bulk-text">{{ selectedSummary }}</span>
+            <div class="bulk-actions">
+              <p-button
+                label="Скасувати вибір"
+                [text]="true"
+                severity="secondary"
+                (onClick)="selectedVacations = []"/>
+              <p-button
+                label="Відхилити"
+                icon="pi pi-times"
+                severity="danger"
+                [outlined]="true"
+                [disabled]="isBulkBusy()"
+                (onClick)="rejectSelected()"/>
+              <p-button
+                label="Погодити обрані"
+                icon="pi pi-check"
+                severity="success"
+                [loading]="isBulkBusy()"
+                (onClick)="approveSelected()"/>
             </div>
           </div>
-        </div>
+        }
+
+        <p-table
+          [value]="vacations()"
+          [(selection)]="selectedVacations"
+          dataKey="id"
+          [rowSelectable]="isRowSelectable"
+          [loading]="isLoading()"
+          [rowHover]="true"
+          [paginator]="vacations().length > 20"
+          [rows]="20"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="{first}–{last} з {totalRecords}"
+          styleClass="vacations-table">
+          <ng-template pTemplate="header">
+            <tr>
+              @if (canDecideOthers()) {
+                <th class="col-check"><p-tableHeaderCheckbox/></th>
+              }
+              <th pSortableColumn="employee.fullName">Працівник <p-sortIcon field="employee.fullName"/></th>
+              <th>Тип</th>
+              <th pSortableColumn="startDate">Період <p-sortIcon field="startDate"/></th>
+              <th class="num" pSortableColumn="daysCount">Днів <p-sortIcon field="daysCount"/></th>
+              <th pSortableColumn="createdAt">Подано <p-sortIcon field="createdAt"/></th>
+              <th>Статус</th>
+              <th class="col-actions"><span class="visually-hidden">Дії</span></th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-vacation>
+            <tr [pSelectableRow]="vacation" [pSelectableRowDisabled]="!isRowSelectable({data: vacation})">
+              @if (canDecideOthers()) {
+                <td class="col-check">
+                  <p-tableCheckbox [value]="vacation" [disabled]="!isRowSelectable({data: vacation})"/>
+                </td>
+              }
+              <td>
+                <div class="employee">
+                  <p-avatar [label]="initials(vacation)" shape="circle" styleClass="app-avatar employee-avatar"/>
+                  <div class="employee-text">
+                    <span class="employee-name">{{ vacation.employee.fullName }}</span>
+                    <span class="employee-position">{{ vacation.employee.position?.name }}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="type">{{ typeLabel(vacation) }}</td>
+              <td class="nowrap">{{ vacation.startDate | date: 'dd.MM' }} – {{ vacation.endDate | date: 'dd.MM.yyyy' }}</td>
+              <td class="num"><b>{{ vacation.daysCount }}</b></td>
+              <td class="muted nowrap">{{ vacation.createdAt | date: 'dd.MM.yyyy' }}</td>
+              <td>
+                <p-tag [value]="statusMeta(vacation).label" [severity]="statusMeta(vacation).severity" [rounded]="true"/>
+              </td>
+              <td class="col-actions">
+                @let p = perms(vacation);
+                <div class="row-actions">
+                  @if (p.canDownload) {
+                    <p-button icon="pi pi-download" [rounded]="true" [text]="true" severity="secondary"
+                              ariaLabel="Завантажити заяву" pTooltip="Заява (PDF)" tooltipPosition="top"
+                              (onClick)="download(vacation)"/>
+                  }
+                  @if (p.canView) {
+                    <p-button [icon]="p.canEdit || p.canApprove || p.canReject ? 'pi pi-pencil' : 'pi pi-eye'"
+                              [rounded]="true" [text]="true" severity="secondary"
+                              ariaLabel="Відкрити заявку" pTooltip="Відкрити" tooltipPosition="top"
+                              (onClick)="openEdit(vacation)"/>
+                  }
+                  @if (p.canDelete) {
+                    <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
+                              ariaLabel="Видалити заявку" pTooltip="Видалити" tooltipPosition="top"
+                              (onClick)="confirmDelete(vacation)"/>
+                  }
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td [attr.colspan]="canDecideOthers() ? 8 : 7">
+                @if (hasScope()) {
+                  <app-empty-state icon="pi pi-inbox" heading="Заявок не знайдено" hint="Змініть статус, період або пошуковий запит"/>
+                } @else {
+                  <app-empty-state icon="pi pi-filter" heading="Оберіть регіон і департамент" hint="Після цього тут з'являться заявки на відпустку"/>
+                }
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      } @else {
+        @if (hasScope()) {
+          <app-timeline-calendar
+            [items]="calendarItems()"
+            [month]="calendarMonth()"
+            [legend]="calendarLegend"
+            emptyText="У цьому місяці відпусток немає"
+            (monthChange)="onCalendarMonthChange($event)"
+            (itemClick)="openEdit($event)"/>
+        } @else {
+          <app-empty-state icon="pi pi-filter" heading="Оберіть регіон і департамент" hint="Після цього тут з'явиться графік відпусток"/>
+        }
       }
     </div>
-  </div>
-}
+  </section>
+</div>

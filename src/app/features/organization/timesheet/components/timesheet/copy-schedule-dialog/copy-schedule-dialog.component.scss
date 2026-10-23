@@ -1,0 +1,128 @@
+.muted {
+  font-size: 12px;
+  color: var(--p-text-muted-color);
+}
+
+.ranges {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+
+    .ranges-arrow {
+      display: none;
+    }
+  }
+}
+
+.ranges-arrow {
+  color: var(--p-text-muted-color);
+}
+
+.hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--p-text-muted-color);
+
+  i {
+    margin-top: 2px;
+  }
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: var(--app-radius-md);
+  background: var(--p-content-hover-background);
+}
+
+.preview-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color);
+}
+
+.preview-scroll {
+  overflow-x: auto;
+}
+
+.preview-table {
+  border-collapse: separate;
+  border-spacing: 2px;
+  font-size: 11px;
+
+  th {
+    font-weight: 600;
+    text-align: center;
+    color: var(--p-text-muted-color);
+
+    span,
+    small {
+      display: block;
+      line-height: 1.1;
+    }
+
+    small {
+      font-size: 9px;
+      text-transform: uppercase;
+    }
+  }
+}
+
+.preview-name {
+  max-width: 130px;
+  padding-right: 8px;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overwrite {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--app-radius-md);
+  background: var(--p-highlight-background);
+  color: var(--p-highlight-color);
+  font-size: 14px;
+  line-height: 1.45;
+
+  i {
+    margin-top: 3px;
+  }
+
+  .muted {
+    color: inherit;
+    opacity: 0.8;
+  }
+
+  &.warn {
+    background: color-mix(in srgb, var(--p-orange-500) 14%, transparent);
+    color: var(--p-orange-700);
+  }
+}
+
+:host-context(.app-dark) .summary.warn {
+  color: var(--p-orange-300);
+}

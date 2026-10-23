@@ -1,0 +1,118 @@
+<div class="form-dialog">
+  <header class="form-dialog-header">
+    <div class="employee-head">
+      @if (isLoading()) {
+        <p-skeleton shape="circle" size="44px"/>
+        <p-skeleton width="200px" height="1.25rem"/>
+      } @else {
+        <p-avatar [label]="initials()" shape="circle" size="large" styleClass="app-avatar employee-avatar"/>
+        <div>
+          <h2 class="form-dialog-title">{{ employee()?.surname }} {{ employee()?.name }} {{ employee()?.patronymic }}</h2>
+          <p class="form-dialog-subtitle">Редагування даних працівника</p>
+        </div>
+      }
+    </div>
+    <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" ariaLabel="Закрити" (onClick)="close()"/>
+  </header>
+
+  <form class="form-dialog-body" [formGroup]="form" (ngSubmit)="save()">
+    <fieldset class="section">
+      <legend>Особисті дані</legend>
+      <div class="grid">
+        <div class="form-field">
+          <label for="empSurname">Прізвище</label>
+          <input pInputText id="empSurname" formControlName="surname" [fluid]="true"/>
+          @if (isInvalid('surname')) {
+            <p-message severity="error" variant="simple" size="small">Вкажіть прізвище</p-message>
+          }
+        </div>
+        <div class="form-field">
+          <label for="empName">Ім'я</label>
+          <input pInputText id="empName" formControlName="name" [fluid]="true"/>
+          @if (isInvalid('name')) {
+            <p-message severity="error" variant="simple" size="small">Вкажіть ім'я</p-message>
+          }
+        </div>
+        <div class="form-field">
+          <label for="empPatronymic">По батькові</label>
+          <input pInputText id="empPatronymic" formControlName="patronymic" [fluid]="true"/>
+          @if (isInvalid('patronymic')) {
+            <p-message severity="error" variant="simple" size="small">Вкажіть по батькові</p-message>
+          }
+        </div>
+        <div class="form-field">
+          <label for="empBirth">Дата народження</label>
+          <p-datepicker inputId="empBirth" formControlName="dateOfBirth" dateFormat="dd.mm.yy" [maxDate]="maxBirthDate"
+                        [showIcon]="true" iconDisplay="input" [showButtonBar]="true" placeholder="дд.мм.рррр"
+                        appendTo="body" [fluid]="true"/>
+        </div>
+        <div class="form-field">
+          <label for="empGender">Стать</label>
+          <p-select inputId="empGender" formControlName="gender" [options]="genderOptions"
+                    optionLabel="label" optionValue="value" appendTo="body" [fluid]="true"/>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="section">
+      <legend>Контакти</legend>
+      <div class="grid">
+        <div class="form-field">
+          <label for="empEmail">Email</label>
+          <p-iconfield>
+            <p-inputicon styleClass="pi pi-envelope"/>
+            <input pInputText id="empEmail" type="email" formControlName="email" [fluid]="true"/>
+          </p-iconfield>
+          @if (isInvalid('email')) {
+            <p-message severity="error" variant="simple" size="small">Вкажіть коректний email</p-message>
+          }
+        </div>
+        <div class="form-field">
+          <label for="empPhone">Телефон</label>
+          <p-iconfield>
+            <p-inputicon styleClass="pi pi-phone"/>
+            <input pInputText id="empPhone" formControlName="phoneNumber" [fluid]="true"/>
+          </p-iconfield>
+          <small class="hint">Телефон — це логін, його змінює сам працівник у профілі</small>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="section">
+      <legend>Робота</legend>
+      <div class="grid">
+        <div class="form-field">
+          <label for="empUnit">Регіон</label>
+          <p-select inputId="empUnit" formControlName="unitId" [options]="units()" optionLabel="name" optionValue="id"
+                    placeholder="Оберіть регіон" [showClear]="true" [filter]="units().length > 8"
+                    (onChange)="onUnitChange($event.value)" appendTo="body" [fluid]="true"/>
+        </div>
+        <div class="form-field">
+          <label for="empDepartment">Департамент</label>
+          <p-select inputId="empDepartment" formControlName="departmentId" [options]="departments()" optionLabel="name"
+                    optionValue="id" [placeholder]="form.controls.unitId.value ? 'Оберіть департамент' : 'Спочатку оберіть регіон'"
+                    [showClear]="true" [filter]="departments().length > 8" appendTo="body" [fluid]="true"/>
+        </div>
+        <div class="form-field">
+          <label for="empPosition">Посада</label>
+          <p-select inputId="empPosition" formControlName="positionId" [options]="positions()" optionLabel="name"
+                    optionValue="id" placeholder="Без посади" [showClear]="true" [filter]="positions().length > 8"
+                    appendTo="body" [fluid]="true">
+            <ng-template pTemplate="item" let-position>
+              <div class="position-option">
+                <span>{{ position.name }}</span>
+                <small>{{ position.hourlyRate }} ₴/год</small>
+              </div>
+            </ng-template>
+          </p-select>
+        </div>
+      </div>
+    </fieldset>
+
+    <footer class="form-dialog-footer">
+      <p-button label="Скасувати" [text]="true" severity="secondary" (onClick)="close()"/>
+      <p-button type="submit" label="Зберегти" icon="pi pi-check" [loading]="isSaving()"
+                [disabled]="isLoading() || form.pristine"/>
+    </footer>
+  </form>
+</div>

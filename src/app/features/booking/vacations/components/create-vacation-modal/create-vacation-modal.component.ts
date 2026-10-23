@@ -1,112 +1,97 @@
-import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
-import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
-import {BsModalRef} from "ngx-bootstrap/modal";
-import {Subject, takeUntil} from "rxjs";
-import {CommonModule} from "@angular/common";
-import {CreateVacationRequest} from "../../models/create-vacation-request.modal";
-import {VacationType} from "../../enums/vacation-type.enum";
-import {AccountService} from "../../../../../core/account/services/account.service";
-import {Employee} from "../../../../organization/employees/models/employee.model";
-import {VacationService} from "../../services/vacation.service";
-import moment from "moment";
+import {Component, computed, inject, OnDestroy, signal} from '@angular/core';
+import {DatePipe} from '@angular/common';
+import {toSignal} from '@angular/core/rxjs-interop';
+import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
+import {finalize, Subject, takeUntil} from 'rxjs';
+import moment from 'moment';
+import {DynamicDialogRef} from 'primeng/dynamicdialog';
+import {Select} from 'primeng/select';
+import {DatePicker} from 'primeng/datepicker';
+import {Textarea} from 'primeng/textarea';
+import {Button} from 'primeng/button';
+import {Message} from 'primeng/message';
+import {AccountService} from '../../../../../core/account/services/account.service';
+import {NotificationService} from '../../../../../shared/services/notification.service';
+import {VacationService} from '../../services/vacation.service';
+import {CreateVacationRequest} from '../../models/create-vacation-request.modal';
+import {countVacationDays, pluralDays, toApiDate, VACATION_TYPE_GROUPS} from '../../constants/vacation-labels';
 
 @Component({
   selector: 'app-create-vacation-modal',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule
-  ],
+  imports: [ReactiveFormsModule, DatePipe, Select, DatePicker, Textarea, Button, Message],
   templateUrl: './create-vacation-modal.component.html',
   styleUrl: './create-vacation-modal.component.scss'
 })
-export class CreateVacationModalComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
+export class CreateVacationModalComponent implements OnDestroy {
+  private readonly destroy$ = new Subject<void>();
 
-  bsModalRef = inject(BsModalRef);
-  private fb = inject(FormBuilder);
-  private accountService = inject(AccountService);
-  private vacationService = inject(VacationService);
+  private readonly ref = inject(DynamicDialogRef);
+  private readonly fb = inject(FormBuilder);
+  private readonly accountService = inject(AccountService);
+  private readonly vacationService = inject(VacationService);
+  private readonly notifications = inject(NotificationService);
 
-  form: FormGroup = this.fb.group({
-    startDate: [
-      this.formatDateForInput(new Date()),
-      [
-        Validators.required
-      ]
-    ],
-    endDate: [
-      this.formatDateForInput(new Date()),
-      [
-        Validators.required
-      ]
-    ],
-    type: [
-      null,
-      [
-        Validators.required
-      ]
-    ],
-    comment: [
-      '',
-      [
-        Validators.maxLength(100)
-      ]
-    ],
+  readonly typeGroups = VACATION_TYPE_GROUPS;
+  readonly today = moment().startOf('day').toDate();
+  readonly employee = computed(() => this.accountService.currentUser()?.employee);
+  readonly isSaving = signal(false);
+
+  readonly form = this.fb.group({
+    type: [null as string | null, [Validators.required]],
+    period: this.fb.control<Date[] | null>(null, Validators.required),
+    comment: ['', [Validators.maxLength(100)]]
   });
 
-  employee = signal<Employee | null>(null);
-  request = signal<CreateVacationRequest>({
-    type: VacationType.None,
-    comment: '',
-    startDate: new Date(),
-    endDate: new Date(),
-    employeeId: 0
-  });
+  private readonly period = toSignal(this.form.controls.period.valueChanges, {initialValue: null});
+  private readonly comment = toSignal(this.form.controls.comment.valueChanges, {initialValue: ''});
 
-  ngOnInit(): void {
-    this.loadCurrentEmployee();
+  readonly startDate = computed(() => this.period()?.[0] ?? null);
+  readonly endDate = computed(() => this.period()?.[1] ?? null);
+  readonly daysCount = computed(() => countVacationDays(this.startDate(), this.endDate()));
+  readonly daysLabel = computed(() => pluralDays(this.daysCount()).replace(/^\d+ /, ''));
+  readonly returnDate = computed(() => this.endDate() ? moment(this.endDate()).add(1, 'day').toDate() : null);
+  readonly commentLength = computed(() => this.comment()?.length ?? 0);
+
+  get isPeriodIncomplete(): boolean {
+    const control = this.form.controls.period;
+    return (control.touched || control.dirty) && !this.endDate();
   }
 
-  private formatDateForInput(date: Date): string {
-    return moment(date).format('YYYY-MM-DD');
-  }
+  save(): void {
+    const employee = this.employee();
+    const start = this.startDate();
+    const end = this.endDate();
 
-  loadCurrentEmployee(): void {
-    this.accountService.getCurrentUser()
+    if (this.form.invalid || !employee || !start || !end) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const request: CreateVacationRequest = {
+      employeeId: employee.id,
+      type: this.form.value.type as CreateVacationRequest['type'],
+      startDate: toApiDate(start) as unknown as Date,
+      endDate: toApiDate(end) as unknown as Date,
+      comment: this.form.value.comment ?? ''
+    };
+
+    this.isSaving.set(true);
+    this.vacationService.createVacation(request)
       .pipe(
+        finalize(() => this.isSaving.set(false)),
         takeUntil(this.destroy$)
       )
       .subscribe({
-        next: (currentUser) => {
-          if (currentUser && currentUser.employee) {
-            this.employee.set(currentUser.employee);
-          }
+        next: () => {
+          this.notifications.success('Заявку на відпустку подано');
+          this.ref.close(true);
         }
       });
   }
 
-  save() {
-    if (!this.employee())
-      return;
-
-    this.request.update(req => ({
-      ...req,
-      type: this.form.value.type,
-      comment: this.form.value.comment,
-      startDate: this.form.value.startDate,
-      endDate: this.form.value.endDate,
-      employeeId: this.employee()?.id || 0,
-    }));
-
-    this.vacationService.createVacation(this.request())
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.bsModalRef.hide();
-        }
-      });
+  close(): void {
+    this.ref.close(false);
   }
 
   ngOnDestroy(): void {

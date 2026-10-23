@@ -1,0 +1,64 @@
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.search {
+  width: 260px;
+  max-width: 100%;
+}
+
+.content {
+  padding: 8px;
+  border-radius: var(--app-radius-xl);
+}
+
+.content-surface {
+  padding: 8px 12px 12px;
+  overflow-x: auto;
+}
+
+:host ::ng-deep .structure-table {
+  .p-datatable-thead > tr > th {
+    padding: 10px 8px;
+    background: transparent;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--p-text-muted-color);
+    white-space: nowrap;
+  }
+
+  .p-datatable-tbody > tr > td {
+    padding: 10px 8px;
+    background: transparent;
+    font-size: 14px;
+  }
+}
+
+.col-actions {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.row-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--p-text-muted-color);
+}
+

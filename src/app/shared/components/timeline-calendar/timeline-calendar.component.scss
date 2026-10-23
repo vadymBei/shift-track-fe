@@ -1,0 +1,236 @@
+:host {
+  display: block;
+}
+
+.calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.calendar-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.month-switcher {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.month-title {
+  min-width: 150px;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--p-text-muted-color);
+}
+
+.swatch {
+  display: inline-block;
+  width: 14px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.calendar-scroll {
+  overflow-x: auto;
+}
+
+.calendar-grid {
+  min-width: 900px;
+}
+
+.grid-row {
+  display: grid;
+  align-items: center;
+  border-bottom: 1px solid var(--p-content-border-color);
+
+  > * {
+    grid-row: 1;
+  }
+
+  &.totals {
+    padding-top: 8px;
+    border-bottom: none;
+  }
+}
+
+.name-cell {
+  display: flex;
+  grid-column: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding-right: 8px;
+  font-size: 13px;
+  font-weight: 600;
+
+  &.muted {
+    font-size: 12px;
+    color: var(--p-text-muted-color);
+  }
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:host ::ng-deep .row-avatar {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  font-size: 11px;
+}
+
+.day-head {
+  padding: 6px 0;
+  font-size: 11px;
+  line-height: 1.3;
+  text-align: center;
+  color: var(--p-text-muted-color);
+
+  b {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--p-text-color);
+  }
+
+  &.today b {
+    color: var(--p-primary-color);
+  }
+}
+
+.day-cell {
+  height: 44px;
+  border-left: 1px solid var(--p-content-border-color);
+}
+
+.weekend {
+  background: var(--p-content-hover-background);
+}
+
+.today {
+  box-shadow: inset 2px 0 0 var(--p-primary-color);
+}
+
+.bar {
+  z-index: 1;
+  height: 28px;
+  margin: 0 2px;
+  padding: 0 8px;
+  overflow: hidden;
+  border: none;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: filter 0.15s ease-out;
+
+  &:hover {
+    filter: brightness(0.95);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary-color);
+    outline-offset: 2px;
+  }
+}
+
+.bar-warn {
+  border: 1px dashed var(--p-orange-400);
+  background: color-mix(in srgb, var(--p-orange-400) 22%, transparent);
+  color: var(--p-orange-700);
+}
+
+.bar-info {
+  background: color-mix(in srgb, var(--p-blue-400) 25%, transparent);
+  color: var(--p-blue-700);
+}
+
+.bar-success {
+  background: color-mix(in srgb, var(--p-green-400) 28%, transparent);
+  color: var(--p-green-800);
+}
+
+.bar-danger {
+  background: repeating-linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--p-red-400) 18%, transparent) 0 6px,
+      color-mix(in srgb, var(--p-red-400) 30%, transparent) 6px 12px
+  );
+  color: var(--p-red-700);
+  text-decoration: line-through;
+}
+
+.bar-secondary {
+  background: var(--p-content-hover-background);
+  color: var(--p-text-muted-color);
+}
+
+:host-context(.app-dark) {
+  .bar-warn { color: var(--p-orange-200); }
+  .bar-info { color: var(--p-blue-200); }
+  .bar-success { color: var(--p-green-200); }
+  .bar-danger { color: var(--p-red-200); }
+}
+
+.count {
+  height: 26px;
+  margin: 0 1px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 26px;
+  text-align: center;
+  color: var(--p-text-muted-color);
+
+  &.one {
+    background: var(--p-highlight-background);
+    color: var(--p-highlight-color);
+    font-weight: 600;
+  }
+
+  &.many {
+    background: color-mix(in srgb, var(--p-red-400) 22%, transparent);
+    color: var(--p-red-600);
+    font-weight: 700;
+  }
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 0;
+  color: var(--p-text-muted-color);
+
+  i {
+    font-size: 24px;
+  }
+}

@@ -1,59 +1,19 @@
-<div class="header shadow row rounded-top-4 g-0 p-1 justify-content-between align-items-center">
-  <div class="col-2 d-flex align-items-center justify-content-center">
-    <img src="/assets/icons/cube.svg" alt="Logo">
-    <h3 class="text-primary ms-2 mb-0">ShiftTrack</h3>
+<header class="topbar glass">
+  <p-button
+    icon="pi pi-bars"
+    [rounded]="true"
+    [text]="true"
+    severity="secondary"
+    ariaLabel="Відкрити меню"
+    (onClick)="menuClick.emit()"/>
+
+  <div class="brand">
+    <img class="brand-logo" src="/assets/icons/cube.svg" alt="">
+    <span class="brand-name">ShiftTrack</span>
   </div>
 
-  <div class="col-auto">
-    <div class="dropdown account">
-      <button
-        type="button"
-        class="btn d-flex align-items-center justify-content-around"
-        data-bs-toggle="dropdown"
-        aria-expanded="false"
-        (click)="isDropdownMenuOpened = !isDropdownMenuOpened">
-        <span class="d-flex align-items-center gap-2">
-          <i class="bi bi-person-fill"></i>
-
-          <div class="employee-info">
-            <span class="employee-name">
-              {{ accountService.currentUser()?.employee?.name }} {{ accountService.currentUser()?.employee?.surname }}
-            </span>
-            <span class="employee-position">
-              {{ accountService.currentUser()?.employee?.position?.name }}
-            </span>
-          </div>
-
-          @if (isDropdownMenuOpened) {
-            <i class="bi bi-chevron-compact-up"></i>
-          } @else {
-            <i class="bi bi-chevron-compact-down"></i>
-          }
-        </span>
-      </button>
-
-      <ul class="dropdown-menu bg-body-tertiary">
-        <li>
-          <a class="dropdown-item" routerLink="/administration/profile/edit">
-            <i class="bi bi-person-gear"></i>
-            Редагувати профіль
-          </a>
-        </li>
-
-        <li>
-          <a class="dropdown-item" routerLink="/administration/change-password">
-            <i class="bi bi-lock"></i>
-            Змінити пароль
-          </a>
-        </li>
-
-        <li>
-          <a class="dropdown-item" (click)="logOut()">
-            <i class="bi bi-box-arrow-right"></i>
-            Вихід
-          </a>
-        </li>
-      </ul>
-    </div>
+  <div class="topbar-end">
+    <app-theme-toggle/>
+    <app-user-menu [compact]="true"/>
   </div>
-</div>
+</header>

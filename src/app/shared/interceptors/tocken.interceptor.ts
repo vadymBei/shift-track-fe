@@ -1,53 +1,45 @@
-import {HttpContextToken, HttpInterceptorFn, HttpRequest} from '@angular/common/http';
+import {HttpContextToken, HttpErrorResponse, HttpInterceptorFn, HttpRequest} from '@angular/common/http';
 import {inject} from '@angular/core';
-import {catchError, switchMap, throwError} from 'rxjs';
-import {AccountService} from "../../core/account/services/account.service";
+import {catchError, map, Observable, of, switchMap, throwError} from 'rxjs';
+import {AccountService} from '../../core/account/services/account.service';
+import {isAuthEndpoint} from '../constants/auth-endpoints';
 
 export const BYPASS_TOKEN = new HttpContextToken<boolean>(() => false);
 
 export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
-  if (req.context.get(BYPASS_TOKEN)) {
+  if (req.context.get(BYPASS_TOKEN) || isAuthEndpoint(req.url)) {
     return next(req);
   }
+
   const accountService = inject(AccountService);
-  const token = accountService.token();
+  const sentToken = accountService.token()?.accessToken;
 
-  if (req.url.includes('system/auth/tokens/refresh')) {
+  if (!sentToken) {
     return next(req);
   }
 
-  if (!token?.accessToken) {
-    return next(req);
-  }
-
-  return next(addToken(req, token.accessToken)).pipe(
-    catchError(error => {
-      if (error.status !== 401) {
+  return next(withToken(req, sentToken)).pipe(
+    catchError((error: unknown) => {
+      if (!(error instanceof HttpErrorResponse) || error.status !== 401) {
         return throwError(() => error);
       }
 
-      return accountService.refreshTokenOnce().pipe(
-        switchMap(() => {
-          const latestToken = accountService.token()?.accessToken;
-
-          if (!latestToken) {
-            return throwError(() => new Error('Access token is missing after refresh'));
-          }
-
-          return next(addToken(req, latestToken));
-        }),
-        catchError(refreshError => {
-          return throwError(() => refreshError);
-        })
+      return freshAccessToken(accountService, sentToken).pipe(
+        catchError(refreshError => throwError(() => accountService.token() ? refreshError : error)),
+        switchMap(accessToken => next(withToken(req, accessToken)))
       );
     })
   );
 };
 
-const addToken = (req: HttpRequest<any>, accessToken: string) => {
-  return req.clone({
-    setHeaders: {
-      Authorization: `Bearer ${accessToken}`
-    }
-  });
-};
+function freshAccessToken(accountService: AccountService, sentToken: string): Observable<string> {
+  const current = accountService.token()?.accessToken;
+  if (current && current !== sentToken) {
+    return of(current);
+  }
+  return accountService.refreshTokenOnce().pipe(map(token => token.accessToken));
+}
+
+function withToken(req: HttpRequest<unknown>, accessToken: string): HttpRequest<unknown> {
+  return req.clone({setHeaders: {Authorization: `Bearer ${accessToken}`}});
+}

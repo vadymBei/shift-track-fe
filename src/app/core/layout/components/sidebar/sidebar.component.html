@@ -1,23 +1,56 @@
-<div class="sidebar-background d-flex flex-column vh-100">
-  <div class="w-100 h-100 d-flex">
-    <nav class="navbar w-100 h-100 d-flex flex-column">
-      @if (isUserLoaded()) {
-        <ul class="navbar-nav w-100 flex-grow-1 gap-1">
-          @for (item of menuItems(); track item.link) {
-            <li class="main-menu-list w-100 d-flex justify-content-center">
-              <a class="menu-item d-flex align-items-center py-1 pt-2 pb-2"
-                 routerLink="{{item.link}}"
-                 routerLinkActive="active">
-                <i [ngClass]="item.icon" class="d-flex align-items-center"></i>
-                <span>{{ item.label }}</span>
-              </a>
-            </li>
-          }
-        </ul>
-      } @else {
-      <div class="sidebar-menu-loading">
-      </div>
+<div class="sidebar" [class.collapsed]="collapsed()">
+  <div class="sidebar-brand">
+    <img class="brand-logo" src="/assets/icons/cube.svg" alt="">
+    @if (!collapsed()) {
+      <span class="brand-name">ShiftTrack</span>
     }
-    </nav>
+  </div>
+
+  <nav class="sidebar-nav" aria-label="Головне меню">
+    @if (isUserLoaded()) {
+      @for (item of menuItems(); track item.link) {
+        <a
+          pRipple
+          class="nav-link"
+          [routerLink]="item.link"
+          routerLinkActive="active"
+          [attr.aria-label]="collapsed() ? item.label : null"
+          [pTooltip]="item.label"
+          [tooltipDisabled]="!collapsed()"
+          tooltipPosition="right"
+          (click)="navigate.emit()">
+          <i [class]="item.icon"></i>
+          @if (!collapsed()) {
+            <span class="nav-label">{{ item.label }}</span>
+          }
+          @if (badgeCount(item); as count) {
+            <span class="nav-badge" [attr.aria-label]="count + ' чекають рішення'">{{ collapsed() ? '' : count }}</span>
+          }
+        </a>
+      }
+    } @else {
+      @for (i of skeletonItems; track i) {
+        <p-skeleton height="40px" borderRadius="10px"/>
+      }
+    }
+  </nav>
+
+  <div class="sidebar-footer">
+    <app-user-menu [compact]="collapsed()"/>
+
+    <div class="footer-actions">
+      <app-theme-toggle/>
+      @if (collapsible()) {
+        <p-button
+          [icon]="collapsed() ? 'pi pi-angle-double-right' : 'pi pi-angle-double-left'"
+          [rounded]="true"
+          [text]="true"
+          severity="secondary"
+          [ariaLabel]="collapsed() ? 'Розгорнути меню' : 'Згорнути меню'"
+          [pTooltip]="collapsed() ? 'Розгорнути меню' : 'Згорнути меню'"
+          tooltipPosition="right"
+          (onClick)="toggleCollapse.emit()"/>
+      }
+    </div>
   </div>
 </div>

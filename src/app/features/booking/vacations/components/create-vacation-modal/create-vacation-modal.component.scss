@@ -1,0 +1,114 @@
+@use '../vacation-dialog';
+
+.period-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.period-calendar {
+  flex: 1 1 320px;
+}
+
+:host ::ng-deep .vacation-calendar .p-datepicker-panel {
+  width: 100%;
+  border-radius: var(--app-radius-md);
+}
+
+.period-summary {
+  display: flex;
+  flex: 1 1 220px;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--app-radius-md);
+  background: var(--p-content-hover-background);
+}
+
+.summary-days {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.summary-number {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--p-primary-color);
+}
+
+.summary-unit {
+  color: var(--p-text-muted-color);
+}
+
+.summary-line,
+.summary-empty {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+
+  i {
+    margin-top: 2px;
+    font-size: 14px;
+    color: var(--p-text-muted-color);
+  }
+}
+
+.summary-empty {
+  color: var(--p-text-muted-color);
+}
+
+.approval {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 2px;
+}
+
+.approval-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color);
+}
+
+.approval-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--p-text-muted-color);
+}
+
+.step-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--p-content-border-color);
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  box-sizing: border-box;
+}
+
+.comment {
+  width: 100%;
+}
+
+.counter {
+  align-self: flex-end;
+  font-size: 12px;
+  color: var(--p-text-muted-color);
+}

@@ -1,0 +1,132 @@
+<div class="form-dialog">
+  <header class="form-dialog-header">
+    <div class="title-wrap">
+      @if (isBulk) {
+        <div class="avatar-stack">
+          @for (e of employees.slice(0, 3); track e.id) {
+            <p-avatar [label]="initials(e)" shape="circle" styleClass="app-avatar stack-avatar"/>
+          }
+          @if (employees.length > 3) {
+            <p-avatar [label]="'+' + (employees.length - 3)" shape="circle" styleClass="app-avatar stack-avatar more"/>
+          }
+        </div>
+        <div>
+          <h2 class="form-dialog-title">Масове призначення · {{ employees.length }} працівн.</h2>
+          <p class="form-dialog-subtitle">{{ subtitle() }}</p>
+        </div>
+      } @else {
+        <p-avatar [label]="initials(employee)" shape="circle" size="large" styleClass="app-avatar dialog-avatar"/>
+        <div>
+          <h2 class="form-dialog-title">{{ employee.fullName }}</h2>
+          <p class="form-dialog-subtitle">{{ subtitle() }}</p>
+        </div>
+      }
+    </div>
+    <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" ariaLabel="Закрити" (onClick)="close()"/>
+  </header>
+
+  <div class="form-dialog-body">
+    @if (current) {
+      <p-selectbutton [options]="tabs" [ngModel]="tab()" (ngModelChange)="tab.set($event)" optionLabel="label"
+                      optionValue="value" [allowEmpty]="false" size="small"/>
+    }
+
+    @if (isBulk) {
+      <div class="people">
+        @for (e of employees.slice(0, visibleNames); track e.id) {
+          <span class="person-chip">{{ e.fullName }}</span>
+        }
+        @if (employees.length > visibleNames) {
+          <span class="person-chip more" [title]="hiddenNames">
+            ще {{ employees.length - visibleNames }}
+          </span>
+        }
+      </div>
+    }
+
+    @if (tab() === 'assign') {
+      @if (current?.shift; as shift) {
+        <div class="current">
+          <span>Зараз:</span>
+          <app-shift-chip [shift]="shift" size="lg"/>
+          <b>{{ shift.description }}</b>
+          @if (timeLabel(shift)) { <span class="muted">{{ timeLabel(shift) }}</span> }
+        </div>
+      }
+
+      <div class="form-field">
+        <label for="range">Дні</label>
+        <div class="range">
+          <p-datepicker inputId="range" selectionMode="range" [ngModel]="range()" (ngModelChange)="range.set($event)"
+                        dateFormat="dd.mm.yy" [readonlyInput]="true" [showIcon]="true" iconDisplay="input"
+                        appendTo="body" [fluid]="true"/>
+          <span class="range-count">{{ daysCount() }} дн.</span>
+        </div>
+        @if (daysCount() > 62) {
+          <small class="error">Не більше 62 днів за раз</small>
+        }
+        @if (overwriteCount() > 0 && (isBulk || daysCount() > 1)) {
+          <small class="overwrite"><i class="pi pi-exclamation-triangle"></i>
+            {{ overwriteCount() }} з {{ cellsCount() }} клітинок уже заповнено — їх буде замінено</small>
+        }
+      </div>
+
+      <div class="form-field">
+        <label>Зміна</label>
+        <div class="groups">
+          @for (group of groups; track group.type) {
+            <div class="group">
+              <span class="group-title"><i [class]="group.icon"></i>{{ group.label }}</span>
+              <div class="tiles">
+                @for (shift of group.shifts; track shift.id) {
+                  <button type="button" class="tile" [class.active]="shiftId() === shift.id"
+                          (click)="shiftId.set(shift.id)" (dblclick)="shiftId.set(shift.id); save()">
+                    <app-shift-chip [shift]="shift" size="lg"/>
+                    <span class="tile-text">
+                      <span class="tile-title">{{ shift.description }}</span>
+                      @if (timeLabel(shift)) { <span class="tile-time">{{ timeLabel(shift) }}</span> }
+                    </span>
+                    @if (shiftId() === shift.id) { <i class="pi pi-check-circle tile-check"></i> }
+                  </button>
+                }
+              </div>
+            </div>
+          } @empty {
+            <span class="muted">Типи змін ще не створено. Додайте їх у розділі «Адміністрування → Робочі зміни».</span>
+          }
+        </div>
+      </div>
+
+      <footer class="form-dialog-footer">
+        <p-button label="Скасувати" [text]="true" severity="secondary" (onClick)="close()"/>
+        <p-button [label]="saveLabel()" icon="pi pi-check"
+                  [disabled]="!canSave()" [loading]="isSaving()" (onClick)="save()"/>
+      </footer>
+    } @else {
+      <div class="history">
+        @if (historyLoading()) {
+          @for (i of [1, 2, 3]; track i) { <p-skeleton height="44px"/> }
+        } @else {
+          @for (item of history(); track item.id) {
+            <div class="history-item">
+              <div class="history-change">
+                <app-shift-chip [shift]="item.previousShift" size="sm"/>
+                <i class="pi pi-arrow-right"></i>
+                <app-shift-chip [shift]="item.newShift" size="sm"/>
+              </div>
+              <div class="history-meta">
+                <span>{{ authorName(item) }}</span>
+                <span class="muted">{{ item.createdAt | date: 'dd.MM.yyyy, HH:mm' }}</span>
+              </div>
+            </div>
+          } @empty {
+            <span class="muted">Змін ще не було</span>
+          }
+        }
+      </div>
+      <footer class="form-dialog-footer">
+        <p-button label="Закрити" [text]="true" severity="secondary" (onClick)="close()"/>
+      </footer>
+    }
+  </div>
+</div>

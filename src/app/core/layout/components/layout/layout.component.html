@@ -1,16 +1,23 @@
-<div class="pt-5 px-5 d-flex flex-column vh-100 overflow-hidden">
-  <div class="flex-shrink-0">
-    <app-header></app-header>
+<div class="app-shell">
+  <aside class="app-sidebar glass" [class.collapsed]="collapsed()">
+    <app-sidebar [collapsed]="collapsed()" (toggleCollapse)="toggleCollapsed()"/>
+  </aside>
+
+  <div class="app-main">
+    <app-header class="app-topbar" (menuClick)="drawerVisible.set(true)"/>
+
+    <main class="app-content">
+      <router-outlet/>
+    </main>
   </div>
-
-  <div class="d-flex flex-grow-1 overflow-hidden">
-    <div class="col-2 d-flex flex-column">
-      <app-sidebar></app-sidebar>
-    </div>
-
-    <div class="col-10 d-flex flex-column scroll-hidden p-3">
-      <router-outlet></router-outlet>
-    </div>
-  </div>
-
 </div>
+
+<p-drawer
+  [visible]="drawerVisible()"
+  (visibleChange)="drawerVisible.set($event)"
+  position="left"
+  styleClass="app-drawer">
+  <ng-template pTemplate="headless">
+    <app-sidebar [collapsible]="false" (navigate)="drawerVisible.set(false)"/>
+  </ng-template>
+</p-drawer>

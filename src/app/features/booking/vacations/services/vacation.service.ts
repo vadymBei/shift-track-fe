@@ -4,6 +4,9 @@ import {HttpClient, HttpParams} from "@angular/common/http";
 import {Vacation} from "../models/vacation.model";
 import {CreateVacationRequest} from "../models/create-vacation-request.modal";
 import {EditVacationRequest} from "../models/edit-vacation-request.model";
+import {map, Observable} from 'rxjs';
+import moment from 'moment';
+import {VacationBalance} from '../models/vacation-balance.model';
 
 @Injectable({
   providedIn: 'root'
@@ -61,6 +64,10 @@ export class VacationService {
     return this.httpClient.get<Vacation>(`${this.path}/${vacationId}`);
   }
 
+  getVacationBalanceByEmployeeId(employeeId: number) {
+    return this.httpClient.get<VacationBalance>(`${this.path}/balance/by-employeeId/${employeeId}`);
+  }
+
   updateVacation(request: EditVacationRequest) {
     return this.httpClient.put<Vacation>(`${this.path}`, request);
   }
@@ -80,4 +87,19 @@ export class VacationService {
       });
   }
 
+  saveVacationRequestPdf(vacation: Vacation): Observable<void> {
+    return this.downloadVacationRequest(vacation.id).pipe(
+      map(blob => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Відпустка працівника ${vacation.employee.fullName} `
+          + `${moment(vacation.startDate).format('DD.MM.YYYY')}-${moment(vacation.endDate).format('DD.MM.YYYY')}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      })
+    );
+  }
 }

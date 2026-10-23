@@ -1,12 +1,147 @@
-.count-btn {
-  cursor: pointer;
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--app-radius-lg);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  transition: opacity 0.15s ease-out;
+
+  &.loading {
+    opacity: 0.6;
+  }
+}
+
+.contact-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--app-radius-lg);
+  background: var(--app-glass-bg-strong);
+  overflow: hidden;
+  transition: transform 0.15s ease-out, border-color 0.15s ease-out;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--p-primary-color) 35%, transparent);
+  }
+}
+
+.card-main {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-height: 96px;
+  gap: 14px;
   width: 100%;
-  padding: 0.2rem 1rem;
-  border-radius: 5px;
-  background: linear-gradient(90deg, #ffffff 0%, rgba(234, 227, 253) 100%);
-  box-shadow: 0 4px 14px rgba(13, 110, 253, 0.12);
+  padding: 16px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary-color);
+    outline-offset: -2px;
+  }
+}
+
+:host ::ng-deep .card-avatar {
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.card-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.card-name {
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-position {
+  font-size: 13px;
+  color: var(--p-text-muted-color);
+}
+
+.card-department {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--p-text-muted-color);
 
   i {
-    font-size: 20px;
+    font-size: 11px;
   }
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px 6px 16px;
+  border-top: 1px solid var(--app-glass-border);
+}
+
+.card-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--p-text-color);
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+
+  i {
+    font-size: 13px;
+    color: var(--p-primary-color);
+  }
+
+  &:hover {
+    color: var(--p-primary-color);
+  }
+}
+
+.card-buttons {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: var(--p-text-muted-color);
+  text-decoration: none;
+
+  &:hover {
+    background: var(--p-content-hover-background);
+    color: var(--p-primary-color);
+  }
+}
+
+:host ::ng-deep .contact-drawer {
+  width: 400px;
+  max-width: 100vw;
 }
