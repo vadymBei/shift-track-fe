@@ -1,0 +1,142 @@
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--app-radius-lg);
+}
+
+.content {
+  padding: 8px;
+  border-radius: var(--app-radius-xl);
+}
+
+.content-surface {
+  padding: 8px 12px 12px;
+  overflow-x: auto;
+}
+
+.bulk-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 -12px 8px;
+  margin-top: -8px;
+  padding: 8px 12px 8px 16px;
+  background: var(--p-highlight-background);
+  color: var(--p-highlight-color);
+}
+
+.bulk-text {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.bulk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+:host ::ng-deep .vacations-table {
+  .p-datatable-thead > tr > th {
+    background: transparent;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--p-text-muted-color);
+    white-space: nowrap;
+  }
+
+  .p-datatable-thead > tr > th,
+  .p-datatable-tbody > tr > td {
+    padding: 10px 8px;
+  }
+
+  .p-datatable-tbody > tr > td {
+    background: transparent;
+    font-size: 14px;
+  }
+
+  .p-tag {
+    white-space: nowrap;
+  }
+
+  .p-datatable-tbody > tr.p-datatable-row-selected > td,
+  .p-datatable-tbody > tr.p-highlight > td {
+    background: var(--p-highlight-background);
+  }
+}
+
+.col-check {
+  width: 44px;
+}
+
+.col-actions {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.row-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.muted {
+  color: var(--p-text-muted-color);
+}
+
+.type {
+  min-width: 160px;
+  max-width: 220px;
+}
+
+.employee {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+:host ::ng-deep .employee-avatar {
+  flex-shrink: 0;
+  font-size: 12px;
+}
+
+.employee-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.employee-name {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.employee-position {
+  font-size: 12px;
+  color: var(--p-text-muted-color);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+:host ::ng-deep .p-selectbutton .p-togglebutton-content {
+  gap: 6px;
+}

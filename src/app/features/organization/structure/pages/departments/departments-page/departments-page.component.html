@@ -1,79 +1,80 @@
-<div class="row align-items-start justify-content-between mb-3">
-  <div class="col">
-    <h3 class="mb-1">Департаменти</h3>
-    <p class="text-secondary mb-0">Керуйте підрозділами компанії</p>
-  </div>
+<div class="page">
+  <header class="page-header">
+    <div>
+      <a class="back-link" routerLink="/administration"><i class="pi pi-arrow-left"></i>Адміністрування</a>
+      <h1 class="page-title">Департаменти</h1>
+      <p class="page-subtitle">
+        Підрозділи компанії за регіонами
+        @if (totalDepartments()) {
+          · {{ countLabel(totalDepartments()) }}
+        }
+      </p>
+    </div>
+    <div class="toolbar">
+      <p-iconfield styleClass="search">
+        <p-inputicon styleClass="pi pi-search"/>
+        <input pInputText placeholder="Пошук департаменту" aria-label="Пошук департаменту"
+               [value]="search()" (input)="search.set($any($event.target).value)" [fluid]="true"/>
+      </p-iconfield>
+      <p-button label="Додати департамент" icon="pi pi-plus" (onClick)="openDialog()"/>
+    </div>
+  </header>
 
-  <div class="col-3">
-    <button
-      class="btn btn-primary btn-sm mt-2 ms-auto d-flex align-items-center gap-2"
-      (click)="openCreateDepartmentModal()">
-      <i class="text-white bi bi-plus"></i>
-      Додати департамент
-    </button>
-  </div>
-</div>
-
-<div class="main-card pt-3 pb-1 px-3 shadow">
-  <div class="departments-page__content position-relative">
-    @if (isLoading()) {
-      <div class="spinner-overlay">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    }
-
-    @for (group of groupedDepartments(); track $index) {
-      <div class="card mb-3 shadow-sm">
-        <div class="region-card__header">
-          <div class="region-card__title-wrap">
-            <i class="bi bi-buildings region-card__icon"></i>
-
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-              <strong class="region-card__title">{{ group.unit.name }}</strong>
-              <span class="region-card__badge">{{ group.departments.length }} департаменти</span>
+  @if (isLoading() && !groups().length) {
+    <div class="groups">
+      @for (i of [1, 2, 3]; track i) {
+        <p-skeleton height="180px" borderRadius="16px"/>
+      }
+    </div>
+  } @else {
+    <div class="groups">
+      @for (group of filteredGroups(); track group.unit.id) {
+        <section class="group glass">
+          <header class="group-header">
+            <span class="group-icon"><i class="pi pi-map-marker"></i></span>
+            <div class="group-title">
+              <h2>{{ group.unit.name }}</h2>
+              @if (group.unit.description) {
+                <span class="muted">{{ group.unit.description }}</span>
+              }
             </div>
-          </div>
-        </div>
+            <p-tag [value]="countLabel(group.departments.length)" severity="secondary" [rounded]="true"/>
+          </header>
 
-        <div class="region-card__list">
-          @for (department of group.departments; track department.id;) {
-            <div class="department-row">
-              <div class="department-row__left">
-                <i class="bi bi-building department-row__icon"></i>
-                <span class="department-row__name">{{ department.name }}</span>
-              </div>
-
-              <div class="department-row__actions">
-                <div class="dropdown dropdown-hover">
-                  <button class="btn btn-link p-0 text-secondary" type="button">
-                    <i class="bi bi-three-dots"></i>
-                  </button>
-
-                  <ul class="dropdown-menu dropdown-menu-end p-2">
-                    <li>
-                      <a class="dropdown-item" role="button" (click)="openEditDepartmentModal(department)">
-                        <i class="bi bi-pencil"></i> Редагувати
-                      </a>
-                    </li>
-                    <li>
-                      <a class="dropdown-item" role="button" (click)="openDeleteConfirmation(department)">
-                        <i class="bi bi-trash"></i> Видалити
-                      </a>
-                    </li>
-                  </ul>
+          <ul class="department-list surface">
+            @for (department of group.departments; track department.id) {
+              <li class="department">
+                <i class="pi pi-building"></i>
+                <span class="department-name">{{ department.name }}</span>
+                <div class="row-actions">
+                  <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" size="small"
+                            ariaLabel="Редагувати" pTooltip="Редагувати" tooltipPosition="top"
+                            (onClick)="edit(department, group.unit.id)"/>
+                  <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" size="small"
+                            ariaLabel="Видалити" pTooltip="Видалити" tooltipPosition="top"
+                            (onClick)="confirmDelete(department)"/>
                 </div>
-              </div>
-            </div>
-          }
-        </div>
+              </li>
+            } @empty {
+              <li class="department muted">У цьому регіоні ще немає департаментів</li>
+            }
+          </ul>
 
-        <button type="button" class="region-card__add" (click)="openCreateDepartmentModal(group.unit.id)">
-          <i class="bi bi-plus-lg"></i>
-          <span class="text-secondary">Додати департамент</span>
-        </button>
-      </div>
-    }
-  </div>
+          <p-button
+            label="Додати департамент"
+            icon="pi pi-plus"
+            [text]="true"
+            size="small"
+            styleClass="add-button"
+            (onClick)="openDialog({unitId: group.unit.id})"/>
+        </section>
+      } @empty {
+        @if (search()) {
+          <app-empty-state class="surface empty" icon="pi pi-building" heading="Нічого не знайдено" hint="Спробуйте інший запит"/>
+        } @else {
+          <app-empty-state class="surface empty" icon="pi pi-building" heading="Департаментів ще немає" hint="Спочатку додайте регіон, потім департаменти в ньому"/>
+        }
+      }
+    </div>
+  }
 </div>

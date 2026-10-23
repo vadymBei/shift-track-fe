@@ -1,24 +1,15 @@
-import {Component, inject} from '@angular/core';
-import {AccountService} from '../../../account/services/account.service';
-import {RouterLink} from '@angular/router';
-import {CommonModule} from "@angular/common";
+import {Component, output} from '@angular/core';
+import {Button} from 'primeng/button';
+import {UserMenuComponent} from '../user-menu/user-menu.component';
+import {ThemeToggleComponent} from '../../../../shared/components/theme-toggle/theme-toggle.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink
-  ],
+  imports: [Button, UserMenuComponent, ThemeToggleComponent],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
 export class HeaderComponent {
-  isDropdownMenuOpened = false;
-
-  accountService = inject(AccountService);
-
-  logOut(): void {
-    this.accountService.logout();
-  }
+  menuClick = output<void>();
 }

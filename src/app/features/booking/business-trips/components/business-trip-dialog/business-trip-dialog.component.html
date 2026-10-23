@@ -1,0 +1,258 @@
+<div class="trip-dialog">
+  <header class="dialog-header">
+    <div>
+      <div class="title-row">
+        <h2 class="dialog-title">{{ isEdit ? 'Відрядження' : 'Нове відрядження' }}</h2>
+        @if (isEdit) {
+          <p-tag [value]="statusMeta.label" [severity]="statusMeta.severity" [rounded]="true"/>
+        }
+      </div>
+      <p class="dialog-subtitle">
+        {{ isEdit ? 'Перевірте маршрут, учасників і дати' : 'Заповніть маршрут, учасників, дати та мету поїздки' }}
+      </p>
+    </div>
+    <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" ariaLabel="Закрити" (onClick)="close()"/>
+  </header>
+
+  <form class="dialog-body" [formGroup]="form" (ngSubmit)="save()">
+    <div class="columns">
+      <div class="column">
+        <section class="block">
+          <div class="block-title"><i class="pi pi-map"></i>Маршрут</div>
+
+          @if (locations().length) {
+            <ol class="route">
+              @for (location of locations(); track location.integrationId; let i = $index; let first = $first; let last = $last) {
+                <li class="stop" [class]="'stop stop-' + stopRole(i)">
+                  <span class="stop-marker">{{ i + 1 }}</span>
+                  <div class="stop-text">
+                    <span class="stop-name">{{ location.displayName || location.name }}</span>
+                    <span class="stop-meta">
+                      {{ location.country }} ·
+                      @switch (stopRole(i)) {
+                        @case ('start') { Відправлення }
+                        @case ('end') { Прибуття }
+                        @default { Зупинка }
+                      }
+                    </span>
+                  </div>
+                  @if (!isLocked()) {
+                    <div class="stop-actions">
+                      <p-button icon="pi pi-arrow-up" [rounded]="true" [text]="true" severity="secondary" size="small"
+                                ariaLabel="Вище" [disabled]="first" (onClick)="moveLocation(i, -1)"/>
+                      <p-button icon="pi pi-arrow-down" [rounded]="true" [text]="true" severity="secondary" size="small"
+                                ariaLabel="Нижче" [disabled]="last" (onClick)="moveLocation(i, 1)"/>
+                      <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="danger" size="small"
+                                ariaLabel="Прибрати місто" (onClick)="removeLocation(i)"/>
+                    </div>
+                  }
+                </li>
+              }
+            </ol>
+          }
+
+          @if (!isLocked()) {
+            <p-autocomplete
+              [(ngModel)]="locationQuery"
+              [ngModelOptions]="{standalone: true}"
+              [suggestions]="locationSuggestions()"
+              (completeMethod)="searchLocations($event)"
+              (onSelect)="addLocation($event)"
+              optionLabel="displayName"
+              [delay]="400"
+              [minLength]="2"
+              [placeholder]="locations().length ? 'Додати ще місто' : 'Місто відправлення'"
+              emptyMessage="Місто не знайдено"
+              [showEmptyMessage]="true"
+              appendTo="body"
+              [fluid]="true">
+              <ng-template pTemplate="item" let-location>
+                <div class="suggestion">
+                  <i class="pi pi-map-marker"></i>
+                  <div class="suggestion-text">
+                    <span>{{ location.displayName }}</span>
+                    <small>{{ location.country }}</small>
+                  </div>
+                </div>
+              </ng-template>
+            </p-autocomplete>
+          }
+
+          @if (triedSubmit() && routeError()) {
+            <p-message severity="error" variant="simple" size="small">
+              Вкажіть щонайменше 2 міста: відправлення та прибуття
+            </p-message>
+          }
+        </section>
+
+        <section class="block">
+          <div class="block-title">
+            <i class="pi pi-users"></i>Учасники
+            @if (participants().length) {
+              <span class="count">{{ participants().length }}</span>
+            }
+          </div>
+
+          @if (participants().length) {
+            <div class="participants">
+              @for (employee of participants(); track employee.id) {
+                <div class="participant">
+                  <p-avatar [label]="initials(employee)" shape="circle" styleClass="app-avatar participant-avatar"/>
+                  <div class="participant-text">
+                    <span class="participant-name">{{ employee.fullName }}</span>
+                    <span class="participant-position">{{ employee.position?.name || 'Співробітник' }}</span>
+                  </div>
+                  @if (!isLocked()) {
+                    <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" size="small"
+                              [ariaLabel]="'Прибрати ' + employee.fullName" (onClick)="removeParticipant(employee)"/>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          @if (!isLocked()) {
+            <p-autocomplete
+              [(ngModel)]="employeeQuery"
+              [ngModelOptions]="{standalone: true}"
+              [suggestions]="employeeSuggestions()"
+              (completeMethod)="searchEmployees($event)"
+              (onSelect)="addParticipant($event)"
+              optionLabel="fullName"
+              [delay]="400"
+              [minLength]="2"
+              placeholder="Знайти співробітника"
+              emptyMessage="Нікого не знайдено"
+              [showEmptyMessage]="true"
+              appendTo="body"
+              [fluid]="true">
+              <ng-template pTemplate="item" let-employee>
+                <div class="suggestion">
+                  <p-avatar [label]="initials(employee)" shape="circle" styleClass="app-avatar suggestion-avatar"/>
+                  <div class="suggestion-text">
+                    <span>{{ employee.fullName }}</span>
+                    <small>{{ employee.position?.name }}</small>
+                  </div>
+                  @if (isParticipant(employee)) {
+                    <i class="pi pi-check added"></i>
+                  }
+                </div>
+              </ng-template>
+            </p-autocomplete>
+          }
+
+          @if (triedSubmit() && participantsError()) {
+            <p-message severity="error" variant="simple" size="small">Додайте щонайменше одного учасника</p-message>
+          }
+        </section>
+      </div>
+
+      <div class="column">
+        <section class="block">
+          <div class="block-title"><i class="pi pi-calendar"></i>Дати</div>
+          <p-datepicker
+            formControlName="period"
+            selectionMode="range"
+            dateFormat="dd.mm.yy"
+            placeholder="Початок — кінець"
+            [readonlyInput]="true"
+            [showIcon]="true"
+            iconDisplay="input"
+            appendTo="body"
+            [fluid]="true"/>
+          @if (endDate()) {
+            <div class="duration">
+              <span class="duration-number">{{ days() }}</span>
+              <span>
+                {{ days() === 1 ? 'день' : (days() >= 2 && days() <= 4 ? 'дні' : 'днів') }} ·
+                {{ startDate() | date: 'EEEEEE, d MMM' }} — {{ endDate() | date: 'EEEEEE, d MMM' }}
+              </span>
+            </div>
+          } @else if (form.controls.period.touched || triedSubmit()) {
+            <p-message severity="error" variant="simple" size="small">Оберіть дату початку та закінчення</p-message>
+          }
+        </section>
+
+        <section class="block">
+          <label class="block-title" for="budget"><i class="pi pi-wallet"></i>Орієнтовний бюджет</label>
+          <p-inputnumber
+            inputId="budget"
+            formControlName="estimatedBudget"
+            mode="currency"
+            currency="UAH"
+            locale="uk-UA"
+            [min]="0"
+            placeholder="0,00 ₴"
+            [fluid]="true"/>
+          @if (form.controls.estimatedBudget.invalid && (form.controls.estimatedBudget.touched || triedSubmit())) {
+            <p-message severity="error" variant="simple" size="small">Вкажіть бюджет (0 або більше)</p-message>
+          }
+        </section>
+
+        <section class="block">
+          <label class="block-title" for="description"><i class="pi pi-flag"></i>Мета поїздки</label>
+          <textarea
+            pTextarea
+            id="description"
+            formControlName="description"
+            rows="4"
+            maxlength="300"
+            placeholder="Наприклад: відкриття нового магазину, навчання персоналу"
+            class="description"></textarea>
+          <div class="field-footer">
+            @if (form.controls.description.invalid && (form.controls.description.touched || triedSubmit())) {
+              <p-message severity="error" variant="simple" size="small">Опишіть мету поїздки</p-message>
+            }
+            <small class="counter">{{ descriptionLength() }} / 300</small>
+          </div>
+        </section>
+
+        @if (isEdit && isLocked()) {
+          @if (isClosed) {
+            <p-message severity="secondary" icon="pi pi-lock">Відрядження закрите — змінювати його вже не можна</p-message>
+          } @else {
+            <p-message severity="secondary" icon="pi pi-lock">Змінювати відрядження може лише автор, поки воно на погодженні або відхилене</p-message>
+          }
+        }
+      </div>
+    </div>
+
+    <footer class="dialog-footer">
+      <div>
+        @if (perm()?.canDownload) {
+          <p-button label="Наказ (PDF)" icon="pi pi-download" [text]="true" severity="secondary"
+                    [loading]="busyAction() === 'download'" (onClick)="download()"/>
+        }
+      </div>
+
+      <div class="footer-actions">
+        @if (canReject()) {
+          <p-button label="Відхилити" icon="pi pi-times" severity="danger" [outlined]="true"
+                    [loading]="busyAction() === 'reject'" [disabled]="!!busyAction()" (onClick)="reject()"/>
+        }
+        @if (canApprove()) {
+          <p-button label="Підтвердити" icon="pi pi-check" severity="success"
+                    [loading]="busyAction() === 'approve'" [disabled]="!!busyAction()" (onClick)="approve()"/>
+        }
+
+        @if (isLocked()) {
+          @if (!hasDecision()) {
+            <p-button label="Закрити" severity="secondary" [outlined]="true" (onClick)="close()"/>
+          }
+        } @else {
+          @if (!hasDecision()) {
+            <p-button label="Скасувати" [text]="true" severity="secondary" (onClick)="close()"/>
+          }
+          <p-button
+            type="submit"
+            [label]="isEdit ? 'Зберегти зміни' : 'Створити відрядження'"
+            [icon]="isEdit ? '' : 'pi pi-check'"
+            [severity]="isEdit && hasDecision() ? 'secondary' : 'primary'"
+            [outlined]="isEdit && hasDecision()"
+            [loading]="busyAction() === 'save'"
+            [disabled]="!!busyAction()"/>
+        }
+      </div>
+    </footer>
+  </form>
+</div>

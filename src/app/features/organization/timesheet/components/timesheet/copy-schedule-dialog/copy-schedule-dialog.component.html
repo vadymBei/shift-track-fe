@@ -1,0 +1,109 @@
+<div class="form-dialog">
+  <header class="form-dialog-header">
+    <div>
+      <h2 class="form-dialog-title">Скопіювати графік</h2>
+      <p class="form-dialog-subtitle">
+        У {{ monthLabel }} · {{ onlySelected ? 'обрані працівники' : 'усі працівники' }} ({{ employees.length }})
+      </p>
+    </div>
+    <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" ariaLabel="Закрити" (onClick)="close()"/>
+  </header>
+
+  <div class="form-dialog-body">
+    <p-selectbutton [options]="presets" [ngModel]="preset()" (ngModelChange)="applyPreset($event)"
+                    optionLabel="label" optionValue="value" [allowEmpty]="false" size="small"/>
+
+    <div class="ranges">
+      <div class="form-field">
+        <label for="copySource">Звідки взяти</label>
+        <p-datepicker inputId="copySource" selectionMode="range" [ngModel]="source()" (ngModelChange)="onSourceChange($event)"
+                      dateFormat="dd.mm.yy" [readonlyInput]="true" [showIcon]="true" iconDisplay="input"
+                      appendTo="body" [fluid]="true"/>
+        <small class="muted">Цикл: {{ cycleLength() }} {{ plural(cycleLength(), 'день', 'дні', 'днів') }}</small>
+      </div>
+      <i class="pi pi-arrow-right ranges-arrow"></i>
+      <div class="form-field">
+        <label for="copyTarget">Куди вставити</label>
+        <p-datepicker inputId="copyTarget" selectionMode="range" [ngModel]="target()" (ngModelChange)="onTargetChange($event)"
+                      dateFormat="dd.mm.yy" [readonlyInput]="true" [showIcon]="true" iconDisplay="input"
+                      [minDate]="monthStartDate" [maxDate]="monthEndDate" appendTo="body" [fluid]="true"/>
+        <small class="muted">У межах {{ monthLabel }}</small>
+      </div>
+    </div>
+
+    <div class="hint">
+      <i class="pi pi-info-circle"></i>
+      @if (preset() === 'month') {
+        <span>Зміни копіюються по датах: 1-ше число з 1-го, 2-ге з 2-го і так далі.</span>
+      } @else {
+        <span>Зміни з джерела повторюються по колу. Тижневий графік лягає на ті самі дні тижня, а графік «2 через 2» продовжує свою чергу.</span>
+      }
+    </div>
+
+    @if (sourceLoading()) {
+      <div class="preview">
+        @for (i of [1, 2, 3]; track i) { <p-skeleton height="30px"/> }
+      </div>
+    } @else if (preview().length) {
+      <div class="preview">
+        <span class="preview-title">Джерело · {{ formatRange(sourceRange()) }}</span>
+        <div class="preview-scroll">
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th></th>
+                @for (d of preview()[0].days; track $index) {
+                  <th><span>{{ d.date }}</span><small>{{ d.weekday }}</small></th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of preview(); track row.employee.id) {
+                <tr>
+                  <td class="preview-name">{{ row.employee.fullName }}</td>
+                  @for (d of row.days; track $index) {
+                    <td>
+                      <app-shift-chip [shift]="d.shift" size="xs" placeholder="·"/>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (employees.length > preview().length) {
+          <small class="muted">…і ще {{ employees.length - preview().length }} працівн.</small>
+        }
+      </div>
+    }
+
+    <label class="overwrite">
+      <p-checkbox [binary]="true" [ngModel]="overwrite()" (ngModelChange)="overwrite.set($event)" inputId="copyOverwrite"/>
+      <span>Перезаписувати вже заповнені дні</span>
+    </label>
+
+    @if (error(); as message) {
+      <div class="summary warn"><i class="pi pi-exclamation-triangle"></i>{{ message }}</div>
+    } @else if (!sourceLoading()) {
+      @if (!plan().sourceFilled) {
+        <div class="summary warn"><i class="pi pi-exclamation-triangle"></i>У джерелі немає жодної зміни — нічого копіювати</div>
+      } @else {
+        <div class="summary">
+          <i class="pi pi-check-circle"></i>
+          <span>
+            Буде заповнено <b>{{ plan().requests.length }}</b> {{ plural(plan().requests.length, 'клітинку', 'клітинки', 'клітинок') }}
+            для {{ plan().employeesWithSource }} працівн. · {{ formatRange(targetRange()) }}
+            @if (plan().skippedFilled) {
+              <br><span class="muted">Пропущено {{ plan().skippedFilled }} уже заповнених — увімкніть перезапис, щоб замінити</span>
+            }
+          </span>
+        </div>
+      }
+    }
+
+    <footer class="form-dialog-footer">
+      <p-button label="Скасувати" [text]="true" severity="secondary" (onClick)="close()"/>
+      <p-button [label]="saveLabel()" icon="pi pi-copy" [disabled]="!plan().requests.length" [loading]="isSaving()" (onClick)="save()"/>
+    </footer>
+  </div>
+</div>

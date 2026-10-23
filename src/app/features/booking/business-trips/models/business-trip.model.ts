@@ -9,6 +9,7 @@ export interface BusinessTrip {
   description: string;
   estimatedBudget: number;
   status: BusinessTripStatus;
+  authorId: number | null;
   participants: Employee[];
   locations: BusinessTripLocation[];
 }

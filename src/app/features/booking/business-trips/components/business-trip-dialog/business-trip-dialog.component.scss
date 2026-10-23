@@ -1,0 +1,278 @@
+:host {
+  display: block;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 24px 14px;
+  border-bottom: 1px solid var(--p-content-border-color);
+}
+
+.title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.dialog-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.dialog-subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--p-text-muted-color);
+}
+
+.dialog-body {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px 0;
+}
+
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.column {
+  display: flex;
+  flex: 1 1 340px;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.block-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+
+  i {
+    font-size: 14px;
+    color: var(--p-primary-color);
+  }
+}
+
+.count {
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--p-highlight-background);
+  color: var(--p-highlight-color);
+  font-size: 12px;
+}
+
+.route {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stop {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 34px;
+    bottom: -8px;
+    left: 13px;
+    width: 2px;
+    background: var(--p-content-border-color);
+  }
+}
+
+.stop-marker {
+  z-index: 1;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  background: var(--p-primary-color);
+}
+
+.stop-start .stop-marker {
+  background: var(--p-green-500);
+}
+
+.stop-end .stop-marker {
+  background: #e6268d;
+}
+
+.stop-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.stop-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.stop-meta {
+  font-size: 12px;
+  color: var(--p-text-muted-color);
+}
+
+.stop-actions {
+  display: flex;
+  gap: 0;
+}
+
+.participants {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.participant {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 6px 8px;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--app-radius-md);
+}
+
+.participant-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.participant-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.participant-position {
+  font-size: 12px;
+  color: var(--p-text-muted-color);
+}
+
+:host ::ng-deep .participant-avatar,
+:host ::ng-deep .suggestion-avatar {
+  flex-shrink: 0;
+  font-size: 12px;
+}
+
+.suggestion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  > i {
+    color: var(--p-text-muted-color);
+  }
+
+  .added {
+    margin-left: auto;
+    color: var(--p-green-500);
+  }
+}
+
+.suggestion-text {
+  display: flex;
+  flex-direction: column;
+
+  small {
+    color: var(--p-text-muted-color);
+  }
+}
+
+.duration {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--app-radius-md);
+  background: var(--p-content-hover-background);
+  font-size: 13px;
+  color: var(--p-text-muted-color);
+}
+
+.duration-number {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--p-primary-color);
+}
+
+.description {
+  width: 100%;
+  resize: vertical;
+}
+
+.field-footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.counter {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--p-text-muted-color);
+}
+
+.dialog-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 20px -24px 0;
+  padding: 14px 24px 20px;
+  border-top: 1px solid var(--p-content-border-color);
+}
+
+.footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 575.98px) {
+  .dialog-header {
+    padding: 16px 16px 12px;
+  }
+
+  .dialog-body {
+    padding: 16px 16px 0;
+  }
+
+  .dialog-footer {
+    margin: 16px -16px 0;
+    padding: 12px 16px 16px;
+  }
+}

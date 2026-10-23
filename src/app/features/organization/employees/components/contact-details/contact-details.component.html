@@ -1,0 +1,75 @@
+<div class="contact">
+  <div class="contact-top">
+    <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" ariaLabel="Закрити"
+              styleClass="close-button" (onClick)="close.emit()"/>
+
+    @if (photoUrl()) {
+      <p-avatar [image]="photoUrl()!" shape="circle" styleClass="app-avatar contact-avatar"/>
+    } @else {
+      <p-avatar [label]="initials()" shape="circle" styleClass="app-avatar contact-avatar"/>
+    }
+    <h2 class="contact-name">{{ employee().fullName }}</h2>
+    <span class="contact-position">{{ employee().position?.name ?? 'Без посади' }}</span>
+
+    <div class="quick-actions">
+      @if (employee().phoneNumber) {
+        <a class="quick-action" [href]="'tel:' + employee().phoneNumber">
+          <i class="pi pi-phone"></i><span>Зателефонувати</span>
+        </a>
+      }
+      @if (employee().email) {
+        <a class="quick-action" [href]="'mailto:' + employee().email">
+          <i class="pi pi-envelope"></i><span>Написати</span>
+        </a>
+      }
+    </div>
+  </div>
+
+  <section class="block">
+    <h3 class="block-title">Контакти</h3>
+    <div class="info-row">
+      <i class="pi pi-phone"></i>
+      <div class="row-text">
+        <span class="row-label">Телефон</span>
+        <a class="row-value" [href]="'tel:' + employee().phoneNumber">{{ employee().phoneNumber || 'Не вказано' }}</a>
+      </div>
+      <p-button icon="pi pi-copy" [rounded]="true" [text]="true" severity="secondary" size="small"
+                ariaLabel="Скопіювати телефон" pTooltip="Скопіювати" tooltipPosition="left"
+                (onClick)="copy(employee().phoneNumber, 'Телефон')"/>
+    </div>
+    <div class="info-row">
+      <i class="pi pi-envelope"></i>
+      <div class="row-text">
+        <span class="row-label">Email</span>
+        <a class="row-value" [href]="'mailto:' + employee().email">{{ employee().email || 'Не вказано' }}</a>
+      </div>
+      <p-button icon="pi pi-copy" [rounded]="true" [text]="true" severity="secondary" size="small"
+                ariaLabel="Скопіювати email" pTooltip="Скопіювати" tooltipPosition="left"
+                (onClick)="copy(employee().email, 'Email')"/>
+    </div>
+  </section>
+
+  <p-divider/>
+
+  <section class="block">
+    <h3 class="block-title">Робота</h3>
+    @for (item of details(); track item.label) {
+      <div class="info-row">
+        <i [class]="item.icon"></i>
+        <div class="row-text">
+          <span class="row-label">{{ item.label }}</span>
+          <span class="row-value plain">{{ item.value }}</span>
+        </div>
+      </div>
+    }
+    @if (employee().dateOfBirth) {
+      <div class="info-row">
+        <i class="pi pi-gift"></i>
+        <div class="row-text">
+          <span class="row-label">День народження</span>
+          <span class="row-value plain">{{ employee().dateOfBirth | date: 'd MMMM' }}</span>
+        </div>
+      </div>
+    }
+  </section>
+</div>

@@ -1,145 +1,133 @@
 <div class="login-page-wrapper">
-  <div class="login-card shadow border-0">
-    <div class="login-card-body">
-      <div class="login-columns">
-        <div class="login-left">
-          <div class="row">
-            <div class="col ">
-              <div class="d-flex align-items-center gap-2 mb-4">
-                <img class="logo" src="/assets/icons/cube_large.svg" alt="ShiftTrack">
-                <h3 class="mb-0">ShiftTrack</h3>
-              </div>
-            </div>
-          </div>
+  <app-theme-toggle class="theme-toggle"/>
 
-          <div class="info-column text-start">
-            <h4 class="text-black mb-0">Керуйте робочими</h4>
-            <h4 class="text-black mb-4">змінами легко</h4>
-
-            <div class="feature-list mb-4">
-              <div class="feature-item">
-                <i class="bi bi-check-circle-fill check-icon"></i>
-                <span>Перегляд розкладу</span>
-              </div>
-
-              <div class="feature-item">
-                <i class="bi bi-check-circle-fill check-icon"></i>
-                <span>Облік відпрацьованих годин</span>
-              </div>
-
-              <div class="feature-item">
-                <i class="bi bi-check-circle-fill check-icon"></i>
-                <span>Табель для бухгалтерії</span>
-              </div>
-            </div>
-
-            <div class="info-preview card border-0 shadow-sm">
-              <div class="card-body">
-                <div class="d-flex align-items-center gap-2 fw-bold mb-2">
-                  <i class="bi bi-clock clock-icon"></i>
-                  <span>Сьогодні працюють</span>
-                </div>
-
-                <div class="d-flex align-items-center gap-2 mb-3">
-                  <i class="bi bi-circle-fill circle-icon"></i>
-                  <span>Онлайн: 23 працівники</span>
-                </div>
-
-                <table class="table table-bordered mb-0">
-                  <tbody>
-                  <tr>
-                    <td class="d-flex justify-content-between align-items-center">
-                      <span>08:00 - 16:00</span>
-                      <span class="fw-bold">Іван</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="d-flex justify-content-between align-items-center">
-                      <span>10:00 - 19:00</span>
-                      <span class="fw-bold">Марія</span>
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+  <p-card styleClass="login-card">
+    <div class="login-columns">
+      <section class="login-left">
+        <div class="brand">
+          <img class="logo" src="/assets/icons/cube_large.svg" alt="ShiftTrack">
+          <span class="brand-name">ShiftTrack</span>
         </div>
 
-        <div class="login-right">
-          <div class="form-card card shadow-sm border-0">
-            <div class="card-body p-4">
-              <h5 class="text-start text-black mb-3">Вхід до системи</h5>
+        <h2 class="headline">Керуйте робочими<br>змінами легко</h2>
 
-              <form
-                [formGroup]="form"
-                (ngSubmit)="login()">
+        <ul class="feature-list">
+          @for (feature of features; track feature) {
+            <li class="feature-item">
+              <i class="pi pi-check-circle"></i>
+              <span>{{ feature }}</span>
+            </li>
+          }
+        </ul>
 
-                <div class="form-floating mb-3">
+        <p-card styleClass="preview-card">
+          <ng-template pTemplate="title">
+            <div class="preview-title">
+              <i class="pi pi-clock"></i>
+              <span>Сьогодні працюють</span>
+            </div>
+          </ng-template>
+
+          <p-tag
+            severity="success"
+            icon="pi pi-circle-fill"
+            value="Онлайн: 23 працівники"
+            [rounded]="true"
+            styleClass="online-tag"/>
+
+          <p-table [value]="todayShifts" size="small" [showGridlines]="true">
+            <ng-template pTemplate="body" let-shift>
+              <tr>
+                <td class="shift-time">
+                  <i class="pi pi-calendar-clock"></i>
+                  {{ shift.time }}
+                </td>
+                <td>
+                  <div class="shift-employee">
+                    <p-avatar
+                      [label]="shift.name.charAt(0)"
+                      shape="circle"
+                      size="normal"
+                      styleClass="app-avatar employee-avatar"/>
+                    <span>{{ shift.name }}</span>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </p-card>
+      </section>
+
+      <section class="login-right">
+        <p-card styleClass="form-card">
+          <ng-template pTemplate="title">Вхід до системи</ng-template>
+          <ng-template pTemplate="subtitle">Увійдіть за номером телефону</ng-template>
+
+          <form class="login-form" [formGroup]="form" (ngSubmit)="login()">
+            <div class="field">
+              <p-floatlabel variant="in">
+                <p-iconfield>
+                  <p-inputicon styleClass="pi pi-phone"/>
                   <input
+                    pInputText
                     id="login"
-                    class="form-control"
-                    type="text"
-                    placeholder="+380XXXXXXXXX"
-                    formControlName="login">
+                    type="tel"
+                    autocomplete="username"
+                    [pKeyFilter]="phoneKeyFilter"
+                    formControlName="login"
+                    [fluid]="true"/>
+                </p-iconfield>
+                <label for="login">Телефон</label>
+              </p-floatlabel>
 
-                  <label
-                    for="login"
-                    class="form-label">
-                    Телефон:
-                  </label>
-                </div>
-
-                <div class="form-floating mb-3 position-relative">
-                  <input
-                    class="form-control"
-                    id="floatingPassword"
-                    type="password"
-                    placeholder="Мінімум 6 символів"
-                    formControlName="password"
-                    [type]="isPasswordVisible() ? 'text' : 'password'">
-
-                  <button
-                    type="button"
-                    class="password-eye-btn"
-                    (click)="isPasswordVisible.set(!isPasswordVisible())">
-
-                    <i class="bi bi-eye-slash-fill"
-                       *ngIf="isPasswordVisible()">
-                    </i>
-
-                    <i class="bi bi-eye-fill"
-                       *ngIf="!isPasswordVisible()">
-                    </i>
-                  </button>
-
-                  <label
-                    class="form-label"
-                    for="floatingPassword">
-                    Пароль:
-                  </label>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-end gap-3 mt-4">
-                  <a
-                    class="fw-500"
-                    routerLink="/account/register">
-                    Зареєструватись
-                  </a>
-
-                  <button
-                    class="btn btn-primary"
-                    type="submit"
-                    [class.disabled]="!form.valid"
-                    [disabled]="!form.valid">
-                    Увійти
-                  </button>
-                </div>
-              </form>
+              @if (isInvalid('login')) {
+                <p-message severity="error" variant="simple" size="small">
+                  Вкажіть номер телефону
+                </p-message>
+              }
             </div>
-          </div>
-        </div>
-      </div>
+
+            <div class="field">
+              <p-floatlabel variant="in">
+                <p-password
+                  inputId="password"
+                  formControlName="password"
+                  autocomplete="current-password"
+                  [toggleMask]="true"
+                  [feedback]="false"
+                  [fluid]="true"/>
+                <label for="password">Пароль</label>
+              </p-floatlabel>
+
+              @if (isInvalid('password')) {
+                <p-message severity="error" variant="simple" size="small">
+                  Мінімум 6 символів, принаймні одна мала літера та одна цифра
+                </p-message>
+              }
+            </div>
+
+            <p-button
+              type="submit"
+              label="Увійти"
+              icon="pi pi-sign-in"
+              iconPos="right"
+              [fluid]="true"
+              [loading]="isLoading()"
+              [disabled]="form.invalid"/>
+          </form>
+
+          <p-divider align="center">
+            <span class="divider-text">Ще немає акаунта?</span>
+          </p-divider>
+
+          <p-button
+            label="Зареєструватись"
+            icon="pi pi-user-plus"
+            [outlined]="true"
+            [fluid]="true"
+            routerLink="/account/register"/>
+        </p-card>
+      </section>
     </div>
-  </div>
+  </p-card>
 </div>

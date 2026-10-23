@@ -10,6 +10,7 @@ export interface Vacation {
   type: VacationType
   status: VacationStatus
   employee: Employee;
+  authorId: number | null;
   createdAt: Date;
   comment: string;
 }

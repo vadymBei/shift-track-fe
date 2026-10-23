@@ -1,118 +1,113 @@
-import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
-import {AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
-import {NgIf} from "@angular/common";
-import {Subject, takeUntil} from "rxjs";
-import {ErrorService} from "../../../../shared/services/error.service";
-import {AccountService} from "../../services/account.service";
-import {Employee} from "../../../../features/organization/employees/models/employee.model";
-import {ChangePasswordRequest} from "../../models/change-password-request.model";
-import {ErrorType} from "../../../../shared/enums/error-type.enum";
+import {Component, computed, inject, OnDestroy, signal} from '@angular/core';
+import {toSignal} from '@angular/core/rxjs-interop';
+import {AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators} from '@angular/forms';
+import {RouterLink} from '@angular/router';
+import {finalize, startWith, Subject, takeUntil} from 'rxjs';
+
+import {Password} from 'primeng/password';
+import {Button} from 'primeng/button';
+import {Message} from 'primeng/message';
+
+import {AccountService} from '../../services/account.service';
+import {ChangePasswordRequest} from '../../models/change-password-request.model';
+import {NotificationService} from '../../../../shared/services/notification.service';
+
+const PASSWORD_PATTERN = /^(?=.*\d)(?=.*[a-z]).{6,}$/;
 
 @Component({
   selector: 'app-change-password-page',
   standalone: true,
-  imports: [
-    FormsModule,
-    NgIf,
-    ReactiveFormsModule
-  ],
+  imports: [ReactiveFormsModule, RouterLink, Password, Button, Message],
   templateUrl: './change-password-page.component.html',
   styleUrl: './change-password-page.component.scss'
 })
-export class ChangePasswordPageComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
+export class ChangePasswordPageComponent implements OnDestroy {
+  private readonly destroy$ = new Subject<void>();
 
-  private errorService = inject(ErrorService);
-  private accountService = inject(AccountService);
-  private fb = inject(FormBuilder);
+  private readonly accountService = inject(AccountService);
+  private readonly notifications = inject(NotificationService);
+  private readonly fb = inject(FormBuilder);
 
-  employee = signal<Employee | null>(null);
-  form: FormGroup = this.fb.group({
-      oldPassword: [
-        '',
-        [
-          Validators.required,
-          Validators.minLength(6),
-          Validators.pattern(/^(?=.*\d)(?=.*[a-z]).{6,}$/)
-        ]
-      ],
-      newPassword: [
-        '',
-        [
-          Validators.required,
-          Validators.minLength(6),
-          Validators.pattern(/^(?=.*\d)(?=.*[a-z]).{6,}$/)
-        ]
-      ],
-      confirmPassword: [
-        '',
-        [
-          Validators.required,
-          Validators.minLength(6),
-          Validators.pattern(/^(?=.*\d)(?=.*[a-z]).{6,}$/)
-        ]
-      ],
-    },
+  readonly form = this.fb.group(
     {
-      validators: this.passwordMatchValidator
-    });
+      oldPassword: ['', [Validators.required]],
+      newPassword: ['', [Validators.required, Validators.minLength(6), Validators.pattern(PASSWORD_PATTERN)]],
+      confirmPassword: ['', [Validators.required]]
+    },
+    {validators: ChangePasswordPageComponent.passwordsValidator}
+  );
 
-  request = signal<ChangePasswordRequest>({
-    employeeId: 0,
-    oldPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+  readonly isSaving = signal(false);
+
+  private readonly value = toSignal(this.form.valueChanges.pipe(startWith(this.form.value)), {initialValue: this.form.value});
+
+  readonly rules = computed(() => {
+    const {oldPassword = '', newPassword = '', confirmPassword = ''} = this.value();
+    const next = newPassword ?? '';
+    return [
+      {label: 'Щонайменше 6 символів', ok: next.length >= 6},
+      {label: 'Мала латинська літера (a–z)', ok: /[a-z]/.test(next)},
+      {label: 'Принаймні одна цифра', ok: /\d/.test(next)},
+      {label: 'Відрізняється від поточного', ok: !!next && next !== oldPassword},
+      {label: 'Паролі збігаються', ok: !!next && next === confirmPassword}
+    ];
   });
 
-  isOldPasswordVisible = signal<boolean>(false);
-  isNewPasswordVisible = signal<boolean>(false);
-  isConfirmPasswordVisible = signal<boolean>(false);
-
-  ngOnInit() {
-    this.loadCurrentEmployee();
+  isInvalid(name: 'oldPassword' | 'newPassword' | 'confirmPassword'): boolean {
+    const control = this.form.controls[name];
+    return control.invalid && (control.touched || control.dirty);
   }
 
-  loadCurrentEmployee(): void {
-    this.accountService.getCurrentUser()
-      .pipe(
-        takeUntil(this.destroy$)
-      )
-      .subscribe({
-        next: (currentUser) => {
-          if (currentUser && currentUser.employee) {
-            this.employee.set(currentUser.employee);
-          }
-        }
-      });
+  get mismatch(): boolean {
+    const confirm = this.form.controls.confirmPassword;
+    return !!this.form.errors?.['passwordsNotMatch'] && (confirm.touched || confirm.dirty) && !!confirm.value;
   }
 
-  savePassword() {
-    if (this.employee() == null)
+  get sameAsOld(): boolean {
+    const next = this.form.controls.newPassword;
+    return !!this.form.errors?.['sameAsOld'] && (next.touched || next.dirty);
+  }
+
+  save(): void {
+    const employeeId = this.accountService.currentUser()?.employee?.id;
+    if (this.form.invalid || !employeeId) {
+      this.form.markAllAsTouched();
       return;
+    }
 
-    this.request.update(value => ({
-      ...value,
-      employeeId: this.employee()?.id || 0,
-      oldPassword: this.form.value.oldPassword,
-      newPassword: this.form.value.newPassword,
-      confirmPassword: this.form.value.confirmPassword
-    }));
+    const value = this.form.getRawValue();
+    const request: ChangePasswordRequest = {
+      employeeId,
+      oldPassword: value.oldPassword ?? '',
+      newPassword: value.newPassword ?? '',
+      confirmPassword: value.confirmPassword ?? ''
+    };
 
-    this.accountService.changePassword(this.request())
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => this.errorService.handleError('Пароль успішно збережено', ErrorType.info)
+    this.isSaving.set(true);
+    this.accountService.changePassword(request)
+      .pipe(finalize(() => this.isSaving.set(false)), takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.notifications.success('Пароль змінено');
+        this.form.reset();
       });
   }
 
-  passwordMatchValidator(control: AbstractControl): { [key: string]: boolean } | null {
-    const password = control.get('newPassword')?.value;
-    const confirmPassword = control.get('confirmPassword')?.value;
+  static passwordsValidator(group: AbstractControl): ValidationErrors | null {
+    const oldPassword = group.get('oldPassword')?.value;
+    const newPassword = group.get('newPassword')?.value;
+    const confirmPassword = group.get('confirmPassword')?.value;
+    const errors: ValidationErrors = {};
 
-    return password === confirmPassword ? null : {passwordsNotMatch: true};
+    if (confirmPassword && newPassword !== confirmPassword) {
+      errors['passwordsNotMatch'] = true;
+    }
+    if (newPassword && oldPassword && newPassword === oldPassword) {
+      errors['sameAsOld'] = true;
+    }
+    return Object.keys(errors).length ? errors : null;
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }

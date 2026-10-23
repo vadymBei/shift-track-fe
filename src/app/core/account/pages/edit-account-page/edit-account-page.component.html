@@ -1,202 +1,191 @@
-<div class="main-card">
-  <div class="row p-3">
-    <div class="col">
-      <div class="row mb-3">
-        <div class="col">
-          <div class="card p-3">
-            <div class="row">
-              <div class="col">
-                <div class="profile-image-container mb-2">
-                  <img class="profile-image" [src]="profilePhotoUrl()" alt="Profile">
-                  <div class="profile-image-overlay">
-                    <button class="btn btn-light btn-sm text-light" (click)="triggerFileInput()">
-                      <i class="bi bi-camera-fill"></i> Змінити фото
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+<div class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Мій профіль</h1>
+      <p class="page-subtitle">Особисті дані, контакти та робоча інформація</p>
+    </div>
+  </header>
 
-            <div class="row">
-              <div class="col d-flex justify-content-center">
-                <h5 class="mb-0">{{ employee()?.fullName }}</h5>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-
-      <div class="row">
-        <h6>Ролі співробітника</h6>
-
-        @for (employeeRole of employeeRoles(); track employeeRole.id; ) {
-          <div>{{ employeeRole.role.name }}</div>
+  <div class="profile-layout">
+    <aside class="profile-card glass">
+      <div class="avatar-wrap">
+        @if (isLoading()) {
+          <p-skeleton shape="circle" size="128px"/>
+        } @else {
+          @if (photoUrl()) {
+            <p-avatar [image]="photoUrl()!" shape="circle" styleClass="app-avatar profile-avatar"/>
+          } @else {
+            <p-avatar [label]="initials()" shape="circle" styleClass="app-avatar profile-avatar"/>
+          }
+          <label class="photo-button" pTooltip="Змінити фото" tooltipPosition="bottom" for="photoInput">
+            <i class="pi pi-camera"></i>
+            <span class="visually-hidden">Змінити фото</span>
+          </label>
+          <input id="photoInput" class="visually-hidden" type="file" accept="image/*" (change)="onPhotoSelected($event)"/>
         }
       </div>
-    </div>
 
-    <div class="col-9">
-      <div class="card">
-        <div class="row">
-          <div class="col">
-            <div class="card-body">
-              <form
-                id="editProfileForm"
-                [formGroup]="form"
-                (ngSubmit)="save()">
+      @if (isLoading()) {
+        <p-skeleton width="70%" height="1.5rem"/>
+        <p-skeleton width="50%" height="1rem"/>
+      } @else {
+        <div class="identity">
+          <h2 class="full-name">{{ employee()?.surname }} {{ employee()?.name }}</h2>
+          @if (employee()?.patronymic) {
+            <span class="patronymic">{{ employee()?.patronymic }}</span>
+          }
+        </div>
+      }
 
-                <div class="border-bottom mb-3">
-                  <h5>Основна інформація</h5>
-                  <div class="row justify-content-around">
-                    <div class="col-lg-6 col-md-6">
-                      <div class="form-floating mb-3">
-                        <input
-                          class="form-control"
-                          id="surname"
-                          type="text"
-                          formControlName="surname">
+      <p-divider/>
 
-                        <label
-                          class="form-label"
-                          for="surname">
-                          Прізвище:
-                        </label>
-                      </div>
-                    </div>
-
-                    <div class="col-lg-6 col-md-6">
-                      <div class="form-floating mb-3">
-                        <input
-                          class="form-control"
-                          id="name"
-                          type="text"
-                          formControlName="name">
-
-                        <label
-                          class="form-label"
-                          for="name">
-                          Ім'я:
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="row justify-content-around">
-                    <div class="col-lg-6 col-md-6">
-                      <div class="form-floating mb-3">
-                        <input
-                          class="form-control"
-                          id="patronymic"
-                          type="text"
-                          formControlName="patronymic">
-
-                        <label class="form-label" for="patronymic">
-                          По-батькові:
-                        </label>
-                      </div>
-                    </div>
-
-                    <div class="col-lg-6 col-md-6">
-                      <div class="form-floating mb-3">
-                        <input
-                          type="date"
-                          class="form-control"
-                          formControlName="dateOfBirth">
-
-                        <label class="form-label" for="email">
-                          Дата народження:
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="border-bottom mb-3">
-                  <h5>Контакти</h5>
-                  <div class="row justify-content-around">
-                    <div class="col-lg-6 col-md-6">
-                      <div class="form-floating mb-3">
-                        <input
-                          class="form-control"
-                          id="email"
-                          type="email"
-                          placeholder="user@example.com"
-                          formControlName="email">
-
-                        <label
-                          class="form-label"
-                          for="email">
-                          Email:
-                        </label>
-                      </div>
-                    </div>
-
-                    <div class="col-lg-6 col-md-6">
-                      <div class="form-floating mb-3">
-                        <input
-                          class="form-control"
-                          id="phoneNumber"
-                          type="text"
-                          placeholder="+380XXXXXXXXX"
-                          formControlName="phoneNumber">
-
-                        <label
-                          class="form-label"
-                          for="phoneNumber">
-                          Телефон:
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="border-bottom mb-3">
-                  <h5>Робоча інформація</h5>
-
-                  <div class="row">
-                    <div class="col-lg-6 col-md-6">
-                      @if (employee()?.department?.unit) {
-                        <i class="bi bi-buildings text-primary"></i>
-                        {{ employee()?.department?.unit?.description }}
-                      }
-                    </div>
-
-                    <div class="col-lg-6 col-md-6">
-                      @if (employee()?.position) {
-                        <i class="bi bi-person-workspace text-primary"></i>
-                        {{ employee()?.position?.name }}
-                      }
-
-                    </div>
-                  </div>
-
-                  <div class="row">
-                    <div class="col-lg-6 col-md-6">
-                      @if (employee()?.department) {
-                        <i class="bi bi-building text-primary"></i>
-                        {{ employee()?.department?.name }}
-                      }
-                    </div>
-                  </div>
-                </div>
-
-                <div class="form-floating">
-                  <button
-                    class="btn btn-primary"
-                    type="submit"
-                    form="editProfileForm"
-                    [class.disabled]="!form.valid"
-                    [disabled]="!form.valid">
-                    Зберегти
-                  </button>
-                </div>
-              </form>
+      <ul class="work-info">
+        @for (item of workInfo(); track item.label) {
+          <li>
+            <i [class]="item.icon"></i>
+            <div>
+              <span class="work-label">{{ item.label }}</span>
+              <span class="work-value">{{ item.value }}</span>
             </div>
+          </li>
+        }
+      </ul>
+
+      @if (employeeRoles().length) {
+        <div class="roles">
+          <span class="work-label">Ролі</span>
+          <div class="role-tags">
+            @for (employeeRole of employeeRoles(); track employeeRole.id) {
+              <p-tag [value]="employeeRole.role.title || employeeRole.role.name" severity="secondary" [rounded]="true"/>
+            }
           </div>
         </div>
-      </div>
-    </div>
+      }
+
+      <p-button
+        label="Змінити пароль"
+        icon="pi pi-lock"
+        severity="secondary"
+        [outlined]="true"
+        [fluid]="true"
+        routerLink="/administration/change-password"/>
+    </aside>
+
+    <section class="surface form-surface">
+      <form class="profile-form" [formGroup]="form" (ngSubmit)="save()">
+        <fieldset class="form-section">
+          <legend class="section-title">Особисті дані</legend>
+          <div class="form-grid">
+            <div class="field">
+              <label for="surname">Прізвище</label>
+              <input pInputText id="surname" formControlName="surname" autocomplete="family-name" [fluid]="true"/>
+              @if (isInvalid('surname')) {
+                <p-message severity="error" variant="simple" size="small">Вкажіть прізвище</p-message>
+              }
+            </div>
+
+            <div class="field">
+              <label for="name">Ім'я</label>
+              <input pInputText id="name" formControlName="name" autocomplete="given-name" [fluid]="true"/>
+              @if (isInvalid('name')) {
+                <p-message severity="error" variant="simple" size="small">Вкажіть ім'я</p-message>
+              }
+            </div>
+
+            <div class="field">
+              <label for="patronymic">По батькові</label>
+              <input pInputText id="patronymic" formControlName="patronymic" autocomplete="additional-name" [fluid]="true"/>
+              @if (isInvalid('patronymic')) {
+                <p-message severity="error" variant="simple" size="small">Вкажіть по батькові</p-message>
+              }
+            </div>
+
+            <div class="field">
+              <label for="dateOfBirth">Дата народження</label>
+              <p-datepicker
+                inputId="dateOfBirth"
+                formControlName="dateOfBirth"
+                dateFormat="dd.mm.yy"
+                [maxDate]="maxBirthDate"
+                [showIcon]="true"
+                iconDisplay="input"
+                [showButtonBar]="true"
+                placeholder="дд.мм.рррр"
+                appendTo="body"
+                [fluid]="true"/>
+            </div>
+
+            <div class="field">
+              <label for="gender">Стать</label>
+              <p-select
+                inputId="gender"
+                formControlName="gender"
+                [options]="genderOptions"
+                optionLabel="label"
+                optionValue="value"
+                [fluid]="true"/>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-section">
+          <legend class="section-title">Контакти</legend>
+          <div class="form-grid">
+            <div class="field">
+              <label for="email">Email</label>
+              <p-iconfield>
+                <p-inputicon styleClass="pi pi-envelope"/>
+                <input pInputText id="email" type="email" formControlName="email" autocomplete="email" [fluid]="true"/>
+              </p-iconfield>
+              @if (isInvalid('email')) {
+                <p-message severity="error" variant="simple" size="small">Вкажіть коректний email</p-message>
+              }
+            </div>
+
+            <div class="field">
+              <label for="phoneNumber">Телефон</label>
+              <p-iconfield>
+                <p-inputicon styleClass="pi pi-phone"/>
+                <input pInputText id="phoneNumber" type="tel" formControlName="phoneNumber" autocomplete="tel" [fluid]="true"/>
+              </p-iconfield>
+              @if (isInvalid('phoneNumber')) {
+                <p-message severity="error" variant="simple" size="small">Вкажіть телефон у форматі +380XXXXXXXXX</p-message>
+              } @else {
+                <small class="hint">Номер телефону — це ваш логін для входу</small>
+              }
+            </div>
+          </div>
+        </fieldset>
+
+        <footer class="form-actions">
+          @if (form.dirty) {
+            <span class="unsaved"><i class="pi pi-circle-fill"></i>Є незбережені зміни</span>
+          }
+          <p-button label="Скасувати зміни" [text]="true" severity="secondary" [disabled]="form.pristine || isSaving()" (onClick)="resetForm()"/>
+          <p-button type="submit" label="Зберегти" icon="pi pi-check" [loading]="isSaving()" [disabled]="form.pristine"/>
+        </footer>
+      </form>
+    </section>
   </div>
 </div>
 
+<p-dialog
+  header="Нове фото профілю"
+  [visible]="photoDialogVisible()"
+  (visibleChange)="$event ? null : cancelPhoto()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{width: '420px'}"
+  [breakpoints]="{'575px': '95vw'}">
+  <div class="preview">
+    @if (photoPreviewUrl()) {
+      <img class="preview-image" [src]="photoPreviewUrl()" alt="Попередній перегляд фото"/>
+    }
+    <span class="hint">Так фото виглядатиме в профілі та меню</span>
+  </div>
+  <ng-template #footer>
+    <p-button label="Скасувати" [text]="true" severity="secondary" (onClick)="cancelPhoto()"/>
+    <p-button label="Зберегти фото" icon="pi pi-check" [loading]="isUploading()" (onClick)="uploadPhoto()"/>
+  </ng-template>
+</p-dialog>

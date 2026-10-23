@@ -1,9 +1,65 @@
-.scroll-hidden {
-  overflow: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+.app-shell {
+  display: flex;
+  gap: 16px;
+  height: 100vh;
+  padding: 12px;
+  box-sizing: border-box;
 }
 
-.scroll-hidden::-webkit-scrollbar {
+.app-sidebar {
+  flex-shrink: 0;
+  width: 248px;
+  height: 100%;
+  border-radius: var(--app-radius-xl);
+  transition: width 0.2s ease-out;
+
+  &.collapsed {
+    width: 76px;
+  }
+}
+
+.app-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  height: 100%;
+}
+
+.app-topbar {
   display: none;
+}
+
+.app-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px 12px 24px;
+}
+
+:host ::ng-deep .app-drawer {
+  width: 280px;
+  background: var(--app-glass-bg-strong);
+  backdrop-filter: blur(var(--app-glass-blur));
+  -webkit-backdrop-filter: blur(var(--app-glass-blur));
+  border-right: 1px solid var(--app-glass-border);
+}
+
+@media (max-width: 991.98px) {
+  .app-shell {
+    padding: 8px;
+  }
+
+  .app-sidebar {
+    display: none;
+  }
+
+  .app-topbar {
+    display: block;
+  }
+
+  .app-content {
+    padding: 8px 4px 24px;
+  }
 }

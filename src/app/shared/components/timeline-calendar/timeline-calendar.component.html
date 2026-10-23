@@ -1,0 +1,68 @@
+<div class="calendar">
+  <div class="calendar-toolbar">
+    <div class="month-switcher">
+      <p-button icon="pi pi-chevron-left" [rounded]="true" [text]="true" severity="secondary" ariaLabel="Попередній місяць" (onClick)="shiftMonth(-1)"/>
+      <span class="month-title">{{ monthDate() | date: 'LLLL y' }}</span>
+      <p-button icon="pi pi-chevron-right" [rounded]="true" [text]="true" severity="secondary" ariaLabel="Наступний місяць" (onClick)="shiftMonth(1)"/>
+    </div>
+
+    <div class="legend">
+      @for (entry of legend(); track entry.label) {
+        <span class="legend-item"><span [class]="'swatch bar-' + entry.severity"></span>{{ entry.label }}</span>
+      }
+    </div>
+  </div>
+
+  <div class="calendar-scroll">
+    <div class="calendar-grid">
+      <div class="grid-row" [style.grid-template-columns]="gridTemplate()">
+        <span class="name-cell muted">{{ rowsTitle() }}</span>
+        @for (day of days(); track day.day) {
+          <span class="day-head" [class.weekend]="day.weekend" [class.today]="day.today" [style.grid-column]="day.column">
+            <b>{{ day.day }}</b>{{ day.weekday }}
+          </span>
+        }
+      </div>
+
+      @for (row of rows(); track row.key) {
+        <div class="grid-row" [style.grid-template-columns]="gridTemplate()">
+          <div class="name-cell">
+            <p-avatar [label]="row.initials" shape="circle" styleClass="app-avatar row-avatar"/>
+            <span class="name">{{ row.label }}</span>
+          </div>
+          @for (day of days(); track day.day) {
+            <span class="day-cell" [class.weekend]="day.weekend" [class.today]="day.today" [style.grid-column]="day.column"></span>
+          }
+          @for (bar of row.bars; track bar.item.id) {
+            <button
+              type="button"
+              [class]="'bar bar-' + bar.item.severity"
+              [style.grid-column]="bar.gridColumn"
+              [pTooltip]="bar.item.tooltip"
+              tooltipPosition="top"
+              [attr.aria-label]="row.label + '. ' + bar.item.tooltip"
+              (click)="itemClick.emit(bar.item.data)">
+              {{ bar.label }}
+            </button>
+          }
+        </div>
+      } @empty {
+        <div class="empty">
+          <i class="pi pi-calendar"></i>
+          <span>{{ emptyText() }}</span>
+        </div>
+      }
+
+      @if (rows().length) {
+        <div class="grid-row totals" [style.grid-template-columns]="gridTemplate()">
+          <span class="name-cell muted">{{ totalsTitle() }}</span>
+          @for (total of totals(); track total.column) {
+            <span class="count" [class.one]="total.count === 1" [class.many]="total.count >= 2" [style.grid-column]="total.column">
+              {{ total.count || '·' }}
+            </span>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

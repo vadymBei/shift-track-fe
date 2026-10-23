@@ -1,13 +1,15 @@
-import { HttpClient } from '@angular/common/http';
+import {HttpClient, HttpContext, HttpErrorResponse} from '@angular/common/http';
+import {SKIP_ERROR_NOTIFICATION} from '../../../shared/interceptors/error.interceptor';
 import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, finalize, map, Observable, of, shareReplay, tap, throwError } from 'rxjs';
+import { catchError, finalize, map, Observable, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
 import { Token } from '../models/token.model';
 import { CurrentUser } from '../models/current-user.model';
 import { CreateUserRequest } from '../models/create-user-request.model';
 import { Employee } from '../../../features/organization/employees/models/employee.model';
 import { EditAccountRequest } from '../models/edit-account-request.model';
 import { ChangePasswordRequest } from '../models/change-password-request.model';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,25 +17,30 @@ import { ChangePasswordRequest } from '../models/change-password-request.model';
 export class AccountService {
   private httpClient = inject(HttpClient);
   private router = inject(Router);
+  private notifications = inject(NotificationService);
 
   token = signal<Token | null>(null);
   currentUser = signal<CurrentUser | null>(null);
 
-  private refreshTokenRequest$?: Observable<Token>;
+  private refreshInFlight$: Observable<Token> | null = null;
 
   constructor() {
     const storedToken = localStorage.getItem('token');
 
     if (storedToken) {
-      this.token.set(JSON.parse(storedToken));
+      try {
+        this.token.set(JSON.parse(storedToken));
+      } catch {
+        localStorage.removeItem('token');
+      }
     }
 
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
       try {
         this.currentUser.set(JSON.parse(storedUser));
-      } catch (e) {
-        console.error('Error parsing user data from localStorage:', e);
+      } catch {
+        localStorage.removeItem('currentUser');
       }
     }
   }
@@ -56,8 +63,8 @@ export class AccountService {
         const user = JSON.parse(storedUser);
         this.currentUser.set(user);
         return of(user);
-      } catch (e) {
-        console.error('Error parsing user data from localStorage:', e);
+      } catch {
+        localStorage.removeItem('currentUser');
       }
     }
 
@@ -69,26 +76,24 @@ export class AccountService {
 
   login(model: any) {
     return this.httpClient.post<Token>('system/auth/tokens/generate', model)
-      .pipe(
-        tap(token => {
-          if (token.tokenType && token.accessToken && token.refreshToken) {
-            this.setToken(token);
-            this.loadCurrentUser();
-          }
-        })
-      );
+      .pipe(switchMap(token => this.applyTokenAndLoadUser(token)));
   }
 
   register(request: CreateUserRequest) {
     return this.httpClient.post<Token>('system/auth/account/register', request)
-      .pipe(
-        tap(token => {
-          if (token.tokenType && token.accessToken && token.refreshToken) {
-            this.setToken(token);
-            this.loadCurrentUser();
-          }
-        })
-      );
+      .pipe(switchMap(token => this.applyTokenAndLoadUser(token)));
+  }
+
+  private applyTokenAndLoadUser(token: Token): Observable<Token> {
+    if (!(token.tokenType && token.accessToken && token.refreshToken)) {
+      return of(token);
+    }
+    this.setToken(token);
+    return this.httpClient.get<CurrentUser>('system/auth/account/current-user').pipe(
+      tap(user => this.setCurrentUser(user)),
+      map(() => token),
+      catchError(() => of(token))
+    );
   }
 
   setToken(token: Token) {
@@ -97,33 +102,41 @@ export class AccountService {
   }
 
   refreshTokenOnce(): Observable<Token> {
-    const refreshToken = this.token()?.refreshToken;
+    if (this.refreshInFlight$) {
+      return this.refreshInFlight$;
+    }
 
+    const refreshToken = this.token()?.refreshToken;
     if (!refreshToken) {
-      this.logout();
+      this.endSession();
       return throwError(() => new Error('Refresh token is missing'));
     }
 
-    if (this.refreshTokenRequest$) {
-      return this.refreshTokenRequest$;
-    }
-
-    this.refreshTokenRequest$ = this.httpClient.post<Token>(
+    this.refreshInFlight$ = this.httpClient.post<Token>(
       'system/auth/tokens/refresh',
-      { refreshToken }
+      {refreshToken},
+      {context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true)}
     ).pipe(
       tap(token => this.setToken(token)),
-      shareReplay(1),
-      finalize(() => {
-        this.refreshTokenRequest$ = undefined;
+      catchError((error: unknown) => {
+        if (error instanceof HttpErrorResponse && [400, 401, 403].includes(error.status)) {
+          this.endSession();
+        }
+        return throwError(() => error);
       }),
-      catchError(err => {
-        this.logout();
-        return throwError(() => err);
-      })
+      finalize(() => this.refreshInFlight$ = null),
+      shareReplay({bufferSize: 1, refCount: false})
     );
 
-    return this.refreshTokenRequest$;
+    return this.refreshInFlight$;
+  }
+
+  private endSession(): void {
+    if (!this.token()) {
+      return;
+    }
+    this.logout();
+    this.notifications.warn('Сесія завершилась. Увійдіть знову, щоб продовжити.', 'Потрібен вхід');
   }
 
   logout() {
@@ -155,6 +168,7 @@ export class AccountService {
 
   getProfilePhoto(employeeId: number) {
     return this.httpClient.get(`system/auth/account/photo`, {
+      context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
       headers: {
         'Cache-Control': 'no-cache',
         'Pragma': 'no-cache'

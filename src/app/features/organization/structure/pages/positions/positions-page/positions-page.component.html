@@ -1,68 +1,61 @@
-<div class="row align-items-start justify-content-between mb-3">
-  <div class="col">
-    <h3 class="mb-1">Посади</h3>
-    <p class="text-secondary mb-0">Керуйте правами користувачів</p>
-  </div>
-
-  <div class="col-3">
-    <button
-      class="btn btn-primary btn-sm mt-2 ms-auto d-flex align-items-center gap-2"
-      (click)="openCreatePositionModal()">
-      <i class="text-white bi bi-plus"></i>
-      Додати посаду
-    </button>
-  </div>
-</div>
-
-<div class="main-card shadow p-3">
-  <div class="position-relative">
-    @if (isLoading()) {
-      <div class="spinner-overlay">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    }
-
-    <div class="row g-3">
-      @for (position of positions(); track position.id; ) {
-        <div class="col-12 col-md-6 col-lg-4">
-          <div class="card h-100 ">
-            <div class="card-body">
-              <div class="row">
-                <div class="col">
-                  <h5>{{ position.name }}</h5>
-                  <p class="text-secondary my-0">{{ position.description }}</p>
-
-                  <i class="bi bi-cash-coin me-1"></i>
-                  {{ position.hourlyRate }} грн/год
-                </div>
-
-                <div class="col-auto justify-content-end">
-                  <div class="dropdown dropdown-hover">
-                    <button class="btn btn-link p-0 text-secondary" type="button">
-                      <i class="bi bi-three-dots"></i>
-                    </button>
-
-                    <ul class="dropdown-menu dropdown-menu-end p-2">
-                      <li>
-                        <a class="dropdown-item" role="button" (click)="openEditPositionModal(position)">
-                          <i class="bi bi-pencil"></i> Редагувати
-                        </a>
-                      </li>
-                      <li>
-                        <a class="dropdown-item" role="button" (click)="openDeleteConfirmation(position)">
-                          <i class="bi bi-trash"></i> Видалити
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      }
+<div class="page">
+  <header class="page-header">
+    <div>
+      <a class="back-link" routerLink="/administration"><i class="pi pi-arrow-left"></i>Адміністрування</a>
+      <h1 class="page-title">Посади</h1>
+      <p class="page-subtitle">Посади працівників і погодинні ставки</p>
     </div>
-  </div>
+    <div class="toolbar">
+      <p-iconfield styleClass="search">
+        <p-inputicon styleClass="pi pi-search"/>
+        <input pInputText placeholder="Пошук посади" aria-label="Пошук посади"
+               [value]="search()" (input)="search.set($any($event.target).value)" [fluid]="true"/>
+      </p-iconfield>
+      <p-button label="Додати посаду" icon="pi pi-plus" (onClick)="openDialog()"/>
+    </div>
+  </header>
+
+  <section class="content glass">
+    <div class="surface content-surface">
+      <p-table [value]="filteredPositions()" dataKey="id" [loading]="isLoading()" [rowHover]="true"
+               sortField="name" [sortOrder]="1" styleClass="structure-table">
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="name">Назва <p-sortIcon field="name"/></th>
+            <th>Опис обов'язків</th>
+            <th class="num" pSortableColumn="hourlyRate">Ставка <p-sortIcon field="hourlyRate"/></th>
+            <th class="col-actions"></th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-position>
+          <tr>
+            <td class="name">{{ position.name }}</td>
+            <td class="muted">{{ position.description }}</td>
+            <td class="num"><b>{{ position.hourlyRate }}</b><span class="muted">&nbsp;₴/год</span></td>
+            <td class="col-actions">
+              <div class="row-actions">
+                <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary"
+                          ariaLabel="Редагувати" pTooltip="Редагувати" tooltipPosition="top" (onClick)="openDialog(position)"/>
+                <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
+                          ariaLabel="Видалити" pTooltip="Видалити" tooltipPosition="top" (onClick)="confirmDelete(position)"/>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="4">
+              @if (search()) {
+                <app-empty-state icon="pi pi-id-card" heading="Нічого не знайдено" hint="Спробуйте інший запит"/>
+              } @else {
+                <app-empty-state icon="pi pi-id-card" heading="Посад ще немає" hint="Додайте першу посаду зі ставкою"/>
+              }
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </section>
 </div>

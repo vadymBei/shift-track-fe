@@ -3,6 +3,8 @@ import {HttpClient, HttpParams} from "@angular/common/http";
 import {FilteredBusinessTripsRequest} from "../models/filtered-business-trips-request.model";
 import {BusinessTrip} from "../models/business-trip.model";
 import {CreateBusinessTripRequest} from "../models/create-business-trip-request.model";
+import {map, Observable} from 'rxjs';
+import moment from 'moment';
 
 @Injectable({
   providedIn: 'root'
@@ -58,5 +60,21 @@ export class BusinessTripService {
       {
         responseType: 'blob'
       });
+  }
+
+  saveBusinessTripOrderPdf(trip: BusinessTrip): Observable<void> {
+    return this.downloadBusinessTripOrder(trip.id).pipe(
+      map(blob => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Наказ на відрядження ${trip.id} `
+          + `${moment(trip.startDate).format('DD.MM.YYYY')}-${moment(trip.endDate).format('DD.MM.YYYY')}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      })
+    );
   }
 }

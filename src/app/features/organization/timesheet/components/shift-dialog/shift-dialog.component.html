@@ -1,0 +1,105 @@
+<div class="form-dialog">
+  <header class="form-dialog-header">
+    <div class="title-wrap">
+      <span class="preview" [style.background]="previewColor()" [style.color]="previewTextColor()"
+            pTooltip="Так зміна виглядатиме в табелі" tooltipPosition="bottom">{{ previewCode() }}</span>
+      <div>
+        <h2 class="form-dialog-title">{{ shift ? 'Редагувати зміну' : 'Нова зміна' }}</h2>
+        <p class="form-dialog-subtitle">Код і колір показуються в клітинках табеля</p>
+      </div>
+    </div>
+    <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" ariaLabel="Закрити" (onClick)="close()"/>
+  </header>
+
+  <form class="form-dialog-body" [formGroup]="form" (ngSubmit)="save()">
+    <div class="grid">
+      <div class="form-field">
+        <label for="shiftCode">Код</label>
+        <input pInputText id="shiftCode" formControlName="code" maxlength="10" placeholder="Напр. Д8" [fluid]="true"/>
+        @if (isInvalid('code')) {
+          <p-message severity="error" variant="simple" size="small">Вкажіть код (до 10 символів)</p-message>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="shiftType">Тип</label>
+        <p-select inputId="shiftType" formControlName="type" [options]="typeOptions" optionLabel="label" optionValue="value" [fluid]="true">
+          <ng-template pTemplate="selectedItem" let-option>
+            @if (option) {
+              <span class="type-option"><i [class]="option.icon"></i>{{ option.label }}</span>
+            }
+          </ng-template>
+          <ng-template pTemplate="item" let-option>
+            <span class="type-option"><i [class]="option.icon"></i>{{ option.label }}</span>
+          </ng-template>
+        </p-select>
+      </div>
+    </div>
+
+    @if (isWorkday()) {
+      <div class="grid">
+        <div class="form-field">
+          <label for="shiftStart">Початок</label>
+          <p-datepicker inputId="shiftStart" formControlName="startTime" [timeOnly]="true" hourFormat="24"
+                        [stepMinute]="5" [showIcon]="true" icon="pi pi-clock" iconDisplay="input" placeholder="08:00" appendTo="body" [fluid]="true"/>
+          @if (isInvalid('startTime')) {
+            <p-message severity="error" variant="simple" size="small">Вкажіть час початку</p-message>
+          }
+        </div>
+        <div class="form-field">
+          <label for="shiftEnd">Кінець</label>
+          <p-datepicker inputId="shiftEnd" formControlName="endTime" [timeOnly]="true" hourFormat="24"
+                        [stepMinute]="5" [showIcon]="true" icon="pi pi-clock" iconDisplay="input" placeholder="16:00" appendTo="body" [fluid]="true"/>
+          @if (isInvalid('endTime')) {
+            <p-message severity="error" variant="simple" size="small">Вкажіть час закінчення</p-message>
+          }
+        </div>
+      </div>
+      @if (duration(); as d) {
+        <div class="duration">
+          <i class="pi pi-clock"></i>
+          Тривалість: <b>{{ d.text }}</b>
+          @if (d.overnight) {
+            <span class="overnight"><i class="pi pi-moon"></i>через північ</span>
+          }
+        </div>
+      }
+    }
+
+    <div class="form-field">
+      <label for="shiftDescription">Опис</label>
+      <input pInputText id="shiftDescription" formControlName="description" maxlength="100"
+             placeholder="Напр. Денна зміна 8 годин" [fluid]="true"/>
+      @if (isInvalid('description')) {
+        <p-message severity="error" variant="simple" size="small">Вкажіть опис</p-message>
+      }
+    </div>
+
+    <div class="form-field">
+      <label>Колір</label>
+      <div class="swatches" role="radiogroup" aria-label="Колір зміни">
+        @for (color of colors; track color) {
+          <button type="button" class="swatch" role="radio"
+                  [attr.aria-checked]="form.controls.color.value === color"
+                  [attr.aria-label]="color"
+                  [class.selected]="form.controls.color.value === color"
+                  [style.background]="color"
+                  (click)="pickColor(color)">
+            @if (form.controls.color.value === color) {
+              <i class="pi pi-check" [style.color]="previewTextColor()"></i>
+            }
+          </button>
+        }
+        <span class="custom-color" pTooltip="Свій колір" tooltipPosition="top">
+          <p-colorpicker [ngModel]="form.controls.color.value?.replace('#', '')" [ngModelOptions]="{standalone: true}"
+                         format="hex" appendTo="body" (onChange)="onCustomColor($any($event).value)"/>
+        </span>
+      </div>
+    </div>
+
+    <footer class="form-dialog-footer">
+      <p-button label="Скасувати" [text]="true" severity="secondary" (onClick)="close()"/>
+      <p-button type="submit" [label]="shift ? 'Зберегти' : 'Додати зміну'" icon="pi pi-check" [loading]="isSaving()"/>
+    </footer>
+  </form>
+</div>

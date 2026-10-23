@@ -1,0 +1,57 @@
+<div class="form-dialog">
+  <header class="form-dialog-header">
+    <div>
+      <h2 class="form-dialog-title">Призначити роль</h2>
+      <p class="form-dialog-subtitle">{{ employee.fullName }}</p>
+    </div>
+    <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" ariaLabel="Закрити" (onClick)="close()"/>
+  </header>
+
+  <div class="form-dialog-body">
+    <div class="form-field">
+      <label>Роль</label>
+      <div class="role-tiles">
+        @if (rolesLoading()) {
+          @for (i of [1, 2, 3]; track i) { <p-skeleton height="62px"/> }
+        } @else {
+          @for (role of availableRoles(); track role.id) {
+            <button type="button" class="role-tile" [class.active]="roleId() === role.id" (click)="roleId.set(role.id)">
+              <span class="role-icon"><i [class]="roleMeta(role).icon"></i></span>
+              <span class="role-text">
+                <span class="role-title">{{ roleTitle(role) }}</span>
+                <span class="role-desc">{{ roleMeta(role).description || role.name }}</span>
+              </span>
+              @if (roleId() === role.id) { <i class="pi pi-check-circle role-check"></i> }
+            </button>
+          } @empty {
+            <span class="muted">Усі доступні ролі вже призначено цьому працівнику</span>
+          }
+        }
+      </div>
+    </div>
+
+    <div class="scope-grid">
+      <div class="form-field">
+        <label for="roleUnit">Регіон <span class="optional">(необов'язково)</span></label>
+        <p-select inputId="roleUnit" [options]="units()" optionLabel="name" optionValue="id" [ngModel]="unitId()"
+                  (ngModelChange)="onUnitChange($event)" [showClear]="true" placeholder="Без регіону"
+                  [filter]="units().length > 8" [fluid]="true"/>
+      </div>
+
+      <div class="form-field">
+        <label for="roleDepartments">Департаменти <span class="optional">(необов'язково)</span></label>
+        <p-multiselect inputId="roleDepartments" [options]="departments()" optionLabel="name" optionValue="id"
+                       [ngModel]="departmentIds()" (ngModelChange)="departmentIds.set($event)" display="chip"
+                       [disabled]="!unitId()" [placeholder]="unitId() ? 'Усі департаменти' : 'Спочатку оберіть регіон'"
+                       [filter]="departments().length > 8" [showToggleAll]="departments().length > 1" [fluid]="true"/>
+      </div>
+    </div>
+
+    <p class="hint"><i class="pi pi-info-circle"></i>Регіони та департаменти можна додати й пізніше — у картці ролі.</p>
+
+    <footer class="form-dialog-footer">
+      <p-button label="Скасувати" [text]="true" severity="secondary" (onClick)="close()"/>
+      <p-button label="Призначити" icon="pi pi-check" [disabled]="!canSave()" [loading]="isSaving()" (onClick)="save()"/>
+    </footer>
+  </div>
+</div>
