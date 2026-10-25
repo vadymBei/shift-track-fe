@@ -1,4 +1,3 @@
-import moment from 'moment';
 import {AppNotification, NotificationType} from '../models/app-notification.model';
 
 export type NotificationTone = 'violet' | 'green' | 'red' | 'blue' | 'amber' | 'teal' | 'pink' | 'grey';
@@ -54,9 +53,4 @@ export function notificationLink(notification: AppNotification): {path: string; 
     default:
       return null;
   }
-}
-
-/** The API returns UTC timestamps; values read back from the database come without an offset. */
-export function notificationMoment(value: string): moment.Moment {
-  return /(Z|[+-]\d{2}:?\d{2})$/.test(value) ? moment(value) : moment.utc(value).local();
 }

@@ -7,7 +7,7 @@ import {Skeleton} from 'primeng/skeleton';
 import {Tooltip} from 'primeng/tooltip';
 import {NotificationsService} from '../../services/notifications.service';
 import {AppNotification} from '../../models/app-notification.model';
-import {notificationLink, notificationMeta, notificationMoment} from '../../constants/notification-meta';
+import {notificationLink, notificationMeta} from '../../constants/notification-meta';
 
 type NotificationsTab = 'all' | 'unread';
 
@@ -48,8 +48,8 @@ export class NotificationBellComponent {
       : this.notificationsService.items();
 
     const today = moment().startOf('day');
-    const todayItems = items.filter(n => notificationMoment(n.createdAt).isSameOrAfter(today));
-    const earlierItems = items.filter(n => notificationMoment(n.createdAt).isBefore(today));
+    const todayItems = items.filter(n => moment(n.createdAt).isSameOrAfter(today));
+    const earlierItems = items.filter(n => moment(n.createdAt).isBefore(today));
 
     return [
       {label: 'Сьогодні', items: todayItems},
@@ -89,7 +89,7 @@ export class NotificationBellComponent {
   }
 
   time(notification: AppNotification): string {
-    const value = notificationMoment(notification.createdAt).locale('uk');
+    const value = moment(notification.createdAt).locale('uk');
     if (moment().diff(value, 'hours') < 12) {
       return value.fromNow();
     }
