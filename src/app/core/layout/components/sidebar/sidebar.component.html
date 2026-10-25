@@ -3,8 +3,17 @@
     <img class="brand-logo" src="/assets/icons/cube.svg" alt="">
     @if (!collapsed()) {
       <span class="brand-name">ShiftTrack</span>
+      @if (collapsible() && isUserLoaded()) {
+        <app-notification-bell class="brand-bell"/>
+      }
     }
   </div>
+
+  @if (collapsed() && collapsible() && isUserLoaded()) {
+    <div class="collapsed-bell">
+      <app-notification-bell/>
+    </div>
+  }
 
   <nav class="sidebar-nav" aria-label="Головне меню">
     @if (isUserLoaded()) {

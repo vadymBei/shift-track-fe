@@ -3,7 +3,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {DatePipe, DecimalPipe} from '@angular/common';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {FormBuilder, FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {catchError, debounceTime, finalize, forkJoin, map, of, startWith, Subject, takeUntil} from 'rxjs';
+import {catchError, debounceTime, filter, finalize, forkJoin, map, of, startWith, Subject, takeUntil} from 'rxjs';
 import moment from 'moment';
 
 import {PrimeTemplate} from 'primeng/api';
@@ -173,6 +173,7 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.applyQueryParams();
+    this.watchOpenParam();
 
     this.search$
       .pipe(debounceTime(400), takeUntil(this.destroy$))
@@ -190,6 +191,24 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
         } else {
           this.isInitialLoad = false;
         }
+      });
+  }
+
+  private watchOpenParam(): void {
+    this.activatedRoute.queryParamMap
+      .pipe(
+        map(params => Number(params.get('open'))),
+        filter(id => Number.isInteger(id) && id > 0),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(id => {
+        this.router.navigate([], {relativeTo: this.activatedRoute, queryParams: {open: null}, queryParamsHandling: 'merge', replaceUrl: true});
+        this.tripService.getById(id)
+          .pipe(catchError(() => {
+            this.notifications.warn('Відрядження не знайдено або воно вам недоступне');
+            return of(null);
+          }), takeUntil(this.destroy$))
+          .subscribe(trip => trip && this.openDialog(trip));
       });
   }
 

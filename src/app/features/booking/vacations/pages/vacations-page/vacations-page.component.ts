@@ -2,7 +2,7 @@ import {Component, computed, inject, OnDestroy, OnInit, signal} from '@angular/c
 import {ActivatedRoute, Router} from '@angular/router';
 import {DatePipe} from '@angular/common';
 import {FormBuilder, FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {catchError, debounceTime, finalize, forkJoin, map, of, Subject, takeUntil} from 'rxjs';
+import {catchError, debounceTime, filter, finalize, forkJoin, map, of, Subject, takeUntil} from 'rxjs';
 import moment from 'moment';
 
 import {PrimeTemplate} from 'primeng/api';
@@ -147,6 +147,7 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.applyQueryParams();
+    this.watchOpenParam();
 
     this.search$
       .pipe(debounceTime(400), takeUntil(this.destroy$))
@@ -177,6 +178,24 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
       this.router.navigate([], {relativeTo: this.route, queryParams: {create: null}, queryParamsHandling: 'merge', replaceUrl: true});
       setTimeout(() => this.openCreate());
     }
+  }
+
+  private watchOpenParam(): void {
+    this.route.queryParamMap
+      .pipe(
+        map(params => Number(params.get('open'))),
+        filter(id => Number.isInteger(id) && id > 0),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(id => {
+        this.router.navigate([], {relativeTo: this.route, queryParams: {open: null}, queryParamsHandling: 'merge', replaceUrl: true});
+        this.vacationService.getVacationById(id)
+          .pipe(catchError(() => {
+            this.notifications.warn('Заявку не знайдено або вона вам недоступна');
+            return of(null);
+          }), takeUntil(this.destroy$))
+          .subscribe(vacation => vacation && this.openEdit(vacation));
+      });
   }
 
   onUnitChange(unitId: number | null): void {
