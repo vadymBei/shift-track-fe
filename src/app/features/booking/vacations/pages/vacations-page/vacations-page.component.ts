@@ -27,7 +27,7 @@ import {DepartmentService} from '../../../../organization/structure/services/dep
 import {UnitService} from '../../../../organization/structure/services/unit.service';
 import {Unit} from '../../../../organization/structure/models/unit.model';
 import {Department} from '../../../../organization/structure/models/department.model';
-import {Vacation} from '../../models/vacation.model';
+import {isVacationDecision, Vacation, VacationPermissions, vacationPermissions} from '../../models/vacation.model';
 import {VacationStatus} from '../../enums/vacation-status.enum';
 import {VacationService} from '../../services/vacation.service';
 import {AllVacationsRequest} from '../../models/all-vacations-request.model';
@@ -48,7 +48,6 @@ import {
 import {personInitials} from '../../../../../shared/utils/text.utils';
 import {HomeService} from '../../../../home/services/home.service';
 import {EmptyStateComponent} from '../../../../../shared/components/empty-state/empty-state.component';
-import {VacationPermissions, VacationPermissionsService} from '../../services/vacation-permissions.service';
 
 type ViewMode = 'list' | 'calendar';
 
@@ -292,17 +291,13 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
       .subscribe(vacations => this.vacations.set(vacations));
   }
 
-  private readonly permissions = inject(VacationPermissionsService);
-  readonly canDecideOthers = this.permissions.canDecideOthers;
+  readonly canDecideOthers = computed(() => this.vacations().some(v => isVacationDecision(vacationPermissions(v))));
 
   perms(vacation: Vacation): VacationPermissions {
-    return this.permissions.for(vacation);
+    return vacationPermissions(vacation);
   }
 
-  readonly isRowSelectable = (event: {data: Vacation}) => {
-    const p = this.permissions.for(event.data);
-    return this.canDecideOthers() && (p.canApprove || p.canReject);
-  };
+  readonly isRowSelectable = (event: {data: Vacation}) => isVacationDecision(vacationPermissions(event.data));
 
   typeLabel(vacation: Vacation): string {
     return VACATION_TYPE_LABELS[vacation.type] ?? 'Відпустка';

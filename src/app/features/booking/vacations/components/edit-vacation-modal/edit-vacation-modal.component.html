@@ -137,9 +137,9 @@
         }
         @if (perm().canApprove) {
           <p-button
-            [label]="perm().approveLabel"
-            [icon]="perm().approveLabel === 'Погодити' ? 'pi pi-check' : 'pi pi-send'"
-            [severity]="perm().approveLabel === 'Погодити' ? 'success' : 'primary'"
+            [label]="approveLabel()"
+            [icon]="approveLabel() === 'Погодити' ? 'pi pi-check' : 'pi pi-send'"
+            [severity]="approveLabel() === 'Погодити' ? 'success' : 'primary'"
             [loading]="busyAction() === 'approve'"
             [disabled]="!!busyAction() || (perm().canEdit && form.dirty)"
             [pTooltip]="perm().canEdit && form.dirty ? 'Спершу збережіть зміни' : ''"
