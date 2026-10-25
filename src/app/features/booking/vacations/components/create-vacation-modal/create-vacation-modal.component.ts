@@ -1,4 +1,4 @@
-import {Component, computed, inject, OnDestroy, signal} from '@angular/core';
+import {Component, computed, inject, OnDestroy, OnInit, signal} from '@angular/core';
 import {DatePipe} from '@angular/common';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -15,6 +15,7 @@ import {NotificationService} from '../../../../../shared/services/notification.s
 import {VacationService} from '../../services/vacation.service';
 import {CreateVacationRequest} from '../../models/create-vacation-request.modal';
 import {countVacationDays, pluralDays, toApiDate, VACATION_TYPE_GROUPS} from '../../constants/vacation-labels';
+import {VacationType} from '../../enums/vacation-type.enum';
 
 @Component({
   selector: 'app-create-vacation-modal',
@@ -23,7 +24,7 @@ import {countVacationDays, pluralDays, toApiDate, VACATION_TYPE_GROUPS} from '..
   templateUrl: './create-vacation-modal.component.html',
   styleUrl: './create-vacation-modal.component.scss'
 })
-export class CreateVacationModalComponent implements OnDestroy {
+export class CreateVacationModalComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   private readonly ref = inject(DynamicDialogRef);
@@ -45,6 +46,20 @@ export class CreateVacationModalComponent implements OnDestroy {
 
   private readonly period = toSignal(this.form.controls.period.valueChanges, {initialValue: null});
   private readonly comment = toSignal(this.form.controls.comment.valueChanges, {initialValue: ''});
+  private readonly type = toSignal(this.form.controls.type.valueChanges, {initialValue: null});
+
+  /** Annual vacation is available only after 6 months of continuous work (art. 10 of the Law "On Vacations"). */
+  readonly annualVacationAvailableFrom = signal<Date | null>(null);
+  readonly isAnnualType = computed(() => this.type() === VacationType.YearMainVacation);
+  readonly annualRestricted = computed(() => {
+    const from = this.annualVacationAvailableFrom();
+    return this.isAnnualType() && !!from && from > this.today;
+  });
+  readonly minDate = computed(() => this.annualRestricted() ? this.annualVacationAvailableFrom()! : this.today);
+  readonly startsTooEarly = computed(() => {
+    const start = this.startDate();
+    return this.annualRestricted() && !!start && start < this.minDate();
+  });
 
   readonly startDate = computed(() => this.period()?.[0] ?? null);
   readonly endDate = computed(() => this.period()?.[1] ?? null);
@@ -52,6 +67,16 @@ export class CreateVacationModalComponent implements OnDestroy {
   readonly daysLabel = computed(() => pluralDays(this.daysCount()).replace(/^\d+ /, ''));
   readonly returnDate = computed(() => this.endDate() ? moment(this.endDate()).add(1, 'day').toDate() : null);
   readonly commentLength = computed(() => this.comment()?.length ?? 0);
+
+  ngOnInit(): void {
+    const employeeId = this.employee()?.id;
+    if (!employeeId) return;
+
+    this.vacationService.getVacationBalanceByEmployeeId(employeeId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(balance => this.annualVacationAvailableFrom.set(
+        moment(balance.annualVacationAvailableFrom).startOf('day').toDate()));
+  }
 
   get isPeriodIncomplete(): boolean {
     const control = this.form.controls.period;
@@ -63,7 +88,7 @@ export class CreateVacationModalComponent implements OnDestroy {
     const start = this.startDate();
     const end = this.endDate();
 
-    if (this.form.invalid || !employee || !start || !end) {
+    if (this.form.invalid || !employee || !start || !end || this.startsTooEarly()) {
       this.form.markAllAsTouched();
       return;
     }

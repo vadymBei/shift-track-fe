@@ -1,6 +1,6 @@
 import {Component, computed, DestroyRef, effect, inject, OnInit, signal, untracked} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {DecimalPipe, NgTemplateOutlet} from '@angular/common';
+import {DecimalPipe, DatePipe, NgTemplateOutlet} from '@angular/common';
 import {RouterLink} from '@angular/router';
 import {catchError, finalize, of, Subscription} from 'rxjs';
 import moment from 'moment';
@@ -37,7 +37,7 @@ type ShiftState =
 @Component({
   selector: 'app-home-page',
   standalone: true,
-  imports: [NgTemplateOutlet, ShiftChipComponent, DecimalPipe, RouterLink, Button, Tag, Avatar, ProgressBar, Skeleton, Tooltip],
+  imports: [NgTemplateOutlet, ShiftChipComponent, DecimalPipe, DatePipe, RouterLink, Button, Tag, Avatar, ProgressBar, Skeleton, Tooltip],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.scss'
 })
@@ -110,11 +110,16 @@ export class HomePageComponent implements OnInit {
   readonly balance = computed(() => {
     const b = this.vacationBalance();
     if (!b) return null;
-    const available = Math.max(0, b.totalDays - b.usedDays - b.plannedDays);
+    // Only whole days can be requested, the fractional part keeps accruing.
+    const available = Math.max(0, Math.floor(b.availableDays));
     const pct = (v: number) => b.totalDays ? v / b.totalDays * 100 : 0;
     const used = Math.min(b.usedDays, b.totalDays);
     const planned = Math.min(b.plannedDays, b.totalDays - used);
-    return {...b, available, usedPct: pct(used), plannedPct: pct(planned)};
+    const accrued = Number(b.totalDays.toFixed(2)).toLocaleString('uk-UA');
+    // Annual vacation can't start before 6 months of continuous work (art. 10 of the Law "On Vacations").
+    const availableFrom = moment(b.annualVacationAvailableFrom).startOf('day');
+    const availableFromDate = availableFrom.isAfter(moment(), 'day') ? availableFrom.toDate() : null;
+    return {...b, available, accrued, availableFromDate, usedPct: pct(used), plannedPct: pct(planned)};
   });
 
   readonly department = computed(() => {

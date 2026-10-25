@@ -16,5 +16,6 @@
   'SYS_USR_DEPARTMENT_DIRECTOR_INVALID_ROLE': 'Ви можете призначати ролі лише DEPARTMENT_ADMIN, DEPARTMENT_STYLIST',
   'SYS_USR_CANNOT_ASSIGN_GLOBAL_SCOPE': 'Ви не можете призначити роль глобально',
   'SYS_USR_DELETE_ROLE_WRONG_UNIT': 'Ви можете видаляти ролі працівникам лише зі свого регіону.',
-  'SYS_USR_DELETE_ROLE_WRONG_DEPARTMENT': 'Ви можете видаляти ролі працівникам лише зі свого департаменту.'
+  'SYS_USR_DELETE_ROLE_WRONG_DEPARTMENT': 'Ви можете видаляти ролі працівникам лише зі свого департаменту.',
+  'BCK_VCN_ANNUAL_VACATION_BEFORE_SIX_MONTHS': 'Щорічну основну відпустку можна взяти лише після 6 місяців безперервної роботи.'
 };

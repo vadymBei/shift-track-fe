@@ -40,11 +40,16 @@
           formControlName="period"
           selectionMode="range"
           [inline]="true"
-          [minDate]="today"
+          [minDate]="minDate()"
           [readonlyInput]="true"
           styleClass="vacation-calendar"/>
         @if (isPeriodIncomplete) {
           <p-message severity="error" variant="simple" size="small">Оберіть дату початку та закінчення</p-message>
+        }
+        @if (annualRestricted()) {
+          <p-message [severity]="startsTooEarly() ? 'error' : 'info'" size="small" icon="pi pi-info-circle">
+            Щорічну основну відпустку можна взяти з {{ annualVacationAvailableFrom() | date: 'd MMMM y' }} — після 6 місяців безперервної роботи
+          </p-message>
         }
       </div>
 
@@ -104,7 +109,7 @@
         label="Подати заявку"
         icon="pi pi-send"
         [loading]="isSaving()"
-        [disabled]="form.invalid || !endDate()"/>
+        [disabled]="form.invalid || !endDate() || startsTooEarly()"/>
     </footer>
   </form>
 </div>
