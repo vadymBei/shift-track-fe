@@ -3,10 +3,6 @@ import {defineConfig, devices} from '@playwright/test';
 const port = Number(process.env['E2E_PORT'] ?? 4200);
 const baseURL = `http://localhost:${port}`;
 
-/**
- * End-to-end tests of the pages. The backend and the SignalR hub are mocked in every test
- * (e2e/support), so only the Angular app is started.
- */
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
