@@ -3,7 +3,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {DatePipe, DecimalPipe} from '@angular/common';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {FormBuilder, FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {catchError, debounceTime, finalize, forkJoin, map, of, startWith, Subject, takeUntil} from 'rxjs';
+import {catchError, debounceTime, filter, finalize, forkJoin, map, of, startWith, Subject, takeUntil} from 'rxjs';
 import moment from 'moment';
 
 import {PrimeTemplate} from 'primeng/api';
@@ -30,13 +30,12 @@ import {
   TimelineLegendItem
 } from '../../../../../shared/components/timeline-calendar/timeline-calendar.component';
 import {AccountService} from '../../../../../core/account/services/account.service';
-import {BusinessTripPermissions, BusinessTripPermissionsService} from '../../services/business-trip-permissions.service';
 import {DepartmentService} from '../../../../organization/structure/services/department.service';
 import {UnitService} from '../../../../organization/structure/services/unit.service';
 import {Unit} from '../../../../organization/structure/models/unit.model';
 import {Department} from '../../../../organization/structure/models/department.model';
 import {BusinessTripService} from '../../services/business-trip.service';
-import {BusinessTrip} from '../../models/business-trip.model';
+import {BusinessTrip, BusinessTripPermissions, businessTripPermissions} from '../../models/business-trip.model';
 import {BusinessTripStatus} from '../../enums/business-trip-status.enum';
 import {BusinessTripDialogComponent, BusinessTripDialogData} from '../../components/business-trip-dialog/business-trip-dialog.component';
 import {
@@ -132,8 +131,7 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
 
   selectedTrips: BusinessTrip[] = [];
 
-  private readonly permissions = inject(BusinessTripPermissionsService);
-  readonly canDecideOthers = this.permissions.canDecideOthers;
+  readonly canDecideOthers = computed(() => this.trips().some(t => this.isDecision(t)));
 
   private readonly statusFilter = toSignal(
     this.form.controls.status.valueChanges.pipe(startWith(this.form.controls.status.value)),
@@ -173,6 +171,7 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.applyQueryParams();
+    this.watchOpenParam();
 
     this.search$
       .pipe(debounceTime(400), takeUntil(this.destroy$))
@@ -190,6 +189,24 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
         } else {
           this.isInitialLoad = false;
         }
+      });
+  }
+
+  private watchOpenParam(): void {
+    this.activatedRoute.queryParamMap
+      .pipe(
+        map(params => Number(params.get('open'))),
+        filter(id => Number.isInteger(id) && id > 0),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(id => {
+        this.router.navigate([], {relativeTo: this.activatedRoute, queryParams: {open: null}, queryParamsHandling: 'merge', replaceUrl: true});
+        this.tripService.getById(id)
+          .pipe(catchError(() => {
+            this.notifications.warn('Відрядження не знайдено або воно вам недоступне');
+            return of(null);
+          }), takeUntil(this.destroy$))
+          .subscribe(trip => trip && this.openDialog(trip));
       });
   }
 
@@ -294,13 +311,15 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
       .subscribe(trips => this.trips.set(trips));
   }
 
-  readonly isRowSelectable = (event: {data: BusinessTrip}) => {
-    const p = this.perms(event.data);
-    return this.canDecideOthers() && (p.canApprove || p.canReject);
-  };
+  readonly isRowSelectable = (event: {data: BusinessTrip}) => this.isDecision(event.data);
 
   perms(trip: BusinessTrip): BusinessTripPermissions {
-    return this.permissions.for(trip);
+    return businessTripPermissions(trip);
+  }
+
+  private isDecision(trip: BusinessTrip): boolean {
+    const p = businessTripPermissions(trip);
+    return p.canApprove || p.canReject;
   }
 
   statusMeta(trip: BusinessTrip) {

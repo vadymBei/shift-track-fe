@@ -11,6 +11,7 @@ import {MANAGER_ROLES} from '../../../account/constants/default-roles-catalog.co
 import {HomeService} from '../../../../features/home/services/home.service';
 import {UserMenuComponent} from '../user-menu/user-menu.component';
 import {ThemeToggleComponent} from '../../../../shared/components/theme-toggle/theme-toggle.component';
+import {NotificationBellComponent} from '../../../notifications/components/notification-bell/notification-bell.component';
 
 @Component({
   selector: 'app-sidebar',
@@ -23,7 +24,8 @@ import {ThemeToggleComponent} from '../../../../shared/components/theme-toggle/t
     Skeleton,
     Tooltip,
     UserMenuComponent,
-    ThemeToggleComponent
+    ThemeToggleComponent,
+    NotificationBellComponent
   ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'

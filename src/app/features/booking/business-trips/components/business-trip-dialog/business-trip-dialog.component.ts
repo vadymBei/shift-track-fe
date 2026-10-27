@@ -14,13 +14,12 @@ import {Button} from 'primeng/button';
 import {Message} from 'primeng/message';
 import {Tag} from 'primeng/tag';
 import {Avatar} from 'primeng/avatar';
-import {BusinessTripPermissionsService} from '../../services/business-trip-permissions.service';
 import {NotificationService} from '../../../../../shared/services/notification.service';
 import {EmployeesService} from '../../../../organization/employees/services/employees.service';
 import {Employee} from '../../../../organization/employees/models/employee.model';
 import {BusinessTripService} from '../../services/business-trip.service';
 import {LocationService} from '../../services/location.service';
-import {BusinessTrip} from '../../models/business-trip.model';
+import {BusinessTrip, businessTripPermissions} from '../../models/business-trip.model';
 import {Location} from '../../models/location.model';
 import {BusinessTripStatus} from '../../enums/business-trip-status.enum';
 import {
@@ -90,8 +89,7 @@ export class BusinessTripDialogComponent implements OnInit, OnDestroy {
   readonly statusMeta = BUSINESS_TRIP_STATUS_META[this.status] ?? BUSINESS_TRIP_STATUS_META[BusinessTripStatus.None];
   readonly isClosed = this.isEdit && isTripClosed(this.status);
 
-  private readonly permissions = inject(BusinessTripPermissionsService);
-  readonly perm = computed(() => this.trip ? this.permissions.for(this.trip) : null);
+  readonly perm = computed(() => this.trip ? businessTripPermissions(this.trip) : null);
   readonly canEdit = computed(() => !this.trip || !!this.perm()?.canEdit);
   readonly isLocked = computed(() => !this.canEdit());
   readonly canApprove = computed(() => !!this.perm()?.canApprove);

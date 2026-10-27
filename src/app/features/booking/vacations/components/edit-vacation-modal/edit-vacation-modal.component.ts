@@ -16,7 +16,7 @@ import {Timeline} from 'primeng/timeline';
 import {PrimeTemplate} from 'primeng/api';
 import {NotificationService} from '../../../../../shared/services/notification.service';
 import {VacationService} from '../../services/vacation.service';
-import {Vacation} from '../../models/vacation.model';
+import {Vacation, vacationPermissions} from '../../models/vacation.model';
 import {EditVacationRequest} from '../../models/edit-vacation-request.model';
 import {VacationStatus} from '../../enums/vacation-status.enum';
 import {
@@ -28,7 +28,6 @@ import {
   VACATION_TYPE_GROUPS
 } from '../../constants/vacation-labels';
 import {personInitials} from '../../../../../shared/utils/text.utils';
-import {VacationPermissionsService} from '../../services/vacation-permissions.service';
 import {Tooltip} from 'primeng/tooltip';
 
 export interface EditVacationDialogData {
@@ -62,8 +61,8 @@ export class EditVacationModalComponent implements OnInit, OnDestroy {
 
   readonly typeGroups = VACATION_TYPE_GROUPS;
   readonly vacation = signal<Vacation>(this.config.data!.vacation);
-  private readonly permissions = inject(VacationPermissionsService);
-  readonly perm = computed(() => this.permissions.for(this.vacation()));
+  readonly perm = computed(() => vacationPermissions(this.vacation()));
+  readonly approveLabel = computed(() => this.perm().approveSubmitsForApproval ? 'Подати на погодження' : 'Погодити');
   readonly hasActions = computed(() => this.perm().canEdit || this.perm().canApprove || this.perm().canReject);
   readonly busyAction = signal<'save' | 'approve' | 'reject' | 'download' | null>(null);
 
@@ -146,7 +145,7 @@ export class EditVacationModalComponent implements OnInit, OnDestroy {
       comment: vacation.comment ?? ''
     });
 
-    if (this.permissions.for(vacation).canEdit) {
+    if (vacationPermissions(vacation).canEdit) {
       this.form.enable();
     } else {
       this.form.disable();
@@ -172,7 +171,7 @@ export class EditVacationModalComponent implements OnInit, OnDestroy {
   }
 
   approve(): void {
-    const submitting = this.perm().approveLabel !== 'Погодити';
+    const submitting = this.perm().approveSubmitsForApproval;
     this.run('approve', this.vacationService.approveVacation(this.vacation().id),
       submitting ? 'Заявку подано на погодження' : 'Заявку погоджено');
   }

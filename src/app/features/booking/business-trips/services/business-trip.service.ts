@@ -43,6 +43,10 @@ export class BusinessTripService {
     return this.httpClient.put(`${this.path}`, request);
   }
 
+  getById(id: number) {
+    return this.httpClient.get<BusinessTrip>(`${this.path}/${id}`);
+  }
+
   delete(id: number) {
     return this.httpClient.delete(`${this.path}/${id}`);
   }

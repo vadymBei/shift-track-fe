@@ -1,0 +1,84 @@
+<button
+  type="button"
+  class="bell"
+  [class.has-unread]="unreadCount() > 0"
+  [attr.aria-label]="ariaLabel()"
+  aria-haspopup="dialog"
+  pTooltip="Сповіщення"
+  tooltipPosition="bottom"
+  (click)="toggle($event)">
+  <i class="pi pi-bell" aria-hidden="true"></i>
+  @if (unreadCount() > 0) {
+    <span class="bell-badge" aria-hidden="true">{{ badge() }}</span>
+  }
+</button>
+
+<p-popover #panel styleClass="notifications-popover">
+  <div class="np" role="dialog" aria-label="Сповіщення">
+    <header class="np-head">
+      <div class="np-title-row">
+        <h2 class="np-title">Сповіщення</h2>
+        @if (unreadCount() > 0) {
+          <button type="button" class="np-link" (click)="markAllAsRead()">Позначити всі прочитаними</button>
+        }
+      </div>
+      <div class="np-tabs" role="tablist" aria-label="Фільтр сповіщень">
+        <button type="button" role="tab" class="np-tab" [class.active]="tab() === 'all'"
+                [attr.aria-selected]="tab() === 'all'" (click)="tab.set('all')">Усі</button>
+        <button type="button" role="tab" class="np-tab" [class.active]="tab() === 'unread'"
+                [attr.aria-selected]="tab() === 'unread'" (click)="tab.set('unread')">
+          Непрочитані@if (unreadCount() > 0) {<span> · {{ unreadCount() }}</span>}
+        </button>
+      </div>
+    </header>
+
+    <div class="np-list">
+      @if (isInitialLoading()) {
+        @for (i of [1, 2, 3]; track i) {
+          <div class="np-skeleton">
+            <p-skeleton width="40px" height="40px" borderRadius="12px"/>
+            <div class="np-skeleton-lines">
+              <p-skeleton width="70%" height="14px"/>
+              <p-skeleton width="90%" height="12px"/>
+            </div>
+          </div>
+        }
+      } @else if (!groups().length) {
+        <div class="np-empty">
+          <i class="pi" [class.pi-check-circle]="tab() === 'unread'" [class.pi-bell]="tab() === 'all'" aria-hidden="true"></i>
+          <span>{{ tab() === 'unread' ? 'Усе прочитано' : 'Сповіщень поки немає' }}</span>
+        </div>
+      } @else {
+        @for (group of groups(); track group.label) {
+          <div class="np-group">{{ group.label }}</div>
+          @for (notification of group.items; track notification.id) {
+            @let m = meta(notification);
+            <div class="np-item" [class.unread]="!notification.readAt">
+              <button type="button" class="np-item-main" [class.clickable]="hasLink(notification)" (click)="open(notification)">
+                <span class="np-tile" [class]="'tone-' + m.tone"><i [class]="'pi ' + m.icon" aria-hidden="true"></i></span>
+                <span class="np-body">
+                  <span class="np-row">
+                    <span class="np-item-title">{{ notification.title }}</span>
+                    <span class="np-time">{{ time(notification) }}</span>
+                  </span>
+                  @if (notification.message) {
+                    <span class="np-message">{{ notification.message }}</span>
+                  }
+                  @if (showAuthor(notification)) {
+                    <span class="np-author">{{ notification.authorFullName }}</span>
+                  }
+                </span>
+                @if (!notification.readAt) {
+                  <span class="np-dot"><span class="visually-hidden">Непрочитане</span></span>
+                }
+              </button>
+              <button type="button" class="np-remove" aria-label="Прибрати сповіщення" (click)="remove(notification, $event)">
+                <i class="pi pi-times" aria-hidden="true"></i>
+              </button>
+            </div>
+          }
+        }
+      }
+    </div>
+  </div>
+</p-popover>

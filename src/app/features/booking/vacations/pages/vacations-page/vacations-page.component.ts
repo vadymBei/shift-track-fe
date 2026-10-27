@@ -2,7 +2,7 @@ import {Component, computed, inject, OnDestroy, OnInit, signal} from '@angular/c
 import {ActivatedRoute, Router} from '@angular/router';
 import {DatePipe} from '@angular/common';
 import {FormBuilder, FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {catchError, debounceTime, finalize, forkJoin, map, of, Subject, takeUntil} from 'rxjs';
+import {catchError, debounceTime, filter, finalize, forkJoin, map, of, Subject, takeUntil} from 'rxjs';
 import moment from 'moment';
 
 import {PrimeTemplate} from 'primeng/api';
@@ -27,7 +27,7 @@ import {DepartmentService} from '../../../../organization/structure/services/dep
 import {UnitService} from '../../../../organization/structure/services/unit.service';
 import {Unit} from '../../../../organization/structure/models/unit.model';
 import {Department} from '../../../../organization/structure/models/department.model';
-import {Vacation} from '../../models/vacation.model';
+import {isVacationDecision, Vacation, VacationPermissions, vacationPermissions} from '../../models/vacation.model';
 import {VacationStatus} from '../../enums/vacation-status.enum';
 import {VacationService} from '../../services/vacation.service';
 import {AllVacationsRequest} from '../../models/all-vacations-request.model';
@@ -48,7 +48,6 @@ import {
 import {personInitials} from '../../../../../shared/utils/text.utils';
 import {HomeService} from '../../../../home/services/home.service';
 import {EmptyStateComponent} from '../../../../../shared/components/empty-state/empty-state.component';
-import {VacationPermissions, VacationPermissionsService} from '../../services/vacation-permissions.service';
 
 type ViewMode = 'list' | 'calendar';
 
@@ -147,6 +146,7 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.applyQueryParams();
+    this.watchOpenParam();
 
     this.search$
       .pipe(debounceTime(400), takeUntil(this.destroy$))
@@ -177,6 +177,24 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
       this.router.navigate([], {relativeTo: this.route, queryParams: {create: null}, queryParamsHandling: 'merge', replaceUrl: true});
       setTimeout(() => this.openCreate());
     }
+  }
+
+  private watchOpenParam(): void {
+    this.route.queryParamMap
+      .pipe(
+        map(params => Number(params.get('open'))),
+        filter(id => Number.isInteger(id) && id > 0),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(id => {
+        this.router.navigate([], {relativeTo: this.route, queryParams: {open: null}, queryParamsHandling: 'merge', replaceUrl: true});
+        this.vacationService.getVacationById(id)
+          .pipe(catchError(() => {
+            this.notifications.warn('Заявку не знайдено або вона вам недоступна');
+            return of(null);
+          }), takeUntil(this.destroy$))
+          .subscribe(vacation => vacation && this.openEdit(vacation));
+      });
   }
 
   onUnitChange(unitId: number | null): void {
@@ -273,17 +291,13 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
       .subscribe(vacations => this.vacations.set(vacations));
   }
 
-  private readonly permissions = inject(VacationPermissionsService);
-  readonly canDecideOthers = this.permissions.canDecideOthers;
+  readonly canDecideOthers = computed(() => this.vacations().some(v => isVacationDecision(vacationPermissions(v))));
 
   perms(vacation: Vacation): VacationPermissions {
-    return this.permissions.for(vacation);
+    return vacationPermissions(vacation);
   }
 
-  readonly isRowSelectable = (event: {data: Vacation}) => {
-    const p = this.permissions.for(event.data);
-    return this.canDecideOthers() && (p.canApprove || p.canReject);
-  };
+  readonly isRowSelectable = (event: {data: Vacation}) => isVacationDecision(vacationPermissions(event.data));
 
   typeLabel(vacation: Vacation): string {
     return VACATION_TYPE_LABELS[vacation.type] ?? 'Відпустка';

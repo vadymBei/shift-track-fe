@@ -92,7 +92,7 @@
           @let b = balance()!;
           <div class="balance-main">
             <span class="balance-number">{{ b.available }}</span>
-            <span class="balance-unit">{{ plural(b.available, 'день', 'дні', 'днів') }} доступно<br>з {{ b.totalDays }} на рік</span>
+            <span class="balance-unit">{{ plural(b.available, 'день', 'дні', 'днів') }} доступно<br>нараховано {{ b.accrued }} · {{ b.annualDays }} на рік</span>
           </div>
           <div class="balance-bar" [pTooltip]="'Використано ' + b.usedDays + ' · заплановано ' + b.plannedDays + ' · доступно ' + b.available" tooltipPosition="top">
             <span class="used" [style.width.%]="b.usedPct"></span>
@@ -102,6 +102,9 @@
             <span><i class="dot used"></i>Використано {{ b.usedDays }}</span>
             <span><i class="dot planned"></i>Заплановано {{ b.plannedDays }}</span>
           </div>
+          @if (b.availableFromDate) {
+            <div class="today-note"><i class="pi pi-info-circle"></i>Щорічну відпустку можна взяти з {{ b.availableFromDate | date: 'd MMMM y' }}</div>
+          }
         }
         @if (d.upcomingAbsence; as a) {
           <div class="upcoming">
