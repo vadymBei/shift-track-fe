@@ -25,7 +25,6 @@
               "zone.js"
             ],
             "tsConfig": "tsconfig.app.json",
-            "allowedCommonJsDependencies": ["moment", "moment/locale/uk"],
             "inlineStyleLanguage": "scss",
             "assets": [
               {

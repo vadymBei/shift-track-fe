@@ -2,8 +2,8 @@ import {Component, computed, ElementRef, HostListener, inject, OnDestroy, OnInit
 import {DecimalPipe} from '@angular/common';
 import {FormBuilder, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {catchError, finalize, of, Subject, takeUntil} from 'rxjs';
-import moment from 'moment';
-import 'moment/locale/uk';
+import {addDays, addMonths, format, getDaysInMonth, isSameDay, isSameMonth, setDate, startOfMonth} from 'date-fns';
+import {toApiDate, toApiMonth, toDate} from '../../../../../../shared/utils/date.utils';
 import {PrimeTemplate} from 'primeng/api';
 import {Button} from 'primeng/button';
 import {Select} from 'primeng/select';
@@ -91,7 +91,7 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
   readonly form = this.fb.group({
     unitId: this.fb.control<number | null>(null),
     departmentId: this.fb.control<number | null>(null),
-    period: this.fb.control<Date>(moment().startOf('month').toDate(), {nonNullable: true})
+    period: this.fb.control<Date>(startOfMonth(new Date()), {nonNullable: true})
   });
 
   readonly displayOptions = [
@@ -118,15 +118,15 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
     !this.allVisibleSelected() && this.visibleRows().some(r => this.selectedIds().has(r.employee.id)));
 
   readonly days = computed<DayColumn[]>(() => {
-    const month = moment(this.period()).locale('uk');
-    const today = moment();
-    return Array.from({length: month.daysInMonth()}, (_, i) => {
-      const date = month.clone().date(i + 1);
+    const month = startOfMonth(toDate(this.period()));
+    const today = new Date();
+    return Array.from({length: getDaysInMonth(month)}, (_, i) => {
+      const date = addDays(month, i);
       return {
         day: i + 1,
-        weekday: date.format('dd'),
-        weekend: date.day() === 0 || date.day() === 6,
-        today: date.isSame(today, 'day')
+        weekday: format(date, 'EEEEEE'),
+        weekend: date.getDay() === 0 || date.getDay() === 6,
+        today: isSameDay(date, today)
       };
     });
   });
@@ -136,7 +136,7 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
     return (this.timesheet()?.employeeTimesheets ?? []).map(t => {
       const shifts: (EmployeeShift | null)[] = new Array(daysInMonth + 1).fill(null);
       for (const s of t.employeeShifts) {
-        if (s?.date) shifts[moment(s.date).date()] = s;
+        if (s?.date) shifts[toDate(s.date).getDate()] = s;
       }
       return {
         employee: t.employee,
@@ -176,7 +176,7 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
     return [...used.values()].sort((a, b) => a.code.localeCompare(b.code, 'uk'));
   });
 
-  readonly monthTitle = computed(() => moment(this.period()).locale('uk').format('MMMM YYYY'));
+  readonly monthTitle = computed(() => format(toDate(this.period()), 'LLLL yyyy'));
 
   ngOnInit(): void {
     this.shiftsService.getShifts()
@@ -228,22 +228,22 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
   }
 
   shiftMonth(delta: number): void {
-    const next = moment(this.form.controls.period.value).add(delta, 'month').startOf('month');
-    this.form.controls.period.setValue(next.toDate());
+    const next = startOfMonth(addMonths(this.form.controls.period.value, delta));
+    this.form.controls.period.setValue(next);
     this.onFiltersChange();
   }
 
   goToCurrentMonth(): void {
-    this.form.controls.period.setValue(moment().startOf('month').toDate());
+    this.form.controls.period.setValue(startOfMonth(new Date()));
     this.onFiltersChange();
   }
 
   get isCurrentMonth(): boolean {
-    return moment(this.form.controls.period.value).isSame(moment(), 'month');
+    return isSameMonth(this.form.controls.period.value, new Date());
   }
 
   private get periodParam(): Date {
-    return moment(this.form.controls.period.value).format('YYYY-MM') as unknown as Date;
+    return toApiMonth(this.form.controls.period.value) as unknown as Date;
   }
 
   loadTimesheet(): void {
@@ -282,7 +282,7 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `Табель_за_${moment(this.form.controls.period.value).format('YYYY-MM')}.xlsx`;
+        link.download = `Табель_за_${toApiMonth(this.form.controls.period.value)}.xlsx`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -329,7 +329,7 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
 
   cellTooltip(row: TimesheetRow, day: DayColumn): string {
     const s = row.shifts[day.day];
-    const date = moment(this.period()).date(day.day).locale('uk').format('dd, D MMMM');
+    const date = format(setDate(toDate(this.period()), day.day), 'EEEEEE, d MMMM');
     if (!s?.shift) return `${date} — не заповнено`;
     const time = this.hasTime(s) ? ` · ${shortTime(s.shift.startTime)}–${shortTime(s.shift.endTime)}` : '';
     return `${date}\n${s.shift.code} — ${s.shift.description}${time}`;
@@ -339,13 +339,13 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
     const departmentId = this.form.controls.departmentId.value;
     if (!departmentId) return;
 
-    const month = moment(this.period());
+    const month = toDate(this.period());
     const selected = this.selectedRows();
     const rows = selected.length ? selected : this.visibleRows();
     const existing: Record<string, number> = {};
     for (const row of this.rows()) {
       row.shifts.forEach((s, day) => {
-        if (s?.shift) existing[`${row.employee.id}|${month.clone().date(day).format('YYYY-MM-DD')}`] = s.shift.id;
+        if (s?.shift) existing[`${row.employee.id}|${toApiDate(setDate(month, day))}`] = s.shift.id;
       });
     }
 
@@ -359,7 +359,7 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
       focusOnShow: false,
       data: {
         departmentId,
-        month: month.toDate(),
+        month,
         employees: rows.map(r => r.employee),
         onlySelected: selected.length > 0,
         existing
@@ -396,9 +396,9 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
   openBulkDialog(): void {
     const rows = this.selectedRows();
     if (!rows.length) return;
-    const month = moment(this.period());
-    const today = moment();
-    const start = month.isSame(today, 'month') ? today.date() : 1;
+    const month = toDate(this.period());
+    const today = new Date();
+    const start = isSameMonth(month, today) ? today.getDate() : 1;
     this.openShiftDialog(rows, start, start);
   }
 
@@ -442,12 +442,12 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
   }
 
   private openShiftDialog(rows: TimesheetRow[], fromDay: number, toDay: number): void {
-    const month = moment(this.period());
+    const month = toDate(this.period());
     const single = rows.length === 1 && fromDay === toDay;
 
     const occupied: string[] = [];
     for (const row of rows) {
-      row.shifts.forEach((s, day) => s && occupied.push(`${row.employee.id}|${month.clone().date(day).format('YYYY-MM-DD')}`));
+      row.shifts.forEach((s, day) => s && occupied.push(`${row.employee.id}|${toApiDate(setDate(month, day))}`));
     }
 
     const ref = this.dialogService.open(EmployeeShiftDialogComponent, {
@@ -460,8 +460,8 @@ export class TimesheetPageComponent implements OnInit, OnDestroy {
       focusOnShow: false,
       data: {
         employees: rows.map(r => r.employee),
-        dateFrom: month.clone().date(fromDay).toDate(),
-        dateTo: month.clone().date(toDay).toDate(),
+        dateFrom: setDate(month, fromDay),
+        dateTo: setDate(month, toDay),
         employeeShift: single ? rows[0].shifts[fromDay] ?? undefined : undefined,
         shifts: this.shifts(),
         occupied

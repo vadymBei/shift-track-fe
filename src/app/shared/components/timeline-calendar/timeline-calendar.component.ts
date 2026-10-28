@@ -1,6 +1,7 @@
 import {Component, computed, input, output} from '@angular/core';
 import {DatePipe} from '@angular/common';
-import moment from 'moment';
+import {addDays, addMonths, endOfMonth, getDaysInMonth, isAfter, isBefore, isSameDay, max, min, startOfDay, startOfMonth} from 'date-fns';
+import {toDate} from '../../utils/date.utils';
 import {Button} from 'primeng/button';
 import {Tooltip} from 'primeng/tooltip';
 import {Avatar} from 'primeng/avatar';
@@ -67,23 +68,23 @@ export class TimelineCalendarComponent<T = unknown> {
   monthChange = output<Date>();
   itemClick = output<T>();
 
-  private readonly monthStart = computed(() => moment(this.month()).startOf('month'));
-  private readonly daysInMonth = computed(() => this.monthStart().daysInMonth());
+  private readonly monthStart = computed(() => startOfMonth(toDate(this.month())));
+  private readonly daysInMonth = computed(() => getDaysInMonth(this.monthStart()));
 
-  readonly monthDate = computed(() => this.monthStart().toDate());
+  readonly monthDate = computed(() => this.monthStart());
   readonly gridTemplate = computed(() => `200px repeat(${this.daysInMonth()}, minmax(24px, 1fr))`);
 
   readonly days = computed<Day[]>(() => {
     const start = this.monthStart();
-    const today = moment().startOf('day');
+    const today = new Date();
     return Array.from({length: this.daysInMonth()}, (_, i) => {
-      const date = start.clone().add(i, 'days');
-      const dow = date.day();
+      const date = addDays(start, i);
+      const dow = date.getDay();
       return {
         day: i + 1,
         weekday: WEEKDAYS[dow],
         weekend: dow === 0 || dow === 6,
-        today: date.isSame(today, 'day'),
+        today: isSameDay(date, today),
         column: i + 2
       };
     });
@@ -91,13 +92,13 @@ export class TimelineCalendarComponent<T = unknown> {
 
   readonly rows = computed<Row<T>[]>(() => {
     const monthStart = this.monthStart();
-    const monthEnd = monthStart.clone().endOf('month').startOf('day');
+    const monthEnd = startOfDay(endOfMonth(monthStart));
     const rows = new Map<string | number, Row<T>>();
 
     for (const item of this.items()) {
-      const start = moment(item.start).startOf('day');
-      const end = moment(item.end).startOf('day');
-      if (end.isBefore(monthStart) || start.isAfter(monthEnd)) {
+      const start = startOfDay(toDate(item.start));
+      const end = startOfDay(toDate(item.end));
+      if (isBefore(end, monthStart) || isAfter(start, monthEnd)) {
         continue;
       }
 
@@ -107,12 +108,12 @@ export class TimelineCalendarComponent<T = unknown> {
         rows.set(item.rowKey, row);
       }
 
-      const from = moment.max(start, monthStart);
-      const to = moment.min(end, monthEnd);
+      const from = max([start, monthStart]);
+      const to = min([end, monthEnd]);
       row.bars.push({
         item,
-        gridColumn: `${from.date() + 1} / ${to.date() + 2}`,
-        label: `${start.isBefore(monthStart) ? '← ' : ''}${item.label}${end.isAfter(monthEnd) ? ' →' : ''}`
+        gridColumn: `${from.getDate() + 1} / ${to.getDate() + 2}`,
+        label: `${isBefore(start, monthStart) ? '← ' : ''}${item.label}${isAfter(end, monthEnd) ? ' →' : ''}`
       });
     }
 
@@ -125,11 +126,11 @@ export class TimelineCalendarComponent<T = unknown> {
 
     for (const item of this.items()) {
       if (!item.countInTotals) continue;
-      const start = moment(item.start).startOf('day');
-      const end = moment(item.end).startOf('day');
+      const start = startOfDay(toDate(item.start));
+      const end = startOfDay(toDate(item.end));
       perDay.forEach((set, i) => {
-        const day = monthStart.clone().add(i, 'days');
-        if (!day.isBefore(start) && !day.isAfter(end)) set.add(item.rowKey);
+        const day = addDays(monthStart, i);
+        if (!isBefore(day, start) && !isAfter(day, end)) set.add(item.rowKey);
       });
     }
 
@@ -137,6 +138,6 @@ export class TimelineCalendarComponent<T = unknown> {
   });
 
   shiftMonth(delta: number): void {
-    this.monthChange.emit(this.monthStart().clone().add(delta, 'month').toDate());
+    this.monthChange.emit(addMonths(this.monthStart(), delta));
   }
 }

@@ -2,7 +2,8 @@ import {Component, computed, inject, OnDestroy, OnInit, signal} from '@angular/c
 import {DatePipe, DecimalPipe} from '@angular/common';
 import {FormBuilder, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {catchError, finalize, forkJoin, map, Observable, of, Subject, takeUntil} from 'rxjs';
-import moment from 'moment';
+import {addMonths, endOfMonth, isAfter, isBefore, startOfMonth} from 'date-fns';
+import {toApiMonth, toDate} from '../../../../../shared/utils/date.utils';
 import {PrimeTemplate} from 'primeng/api';
 import {TableModule} from 'primeng/table';
 import {Button} from 'primeng/button';
@@ -54,12 +55,12 @@ export class PayrollsPageComponent implements OnInit, OnDestroy {
   private isInitialLoad = true;
 
   readonly PayrollStatus = PayrollStatus;
-  readonly maxMonth = moment().endOf('month').toDate();
+  readonly maxMonth = endOfMonth(new Date());
 
   readonly form = this.fb.group({
     unitId: this.fb.control<number | null>(null),
     departmentId: this.fb.control<number | null>(null),
-    period: this.fb.control<Date>(moment().startOf('month').toDate(), {nonNullable: true})
+    period: this.fb.control<Date>(startOfMonth(new Date()), {nonNullable: true})
   });
 
   readonly statusOptions = [
@@ -147,14 +148,14 @@ export class PayrollsPageComponent implements OnInit, OnDestroy {
   }
 
   shiftMonth(delta: number): void {
-    const next = moment(this.form.controls.period.value).add(delta, 'month').startOf('month');
-    if (next.isAfter(this.maxMonth)) return;
-    this.form.controls.period.setValue(next.toDate());
+    const next = startOfMonth(addMonths(this.form.controls.period.value, delta));
+    if (isAfter(next, this.maxMonth)) return;
+    this.form.controls.period.setValue(next);
     this.onFiltersChange();
   }
 
   get canGoNext(): boolean {
-    return moment(this.form.controls.period.value).add(1, 'month').isBefore(this.maxMonth);
+    return isBefore(addMonths(this.form.controls.period.value, 1), this.maxMonth);
   }
 
   loadPayrolls(): void {
@@ -168,7 +169,7 @@ export class PayrollsPageComponent implements OnInit, OnDestroy {
     this.isLoading.set(true);
     this.payrollsService.getPayrollsByPeriod({
       departmentId,
-      period: moment(period).format('YYYY-MM') as unknown as Date
+      period: toApiMonth(period) as unknown as Date
     })
       .pipe(finalize(() => this.isLoading.set(false)), takeUntil(this.destroy$))
       .subscribe(summary => {
@@ -191,10 +192,10 @@ export class PayrollsPageComponent implements OnInit, OnDestroy {
   }
 
   private markPaid$(payroll: Payroll): Observable<boolean> {
-    const period = moment(this.form.controls.period.value);
+    const period = toDate(this.form.controls.period.value);
     return this.payrollsService.markPayrollAsPaid({
       employeeId: payroll.employeeId,
-      period: new Date(period.year(), period.month() + 1, 1)
+      period: new Date(period.getFullYear(), period.getMonth() + 1, 1)
     }).pipe(map(() => true), catchError(() => of(false)));
   }
 

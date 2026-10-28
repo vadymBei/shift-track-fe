@@ -3,7 +3,7 @@ import {CurrentUserPhotoService} from '../../services/current-user-photo.service
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {RouterLink} from '@angular/router';
 import {finalize, Subject, takeUntil} from 'rxjs';
-import moment from 'moment';
+import {toApiDate, toDate} from '../../../../shared/utils/date.utils';
 
 import {Button} from 'primeng/button';
 import {InputText} from 'primeng/inputtext';
@@ -123,7 +123,7 @@ export class EditAccountPageComponent implements OnInit, OnDestroy {
       surname: employee.surname,
       name: employee.name,
       patronymic: employee.patronymic,
-      dateOfBirth: employee.dateOfBirth ? moment(employee.dateOfBirth).toDate() : null,
+      dateOfBirth: employee.dateOfBirth ? toDate(employee.dateOfBirth) : null,
       gender: employee.gender ?? EmployeeGender.none,
       email: employee.email,
       phoneNumber: employee.phoneNumber
@@ -151,7 +151,7 @@ export class EditAccountPageComponent implements OnInit, OnDestroy {
       email: value.email ?? '',
       phoneNumber: value.phoneNumber ?? '',
       gender: value.gender ?? EmployeeGender.none,
-      dateOfBirth: value.dateOfBirth ? moment(value.dateOfBirth).format('YYYY-MM-DD') as unknown as Date : undefined
+      dateOfBirth: value.dateOfBirth ? toApiDate(value.dateOfBirth) as unknown as Date : undefined
     };
 
     this.isSaving.set(true);

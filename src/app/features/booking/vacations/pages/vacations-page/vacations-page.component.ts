@@ -3,7 +3,8 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {DatePipe} from '@angular/common';
 import {FormBuilder, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {catchError, debounceTime, filter, finalize, forkJoin, map, of, Subject, takeUntil} from 'rxjs';
-import moment from 'moment';
+import {endOfMonth, startOfDay, startOfMonth} from 'date-fns';
+import {formatDate} from '../../../../../shared/utils/date.utils';
 
 import {PrimeTemplate} from 'primeng/api';
 import {TableModule} from 'primeng/table';
@@ -104,7 +105,7 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
     unitId: [null as number | null],
     departmentId: [null as number | null],
     status: [VacationStatus.None],
-    period: this.fb.control<Date[] | null>([moment().startOf('month').toDate(), moment().endOf('month').startOf('day').toDate()]),
+    period: this.fb.control<Date[] | null>([startOfMonth(new Date()), startOfDay(endOfMonth(new Date()))]),
     searchPattern: ['']
   });
 
@@ -114,7 +115,7 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
   readonly vacations = signal<Vacation[]>([]);
   readonly isLoading = signal(false);
   readonly isBulkBusy = signal(false);
-  readonly calendarMonth = signal<Date>(moment().startOf('month').toDate());
+  readonly calendarMonth = signal<Date>(startOfMonth(new Date()));
 
   readonly calendarLegend: TimelineLegendItem[] = [
     VacationStatus.PendingApproval,
@@ -133,7 +134,7 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
       start: vacation.startDate,
       end: vacation.endDate,
       label: pluralDays(vacation.daysCount),
-      tooltip: `${this.typeLabel(vacation)}: ${moment(vacation.startDate).format('DD.MM')} – ${moment(vacation.endDate).format('DD.MM.YYYY')} · ${status.label}`,
+      tooltip: `${this.typeLabel(vacation)}: ${formatDate(vacation.startDate, 'dd.MM')} – ${formatDate(vacation.endDate, 'dd.MM.yyyy')} · ${status.label}`,
       severity: this.toTimelineSeverity(vacation.status),
       countInTotals: vacation.status !== VacationStatus.Rejected,
       data: vacation
@@ -259,9 +260,9 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
   }
 
   private setCalendarMonth(date: Date): void {
-    const start = moment(date).startOf('month');
-    this.calendarMonth.set(start.toDate());
-    this.form.patchValue({period: [start.toDate(), start.clone().endOf('month').startOf('day').toDate()]}, {emitEvent: false});
+    const start = startOfMonth(date);
+    this.calendarMonth.set(start);
+    this.form.patchValue({period: [start, startOfDay(endOfMonth(start))]}, {emitEvent: false});
     this.loadVacations();
   }
 

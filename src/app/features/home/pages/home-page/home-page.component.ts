@@ -3,8 +3,8 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {DecimalPipe, DatePipe, NgTemplateOutlet} from '@angular/common';
 import {RouterLink} from '@angular/router';
 import {catchError, finalize, of, Subscription} from 'rxjs';
-import moment from 'moment';
-import 'moment/locale/uk';
+import {addDays, differenceInCalendarDays, differenceInMinutes, format, formatDistanceToNowStrict, isAfter, isBefore, isSameDay, isSameMonth, startOfDay, startOfMinute} from 'date-fns';
+import {atTime, daysInclusive, formatDate, toApiDate, toDate} from '../../../../shared/utils/date.utils';
 import {Button} from 'primeng/button';
 import {Tag} from 'primeng/tag';
 import {Avatar} from 'primeng/avatar';
@@ -34,6 +34,13 @@ type ShiftState =
   | {kind: 'active'; shift: Shift; progress: number; left: string}
   | {kind: 'done'; shift: Shift};
 
+/** Start and end of a shift on the given day; a shift ending at or before its start ends the next day. */
+function shiftWindow(day: Date, startTime: string, endTime: string): {start: Date; end: Date} {
+  const start = atTime(day, startTime);
+  const end = atTime(day, endTime);
+  return {start, end: isAfter(end, start) ? end : addDays(end, 1)};
+}
+
 @Component({
   selector: 'app-home-page',
   standalone: true,
@@ -51,13 +58,13 @@ export class HomePageComponent implements OnInit {
 
   readonly data = signal<HomeDashboard | null>(null);
   readonly isLoading = signal(true);
-  readonly now = signal(moment());
+  readonly now = signal(new Date());
 
   readonly user = computed(() => this.accountService.currentUser());
   readonly isManager = computed(() => (this.user()?.roles ?? []).some(r => MANAGER_ROLES.includes(r)));
 
   readonly greeting = computed(() => {
-    const hour = this.now().hour();
+    const hour = this.now().getHours();
     const hello = hour >= 5 && hour < 12 ? 'Доброго ранку'
       : hour >= 12 && hour < 18 ? 'Доброго дня'
         : hour >= 18 && hour < 23 ? 'Доброго вечора' : 'Доброї ночі';
@@ -65,7 +72,7 @@ export class HomePageComponent implements OnInit {
     return name ? `${hello}, ${name}` : hello;
   });
 
-  readonly todayLabel = computed(() => this.now().clone().locale('uk').format('dddd, D MMMM'));
+  readonly todayLabel = computed(() => format(this.now(), 'EEEE, d MMMM'));
 
   readonly myWeek = signal<MyWeek | null>(null);
   readonly weekLoading = signal(true);
@@ -74,7 +81,7 @@ export class HomePageComponent implements OnInit {
   readonly nextShift = computed(() => this.myWeek()?.nextShift ?? null);
 
   readonly todayShift = computed<DayShift | null>(() => {
-    const today = this.now().format('YYYY-MM-DD');
+    const today = toApiDate(this.now());
     return this.week().find(d => d.date === today) ?? null;
   });
 
@@ -85,14 +92,12 @@ export class HomePageComponent implements OnInit {
     if (shift.type !== ShiftType.workday || !day.startTime || !day.endTime) return {kind: 'off', shift};
 
     const now = this.now();
-    const start = moment(`${now.format('YYYY-MM-DD')} ${day.startTime}`, 'YYYY-MM-DD HH:mm:ss');
-    const end = moment(`${now.format('YYYY-MM-DD')} ${day.endTime}`, 'YYYY-MM-DD HH:mm:ss');
-    if (!end.isAfter(start)) end.add(1, 'day');
+    const {start, end} = shiftWindow(now, day.startTime, day.endTime);
 
-    if (now.isBefore(start)) return {kind: 'upcoming', shift, startsIn: this.duration(start.diff(now, 'minutes'))};
-    if (now.isAfter(end)) return {kind: 'done', shift};
-    const total = end.diff(start, 'minutes');
-    const passed = now.diff(start, 'minutes');
+    if (isBefore(now, start)) return {kind: 'upcoming', shift, startsIn: this.duration(differenceInMinutes(start, now))};
+    if (isAfter(now, end)) return {kind: 'done', shift};
+    const total = differenceInMinutes(end, start);
+    const passed = differenceInMinutes(now, start);
     return {kind: 'active', shift, progress: Math.round(passed / total * 100), left: this.duration(total - passed)};
   });
 
@@ -117,8 +122,8 @@ export class HomePageComponent implements OnInit {
     const planned = Math.min(b.plannedDays, b.totalDays - used);
     const accrued = Number(b.totalDays.toFixed(2)).toLocaleString('uk-UA');
     // Annual vacation can't start before 6 months of continuous work (art. 10 of the Law "On Vacations").
-    const availableFrom = moment(b.annualVacationAvailableFrom).startOf('day');
-    const availableFromDate = availableFrom.isAfter(moment(), 'day') ? availableFrom.toDate() : null;
+    const availableFrom = startOfDay(toDate(b.annualVacationAvailableFrom));
+    const availableFromDate = differenceInCalendarDays(availableFrom, new Date()) > 0 ? availableFrom : null;
     return {...b, available, accrued, availableFromDate, usedPct: pct(used), plannedPct: pct(planned)};
   });
 
@@ -148,11 +153,9 @@ export class HomePageComponent implements OnInit {
   isWorkingNow(member: TeamMemberToday): boolean {
     const {startTime, endTime} = member.shift;
     if (!startTime || !endTime) return false;
-    const now = this.now();
-    const start = moment(`${now.format('YYYY-MM-DD')} ${startTime}`, 'YYYY-MM-DD HH:mm:ss');
-    const end = moment(`${now.format('YYYY-MM-DD')} ${endTime}`, 'YYYY-MM-DD HH:mm:ss');
-    if (!end.isAfter(start)) end.add(1, 'day');
-    return now.isBetween(start, end, 'minute', '[)');
+    const now = startOfMinute(this.now());
+    const {start, end} = shiftWindow(now, startTime, endTime);
+    return !isBefore(now, start) && isBefore(now, end);
   }
 
   isMe(member: TeamMemberToday): boolean {
@@ -262,53 +265,53 @@ export class HomePageComponent implements OnInit {
   readonly pendingTotal = computed(() => this.pendingVacations() + this.pendingTrips());
 
   ngOnInit(): void {
-    const timer = setInterval(() => this.now.set(moment()), 60_000);
+    const timer = setInterval(() => this.now.set(new Date()), 60_000);
     this.destroyRef.onDestroy(() => clearInterval(timer));
   }
 
   dayName(date: string): string {
-    return moment(date).locale('uk').format('dd');
+    return formatDate(date, 'EEEEEE');
   }
 
   dayNumber(date: string): string {
-    return moment(date).format('D');
+    return formatDate(date, 'd');
   }
 
   isToday(date: string): boolean {
-    return moment(date).isSame(this.now(), 'day');
+    return isSameDay(toDate(date), this.now());
   }
 
   isPast(date: string): boolean {
-    return moment(date).isBefore(this.now(), 'day');
+    return differenceInCalendarDays(toDate(date), this.now()) < 0;
   }
 
   period(start: string, end: string): string {
-    const s = moment(start).locale('uk');
-    const e = moment(end).locale('uk');
-    if (s.isSame(e, 'day')) return s.format('D MMMM');
-    if (s.isSame(e, 'month')) return `${s.format('D')} – ${e.format('D MMMM')}`;
-    return `${s.format('D MMM')} – ${e.format('D MMM')}`;
+    const s = toDate(start);
+    const e = toDate(end);
+    if (isSameDay(s, e)) return format(s, 'd MMMM');
+    if (isSameMonth(s, e)) return `${format(s, 'd')} – ${format(e, 'd MMMM')}`;
+    return `${format(s, 'd MMM')} – ${format(e, 'd MMM')}`;
   }
 
   days(start: string, end: string): number {
-    return moment(end).diff(moment(start), 'days') + 1;
+    return daysInclusive(start, end);
   }
 
   relativeDay(date: string): string {
-    const diff = moment(date).startOf('day').diff(this.now().clone().startOf('day'), 'days');
+    const diff = differenceInCalendarDays(toDate(date), this.now());
     if (diff === 0) return 'сьогодні';
     if (diff === 1) return 'завтра';
-    if (diff > 1 && diff < 7) return moment(date).locale('uk').format('dddd');
-    return moment(date).locale('uk').format('D MMMM');
+    if (diff > 1 && diff < 7) return formatDate(date, 'EEEE');
+    return formatDate(date, 'd MMMM');
   }
 
   inDays(date: string): string {
-    const diff = moment(date).startOf('day').diff(this.now().clone().startOf('day'), 'days');
+    const diff = differenceInCalendarDays(toDate(date), this.now());
     return diff <= 0 ? 'вже триває' : `через ${diff} ${this.plural(diff, 'день', 'дні', 'днів')}`;
   }
 
   submitted(createdAt: string): string {
-    return moment(createdAt).locale('uk').fromNow();
+    return formatDistanceToNowStrict(toDate(createdAt), {addSuffix: true});
   }
 
   timeRange(shift: Shift | null | undefined): string {

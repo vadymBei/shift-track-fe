@@ -1,7 +1,7 @@
 import {Component, computed, inject, OnDestroy, OnInit, signal} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {catchError, finalize, of, Subject, takeUntil} from 'rxjs';
-import moment from 'moment';
+import {toApiDate, toDate} from '../../../../../shared/utils/date.utils';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {PrimeTemplate} from 'primeng/api';
 import {InputText} from 'primeng/inputtext';
@@ -99,7 +99,7 @@ export class EmployeeDialogComponent implements OnInit, OnDestroy {
           surname: employee.surname,
           name: employee.name,
           patronymic: employee.patronymic,
-          dateOfBirth: employee.dateOfBirth ? moment(employee.dateOfBirth).toDate() : null,
+          dateOfBirth: employee.dateOfBirth ? toDate(employee.dateOfBirth) : null,
           gender: employee.gender ?? EmployeeGender.none,
           email: employee.email,
           phoneNumber: employee.phoneNumber,
@@ -146,7 +146,7 @@ export class EmployeeDialogComponent implements OnInit, OnDestroy {
       patronymic: value.patronymic!.trim(),
       email: value.email!.trim(),
       gender: value.gender ?? EmployeeGender.none,
-      dateOfBirth: value.dateOfBirth ? moment(value.dateOfBirth).format('YYYY-MM-DD') as unknown as Date : undefined,
+      dateOfBirth: value.dateOfBirth ? toApiDate(value.dateOfBirth) as unknown as Date : undefined,
       departmentId: value.departmentId ?? undefined,
       positionId: value.positionId ?? undefined
     };

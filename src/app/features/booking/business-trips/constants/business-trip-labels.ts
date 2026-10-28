@@ -1,4 +1,4 @@
-import moment from 'moment';
+import {daysInclusive, toApiDate} from '../../../../shared/utils/date.utils';
 import {BusinessTripStatus} from '../enums/business-trip-status.enum';
 import {BusinessTrip} from '../models/business-trip.model';
 import {Employee} from '../../../organization/employees/models/employee.model';
@@ -29,7 +29,7 @@ export function tripStops(trip: BusinessTrip): number {
 }
 
 export function tripDays(trip: BusinessTrip): number {
-  return moment(trip.endDate).startOf('day').diff(moment(trip.startDate).startOf('day'), 'days') + 1;
+  return daysInclusive(trip.startDate, trip.endDate);
 }
 
 export function employeeInitials(employee: Employee): string {
@@ -37,5 +37,5 @@ export function employeeInitials(employee: Employee): string {
 }
 
 export function toTripApiDate(date: Date): Date {
-  return new Date(moment(date).format('YYYY-MM-DD'));
+  return new Date(toApiDate(date));
 }

@@ -3,7 +3,7 @@ import {DatePipe} from '@angular/common';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {catchError, finalize, Observable, of, Subject, takeUntil} from 'rxjs';
-import moment from 'moment';
+import {daysInclusive, toDate} from '../../../../../shared/utils/date.utils';
 import {PrimeTemplate} from 'primeng/api';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {AutoComplete, AutoCompleteCompleteEvent, AutoCompleteSelectEvent} from 'primeng/autocomplete';
@@ -81,7 +81,7 @@ export class BusinessTripDialogComponent implements OnInit, OnDestroy {
   readonly startDate = computed(() => this.period()?.[0] ?? null);
   readonly endDate = computed(() => this.period()?.[1] ?? null);
   readonly days = computed(() => this.startDate() && this.endDate()
-    ? moment(this.endDate()).startOf('day').diff(moment(this.startDate()).startOf('day'), 'days') + 1
+    ? daysInclusive(this.startDate()!, this.endDate()!)
     : 0);
   readonly descriptionLength = computed(() => this.description()?.length ?? 0);
 
@@ -106,7 +106,7 @@ export class BusinessTripDialogComponent implements OnInit, OnDestroy {
     }
 
     this.form.reset({
-      period: [moment(trip.startDate).toDate(), moment(trip.endDate).toDate()],
+      period: [toDate(trip.startDate), toDate(trip.endDate)],
       description: trip.description ?? '',
       estimatedBudget: trip.estimatedBudget ?? null
     });

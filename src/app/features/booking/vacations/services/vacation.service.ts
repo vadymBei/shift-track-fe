@@ -5,7 +5,7 @@ import {Vacation} from "../models/vacation.model";
 import {CreateVacationRequest} from "../models/create-vacation-request.modal";
 import {EditVacationRequest} from "../models/edit-vacation-request.model";
 import {map, Observable} from 'rxjs';
-import moment from 'moment';
+import {formatDate} from '../../../../shared/utils/date.utils';
 import {VacationBalance} from '../models/vacation-balance.model';
 
 @Injectable({
@@ -94,7 +94,7 @@ export class VacationService {
         const link = document.createElement('a');
         link.href = url;
         link.download = `Відпустка працівника ${vacation.employee.fullName} `
-          + `${moment(vacation.startDate).format('DD.MM.YYYY')}-${moment(vacation.endDate).format('DD.MM.YYYY')}.pdf`;
+          + `${formatDate(vacation.startDate, 'dd.MM.yyyy')}-${formatDate(vacation.endDate, 'dd.MM.yyyy')}.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

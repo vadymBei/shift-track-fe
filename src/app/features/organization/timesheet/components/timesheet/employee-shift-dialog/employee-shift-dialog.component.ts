@@ -2,7 +2,8 @@ import {Component, computed, inject, OnDestroy, OnInit, signal} from '@angular/c
 import {DatePipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {finalize, Subject, takeUntil} from 'rxjs';
-import moment from 'moment';
+import {eachDayOfInterval, format, isSameDay, startOfDay} from 'date-fns';
+import {daysInclusive, toApiDate} from '../../../../../../shared/utils/date.utils';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {Button} from 'primeng/button';
 import {DatePicker} from 'primeng/datepicker';
@@ -92,19 +93,19 @@ export class EmployeeShiftDialogComponent implements OnInit, OnDestroy {
     const from = value?.[0];
     const to = value?.[1] ?? from;
     if (!from || !to) return null;
-    return {from: moment(from).startOf('day'), to: moment(to).startOf('day')};
+    return {from: startOfDay(from), to: startOfDay(to)};
   });
 
   readonly daysCount = computed(() => {
     const p = this.period();
-    return p ? p.to.diff(p.from, 'days') + 1 : 0;
+    return p ? daysInclusive(p.from, p.to) : 0;
   });
 
   readonly subtitle = computed(() => {
     const p = this.period();
     if (!p) return 'Оберіть дати';
-    const fmt = (m: moment.Moment) => m.clone().locale('uk').format('dd, D MMMM');
-    return p.from.isSame(p.to, 'day') ? fmt(p.from) : `${fmt(p.from)} — ${fmt(p.to)}`;
+    const fmt = (date: Date) => format(date, 'EEEEEE, d MMMM');
+    return isSameDay(p.from, p.to) ? fmt(p.from) : `${fmt(p.from)} — ${fmt(p.to)}`;
   });
 
   readonly cellsCount = computed(() => this.daysCount() * this.employees.length);
@@ -113,8 +114,8 @@ export class EmployeeShiftDialogComponent implements OnInit, OnDestroy {
     const p = this.period();
     if (!p || !this.occupied.size) return 0;
     let count = 0;
-    for (const day = p.from.clone(); day.isSameOrBefore(p.to, 'day'); day.add(1, 'day')) {
-      const date = day.format('YYYY-MM-DD');
+    for (const day of eachDayOfInterval({start: p.from, end: p.to})) {
+      const date = toApiDate(day);
       count += this.employees.filter(e => this.occupied.has(`${e.id}|${date}`)).length;
     }
     return count;
@@ -159,8 +160,8 @@ export class EmployeeShiftDialogComponent implements OnInit, OnDestroy {
 
     const requests: CreateEmployeeShiftRequest[] = [];
     for (const employee of this.employees) {
-      for (const day = p.from.clone(); day.isSameOrBefore(p.to, 'day'); day.add(1, 'day')) {
-        requests.push({employeeId: employee.id, shiftId, date: day.format('YYYY-MM-DD')});
+      for (const day of eachDayOfInterval({start: p.from, end: p.to})) {
+        requests.push({employeeId: employee.id, shiftId, date: toApiDate(day)});
       }
     }
 

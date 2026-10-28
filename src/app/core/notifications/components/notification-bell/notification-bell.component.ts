@@ -1,7 +1,7 @@
 import {Component, computed, inject, signal, viewChild} from '@angular/core';
 import {Router} from '@angular/router';
-import moment from 'moment';
-import 'moment/locale/uk';
+import {differenceInHours, format, formatDistanceToNowStrict, isBefore, isSameYear, startOfDay} from 'date-fns';
+import {toDate} from '../../../../shared/utils/date.utils';
 import {Popover} from 'primeng/popover';
 import {Skeleton} from 'primeng/skeleton';
 import {Tooltip} from 'primeng/tooltip';
@@ -47,9 +47,9 @@ export class NotificationBellComponent {
       ? this.notificationsService.items().filter(n => !n.readAt)
       : this.notificationsService.items();
 
-    const today = moment().startOf('day');
-    const todayItems = items.filter(n => moment(n.createdAt).isSameOrAfter(today));
-    const earlierItems = items.filter(n => moment(n.createdAt).isBefore(today));
+    const today = startOfDay(new Date());
+    const todayItems = items.filter(n => !isBefore(toDate(n.createdAt), today));
+    const earlierItems = items.filter(n => isBefore(toDate(n.createdAt), today));
 
     return [
       {label: 'Сьогодні', items: todayItems},
@@ -89,11 +89,11 @@ export class NotificationBellComponent {
   }
 
   time(notification: AppNotification): string {
-    const value = moment(notification.createdAt).locale('uk');
-    if (moment().diff(value, 'hours') < 12) {
-      return value.fromNow();
+    const value = toDate(notification.createdAt);
+    if (differenceInHours(new Date(), value) < 12) {
+      return formatDistanceToNowStrict(value, {addSuffix: true});
     }
-    return value.isSame(moment(), 'year') ? value.format('D MMM, HH:mm') : value.format('D MMM YYYY');
+    return isSameYear(value, new Date()) ? format(value, 'd MMM, HH:mm') : format(value, 'd MMM yyyy');
   }
 
   showAuthor(notification: AppNotification): boolean {

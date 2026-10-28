@@ -3,7 +3,8 @@ import {DatePipe} from '@angular/common';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {finalize, Observable, Subject, takeUntil} from 'rxjs';
-import moment from 'moment';
+import {addDays} from 'date-fns';
+import {formatDate, toDate} from '../../../../../shared/utils/date.utils';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {Select} from 'primeng/select';
 import {DatePicker} from 'primeng/datepicker';
@@ -82,12 +83,12 @@ export class EditVacationModalComponent implements OnInit, OnDestroy {
 
   readonly endDate = computed(() => this.period()?.[1] ?? null);
   readonly daysText = computed(() => pluralDays(countVacationDays(this.period()?.[0], this.endDate())));
-  readonly returnDate = computed(() => this.endDate() ? moment(this.endDate()).add(1, 'day').toDate() : null);
+  readonly returnDate = computed(() => this.endDate() ? addDays(this.endDate()!, 1) : null);
   readonly commentLength = computed(() => this.comment()?.length ?? 0);
 
   readonly steps = computed<ApprovalStep[]>(() => {
     const status = this.status();
-    const created = this.vacation().createdAt ? moment(this.vacation().createdAt).format('DD.MM.YYYY, HH:mm') : '';
+    const created = this.vacation().createdAt ? formatDate(this.vacation().createdAt, 'dd.MM.yyyy, HH:mm') : '';
     if (status === VacationStatus.None) {
       return [
         {title: 'Чернетка', subtitle: 'Автор ще не подав заявку на погодження', state: 'current', marker: '1'},
@@ -141,7 +142,7 @@ export class EditVacationModalComponent implements OnInit, OnDestroy {
   private fillForm(vacation: Vacation): void {
     this.form.reset({
       type: vacation.type,
-      period: [moment(vacation.startDate).toDate(), moment(vacation.endDate).toDate()],
+      period: [toDate(vacation.startDate), toDate(vacation.endDate)],
       comment: vacation.comment ?? ''
     });
 
