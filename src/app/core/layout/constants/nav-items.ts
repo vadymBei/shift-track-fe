@@ -6,6 +6,7 @@ export const NAV_ITEMS: MenuItem[] = [
   {label: 'Табель', icon: 'pi pi-calendar', link: '/timesheet'},
   {label: 'Відпустки', icon: 'pi pi-sun', link: '/vacations', badge: 'vacations'},
   {label: 'Відрядження', icon: 'pi pi-briefcase', link: '/business-trips', badge: 'businessTrips'},
+  {label: 'Повідомлення', icon: 'pi pi-comments', link: '/messages', badge: 'messages'},
   {label: 'Довідник', icon: 'pi pi-book', link: '/employees/contact-list'},
   {label: 'Зарплати', icon: 'pi pi-wallet', link: '/payrolls'},
   {

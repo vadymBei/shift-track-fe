@@ -1,0 +1,35 @@
+<div class="messenger" [class.has-active]="activeId() !== null">
+  <app-conversation-list
+    class="pane-list"
+    [activeId]="activeId()"
+    (newChat)="newChat()"
+    (openContact)="openContact($event)"/>
+
+  <section class="pane-view" aria-label="Розмова">
+    @if (activeId(); as id) {
+      <app-conversation-view [conversationId]="id" (showDetails)="detailsVisible.set(true)"/>
+    } @else {
+      <div class="placeholder">
+        <span class="placeholder-icon"><i class="pi pi-comments" aria-hidden="true"></i></span>
+        <h2 class="placeholder-title">Оберіть чат</h2>
+        <p class="placeholder-hint">Або почніть новий — написати можна будь-кому в компанії</p>
+      </div>
+    }
+  </section>
+</div>
+
+<p-drawer
+  [visible]="detailsVisible() && !!active()"
+  (visibleChange)="detailsVisible.set($event)"
+  position="right"
+  styleClass="chat-details-drawer">
+  <ng-template pTemplate="headless">
+    @if (active(); as conversation) {
+      <app-conversation-details
+        [conversation]="conversation"
+        (close)="detailsVisible.set(false)"
+        (addMembers)="addMembers()"
+        (left)="afterLeave()"/>
+    }
+  </ng-template>
+</p-drawer>

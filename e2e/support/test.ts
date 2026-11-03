@@ -20,6 +20,8 @@ export const test = base.extend<Fixtures>({
     api
       .on('GET', 'communication/notifications/unread/count', {count: 0})
       .on('GET', 'communication/notifications', [])
+      .on('GET', 'communication/messenger/unread/count', {conversations: 0, messages: 0})
+      .on('GET', 'communication/messenger/conversations', [])
       .on('GET', 'booking/approvals/pending/count', {vacations: 0, businessTrips: 0})
       .on('GET', /^booking\/vacations\/balance\//, vacationBalance())
       .on('GET', 'organization/structure/units/by-roles', [unit])

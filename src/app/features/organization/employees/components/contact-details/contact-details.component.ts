@@ -1,5 +1,6 @@
 import {Component, computed, effect, inject, input, OnDestroy, output, signal} from '@angular/core';
 import {DatePipe} from '@angular/common';
+import {RouterLink} from '@angular/router';
 import {Subscription} from 'rxjs';
 import {Avatar} from 'primeng/avatar';
 import {Button} from 'primeng/button';
@@ -13,7 +14,7 @@ import {personInitials} from '../../../../../shared/utils/text.utils';
 @Component({
   selector: 'app-contact-details',
   standalone: true,
-  imports: [DatePipe, Avatar, Button, Tooltip, Divider],
+  imports: [DatePipe, RouterLink, Avatar, Button, Tooltip, Divider],
   templateUrl: './contact-details.component.html',
   styleUrl: './contact-details.component.scss'
 })
@@ -28,6 +29,7 @@ export class ContactDetailsComponent implements OnDestroy {
   private photoSub?: Subscription;
 
   readonly initials = computed(() => personInitials(this.employee()));
+  readonly currentEmployeeId = computed(() => this.accountService.currentUser()?.employee?.id ?? null);
 
   readonly details = computed(() => {
     const e = this.employee();

@@ -43,6 +43,11 @@ export class NotificationsHub {
     await this.invoke('notificationsChanged');
   }
 
+  /** Any server event, like the messenger's "chatMessageCreated". */
+  async push(target: string, ...args: unknown[]): Promise<void> {
+    await this.invoke(target, ...args);
+  }
+
   private async invoke(target: string, ...args: unknown[]): Promise<void> {
     await this.waitForConnection();
 

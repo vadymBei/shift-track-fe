@@ -1,0 +1,79 @@
+<div class="details">
+  <header class="details-head">
+    <h2 class="details-heading">{{ isGroup() ? 'Група' : 'Співрозмовник' }}</h2>
+    <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" ariaLabel="Закрити" (onClick)="close.emit()"/>
+  </header>
+
+  <section class="profile">
+    <app-chat-avatar [name]="name()" [seed]="isGroup() ? conversation().id : conversation().interlocutor?.employeeId ?? 0"
+                     [group]="isGroup()" [size]="80"/>
+
+    @if (renaming()) {
+      <form class="rename" (ngSubmit)="saveTitle()">
+        <label class="visually-hidden" for="groupName">Назва групи</label>
+        <input pInputText id="groupName" name="title" [fluid]="true" maxlength="100"
+               [ngModel]="title()" (ngModelChange)="title.set($event)" (keydown.escape)="renaming.set(false)"/>
+        <div class="rename-actions">
+          <p-button label="Скасувати" [text]="true" severity="secondary" size="small" (onClick)="renaming.set(false)"/>
+          <p-button type="submit" label="Зберегти" size="small" [disabled]="!title().trim()" [loading]="saving()"/>
+        </div>
+      </form>
+    } @else {
+      <div class="name-row">
+        <span class="name">{{ name() }}</span>
+        @if (isGroup() && canManage()) {
+          <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" size="small"
+                    ariaLabel="Перейменувати групу" pTooltip="Перейменувати" (onClick)="startRename()"/>
+        }
+      </div>
+    }
+
+    @if (isGroup()) {
+      <span class="sub">{{ membersCount() }}</span>
+    } @else if (conversation().interlocutor) {
+      <span class="sub">{{ conversation().interlocutor!.positionName ?? 'Без посади' }}</span>
+      @if (conversation().interlocutor!.departmentName || conversation().interlocutor!.unitName) {
+        <span class="sub"><i class="pi pi-building" aria-hidden="true"></i> {{ place(conversation().interlocutor!) }}</span>
+      }
+    } @else {
+      <span class="sub">Працівник більше не доступний</span>
+    }
+  </section>
+
+  @if (isGroup()) {
+    <section class="members">
+      <div class="members-head">
+        <h3 class="members-title">Учасники</h3>
+        <p-button label="Додати" icon="pi pi-user-plus" size="small" [text]="true" (onClick)="addMembers.emit()"/>
+      </div>
+
+      <ul class="member-list">
+        @for (member of members(); track member.employeeId) {
+          <li class="member">
+            <app-chat-avatar [name]="member.fullName" [seed]="member.employeeId" [size]="36"/>
+            <span class="member-text">
+              <span class="member-name">
+                {{ member.fullName }}
+                @if (member.employeeId === me()) {
+                  <span class="you">(ви)</span>
+                }
+              </span>
+              <span class="member-sub">{{ subtitle(member) }}</span>
+            </span>
+            @if (member.role === 'Owner') {
+              <p-tag value="Власник" severity="secondary"/>
+            } @else if (canManage() && member.employeeId !== me()) {
+              <p-button icon="pi pi-user-minus" [rounded]="true" [text]="true" severity="danger" size="small"
+                        [ariaLabel]="'Видалити з групи ' + member.fullName" pTooltip="Видалити з групи"
+                        (onClick)="remove(member)"/>
+            }
+          </li>
+        }
+      </ul>
+    </section>
+
+    <footer class="details-foot">
+      <p-button label="Вийти з групи" icon="pi pi-sign-out" severity="danger" [outlined]="true" [fluid]="true" (onClick)="leave()"/>
+    </footer>
+  }
+</div>

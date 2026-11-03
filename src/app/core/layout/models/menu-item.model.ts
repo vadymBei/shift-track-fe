@@ -3,5 +3,5 @@ export interface MenuItem {
   icon: string;
   link: string;
   roles?: string[];
-  badge?: 'vacations' | 'businessTrips';
+  badge?: 'vacations' | 'businessTrips' | 'messages';
 }

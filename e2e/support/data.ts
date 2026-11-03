@@ -107,3 +107,83 @@ export function vacationBalance(overrides: Record<string, unknown> = {}) {
     ...overrides
   };
 }
+
+// ---- messenger
+
+/** A member of a conversation, made from a test employee. */
+export function member(person: ReturnType<typeof employee>, role: 'Member' | 'Owner' = 'Member', lastReadMessageId: number | null = null) {
+  return {
+    employeeId: person.id,
+    fullName: person.fullName,
+    positionName: person.position.name,
+    departmentName: person.department.name,
+    unitName: person.department.unit.name,
+    hasPhoto: false,
+    role,
+    lastReadMessageId
+  };
+}
+
+export function chatMessage(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 1,
+    conversationId: 1,
+    type: 'Text',
+    text: 'Привіт!',
+    authorId: users.employee.employee.id,
+    authorFullName: users.employee.employee.fullName,
+    createdAt: new Date(Date.now() - 60_000).toISOString(),
+    editedAt: null,
+    isDeleted: false,
+    clientMessageId: null,
+    replyTo: null,
+    ...overrides
+  };
+}
+
+/** A direct chat of the user with the other employee. */
+export function directChat(me: TestUser, other: ReturnType<typeof employee>, overrides: Record<string, unknown> = {}) {
+  const otherMember = member(other);
+  return {
+    id: 1,
+    type: 'Direct',
+    title: other.fullName,
+    interlocutor: otherMember,
+    members: [member(me.employee), otherMember],
+    lastMessage: null,
+    lastActivityAt: new Date(Date.now() - 3_600_000).toISOString(),
+    unreadCount: 0,
+    readByOthersUpToMessageId: null,
+    myRole: 'Member',
+    canWrite: true,
+    ...overrides
+  };
+}
+
+export function groupChat(owner: TestUser, others: ReturnType<typeof employee>[], overrides: Record<string, unknown> = {}) {
+  return {
+    id: 2,
+    type: 'Group',
+    title: 'Магазин №12 · зміна',
+    interlocutor: null,
+    members: [member(owner.employee, 'Owner'), ...others.map(x => member(x))],
+    lastMessage: null,
+    lastActivityAt: new Date(Date.now() - 7_200_000).toISOString(),
+    unreadCount: 0,
+    readByOthersUpToMessageId: null,
+    myRole: 'Owner',
+    canWrite: true,
+    ...overrides
+  };
+}
+
+export function contact(person: ReturnType<typeof employee>) {
+  return {
+    employeeId: person.id,
+    fullName: person.fullName,
+    positionName: person.position.name,
+    departmentName: person.department.name,
+    unitName: person.department.unit.name,
+    hasPhoto: false
+  };
+}

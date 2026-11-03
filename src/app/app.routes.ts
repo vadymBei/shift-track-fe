@@ -51,6 +51,12 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'messages',
+    loadComponent: loadLayout,
+    loadChildren: () => import("./features/communication/messenger/messenger.routes"),
+    canActivate: [authGuard]
+  },
+  {
     path: 'payrolls',
     loadComponent: loadLayout,
     loadChildren: () => import("./features/organization/payrolls/payrolls.routes"),

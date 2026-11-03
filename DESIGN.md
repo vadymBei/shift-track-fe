@@ -228,6 +228,9 @@ PrimeNG-токени (генерує тема, автоматично зміню
 | Плашка зміни | `features/organization/timesheet/components/shift-chip` | `<app-shift-chip [shift]="shift" size="xs/sm/md/lg/xl"/>`, без зміни — пунктирна порожня плашка (`placeholder`) |
 | Фото поточного користувача | `CurrentUserPhotoService` | `photoUrl()` — спільне для меню і профілю, `refresh()` після завантаження нового |
 
+| Аватар чату | `features/communication/messenger/components/chat-avatar` | `<app-chat-avatar [name]="fullName" [seed]="employeeId" [size]="40"/>` — ініціали в одному з 6 кольорів палітри за `seed`; `[group]="true"` — іконка групи |
+| Пошук колег по всій компанії | `features/communication/messenger/components/contact-picker` | `<app-contact-picker [multiple]="true" [selectedIds]="ids" (picked)="…"/>` — для вибору людей у діалогах |
+
 Клітинки самого табеля мають власну розмітку (режим «Години», ховер, виділення) і `app-shift-chip` не використовують.
 
 ---
@@ -263,6 +266,7 @@ PrimeNG-токени (генерує тема, автоматично зміню
    - ✅ Зарплати (KPI-плитки, відомість з масовою виплатою, деталі в p-drawer)
    - ✅ Адміністрування (головна)
    - ✅ Ролі працівників (список людей + картки ролей з регіонами й департаментами)
+   - ✅ Повідомлення (`features/communication/messenger`): особисті чати й групи. Список чатів на склі, розмова — на суцільній поверхні; на телефоні (< 768px) список і розмова — окремі екрани. Стан і реальний час — `MessengerStore` (події SignalR через `RealtimeService`), надсилання оптимістичне з `clientMessageId`. Бейдж непрочитаних у меню (`MenuItem.badge = 'messages'`).
    - ✅ Головна «Мій день» (`features/home`): зміна сьогодні, тиждень, баланс відпустки, заявки; для керівників — «Чекають рішення» і «Команда сьогодні». «Сьогодні» і «Мій тиждень» — справжні зміни працівника (`EmployeeShiftService.getByEmployeeId`), «Команда сьогодні» — табель поточного місяця департаменту користувача; решта даних поки моки в `HomeService`, контракт — `home-dashboard.model.ts`. Бейджі заявок у меню (`MenuItem.badge`).
 7. ✅ Прибрано Bootstrap, Bootstrap Icons, ngx-bootstrap, ngx-color і старі глобальні стилі (початковий бандл 1,37 МБ → 745 кБ).
 

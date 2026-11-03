@@ -1,13 +1,11 @@
 import {effect, inject, Injectable, signal, untracked} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {HttpTransportType, HubConnection, HubConnectionBuilder, HubConnectionState, LogLevel} from '@microsoft/signalr';
 import {AccountService} from '../../account/services/account.service';
 import {NotificationService} from '../../../shared/services/notification.service';
 import {HomeService} from '../../../features/home/services/home.service';
-import {NOTIFICATIONS_HUB_URL} from '../../../shared/constants/api.constants';
+import {RealtimeService} from '../../realtime/realtime.service';
 import {AppNotification} from '../models/app-notification.model';
 
-const RESTART_DELAY_MS = 30_000;
 const LIST_SIZE = 50;
 
 @Injectable({providedIn: 'root'})
@@ -16,6 +14,7 @@ export class NotificationsService {
   private readonly accountService = inject(AccountService);
   private readonly toast = inject(NotificationService);
   private readonly homeService = inject(HomeService);
+  private readonly realtime = inject(RealtimeService);
 
   private readonly path = 'communication/notifications';
 
@@ -25,10 +24,12 @@ export class NotificationsService {
   readonly loaded = signal(false);
 
   private employeeId: number | null = null;
-  private connection: HubConnection | null = null;
-  private restartTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
+    this.realtime.on<AppNotification>('notificationReceived', notification => this.onReceived(notification));
+    this.realtime.on('notificationsChanged', () => this.onChanged());
+    this.realtime.onReconnected(() => this.onChanged());
+
     effect(() => {
       const employeeId = this.accountService.currentUser()?.employee?.id ?? null;
       untracked(() => this.onUserChanged(employeeId));
@@ -89,66 +90,9 @@ export class NotificationsService {
     this.items.set([]);
     this.loaded.set(false);
     this.unreadCount.set(0);
-    void this.stopConnection();
 
     if (employeeId) {
       this.refreshCount();
-      void this.startConnection();
-    }
-  }
-
-  private async startConnection(): Promise<void> {
-    this.clearRestart();
-
-    const connection = new HubConnectionBuilder()
-      .withUrl(NOTIFICATIONS_HUB_URL, {
-        accessTokenFactory: () => this.accountService.token()?.accessToken ?? '',
-        skipNegotiation: true,
-        transport: HttpTransportType.WebSockets
-      })
-      .withAutomaticReconnect([0, 2_000, 5_000, 10_000, 30_000])
-      .configureLogging(LogLevel.Warning)
-      .build();
-
-    connection.on('notificationReceived', (notification: AppNotification) => this.onReceived(notification));
-    connection.on('notificationsChanged', () => this.onChanged());
-    connection.onreconnected(() => this.onChanged());
-    connection.onclose(() => this.scheduleRestart(connection));
-
-    this.connection = connection;
-
-    try {
-      await connection.start();
-    } catch {
-      this.scheduleRestart(connection);
-    }
-  }
-
-  private async stopConnection(): Promise<void> {
-    this.clearRestart();
-    const connection = this.connection;
-    this.connection = null;
-    if (connection && connection.state !== HubConnectionState.Disconnected) {
-      await connection.stop().catch(() => undefined);
-    }
-  }
-
-  private scheduleRestart(connection: HubConnection): void {
-    if (connection !== this.connection || !this.employeeId) {
-      return;
-    }
-    this.clearRestart();
-    this.restartTimer = setTimeout(() => {
-      if (connection === this.connection && connection.state === HubConnectionState.Disconnected) {
-        connection.start().catch(() => this.scheduleRestart(connection));
-      }
-    }, RESTART_DELAY_MS);
-  }
-
-  private clearRestart(): void {
-    if (this.restartTimer) {
-      clearTimeout(this.restartTimer);
-      this.restartTimer = null;
     }
   }
 

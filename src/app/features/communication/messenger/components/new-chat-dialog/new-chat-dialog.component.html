@@ -1,0 +1,71 @@
+<div class="new-chat">
+  <header class="form-dialog-header">
+    <div>
+      <h2 class="form-dialog-title">{{ heading() }}</h2>
+      <p class="form-dialog-subtitle">
+        @switch (mode()) {
+          @case ('direct') { Знайдіть колегу — написати можна будь-кому в компанії }
+          @case ('group') { Назвіть групу й додайте колег }
+          @case ('add') { До групи «{{ groupName }}» }
+        }
+      </p>
+    </div>
+    <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" ariaLabel="Закрити" (onClick)="close()"/>
+  </header>
+
+  <div class="form-dialog-body">
+    @if (mode() !== 'add') {
+      <div class="mode-tabs" role="tablist" aria-label="Тип чату">
+        <button type="button" role="tab" class="mode-tab" [class.active]="mode() === 'direct'"
+                [attr.aria-selected]="mode() === 'direct'" (click)="setMode('direct')">
+          <i class="pi pi-user" aria-hidden="true"></i> Особистий
+        </button>
+        <button type="button" role="tab" class="mode-tab" [class.active]="mode() === 'group'"
+                [attr.aria-selected]="mode() === 'group'" (click)="setMode('group')">
+          <i class="pi pi-users" aria-hidden="true"></i> Група
+        </button>
+      </div>
+    }
+
+    @if (mode() === 'group') {
+      <div class="form-field">
+        <label for="groupTitle">Назва групи</label>
+        <input pInputText id="groupTitle" [fluid]="true" [maxlength]="maxTitle" placeholder="Наприклад, Магазин №12 · зміна"
+               [ngModel]="title()" (ngModelChange)="title.set($event)"/>
+      </div>
+    }
+
+    @if (mode() !== 'direct' && selected().length) {
+      <div class="chips" aria-label="Обрані колеги">
+        @for (contact of selected(); track contact.employeeId) {
+          <span class="chip">
+            {{ contact.fullName }}
+            <button type="button" class="chip-remove" [attr.aria-label]="'Прибрати ' + contact.fullName"
+                    (click)="unselect(contact)"><i class="pi pi-times" aria-hidden="true"></i></button>
+          </span>
+        }
+      </div>
+    }
+
+    <app-contact-picker
+      [multiple]="mode() !== 'direct'"
+      [selectedIds]="selectedIds()"
+      [disabledIds]="mode() === 'add' ? memberIds() : []"
+      [autofocus]="mode() !== 'group'"
+      (picked)="pick($event)"/>
+
+    @if (mode() !== 'direct') {
+      <footer class="form-dialog-footer">
+        <p-button label="Скасувати" [text]="true" severity="secondary" (onClick)="close()"/>
+        <p-button
+          [label]="mode() === 'group' ? 'Створити групу' : 'Додати'"
+          [icon]="mode() === 'group' ? 'pi pi-users' : 'pi pi-user-plus'"
+          [disabled]="!canSave()"
+          [loading]="saving()"
+          (onClick)="save()"/>
+      </footer>
+    } @else {
+      <div class="spacer"></div>
+    }
+  </div>
+</div>

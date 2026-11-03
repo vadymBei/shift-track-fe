@@ -1,0 +1,206 @@
+<header class="view-head">
+  <a class="back" routerLink="/messages" aria-label="До списку чатів"><i class="pi pi-arrow-left" aria-hidden="true"></i></a>
+
+  @if (conversation(); as current) {
+    <button type="button" class="head-main" (click)="showDetails.emit()"
+            [attr.aria-label]="(isGroup(current) ? 'Про групу ' : 'Про співрозмовника ') + title()">
+      <app-chat-avatar [name]="title()" [seed]="avatarSeed(current)" [group]="isGroup(current)" [size]="40"/>
+      <span class="head-text">
+        <span class="head-title">{{ title() }}</span>
+        @if (typing()) {
+          <span class="head-sub typing">{{ typing() }}</span>
+        } @else {
+          <span class="head-sub">{{ subtitle() }}</span>
+        }
+      </span>
+    </button>
+    <p-button icon="pi pi-info-circle" [rounded]="true" [text]="true" severity="secondary"
+              [ariaLabel]="isGroup(current) ? 'Учасники групи' : 'Про співрозмовника'"
+              [pTooltip]="isGroup(current) ? 'Учасники групи' : 'Про співрозмовника'" tooltipPosition="bottom"
+              (onClick)="showDetails.emit()"/>
+  } @else {
+    <div class="head-main">
+      <p-skeleton shape="circle" size="40px"/>
+      <span class="head-text"><p-skeleton width="160px" height="14px"/></span>
+    </div>
+  }
+</header>
+
+<div class="messages" #scroller (scroll)="onScroll()" role="log" aria-live="polite" [attr.aria-label]="'Розмова: ' + title()">
+  @if (thread().loading && !thread().messages.length) {
+    @for (i of skeletons; track i) {
+      <div class="skeleton-row" [class.mine]="i % 2 === 0">
+        <p-skeleton [width]="i % 2 === 0 ? '220px' : '280px'" height="44px" borderRadius="16px"/>
+      </div>
+    }
+  } @else {
+    @if (thread().loadingOlder) {
+      <div class="older"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Завантажуємо старші повідомлення…</div>
+    } @else if (thread().loaded && !thread().hasOlder && thread().messages.length) {
+      <div class="older">Початок розмови</div>
+    }
+
+    @for (row of rows(); track row.key) {
+      @if (row.day) {
+        <div class="day"><span>{{ row.day }}</span></div>
+      }
+
+      @if (row.message.type === 'System') {
+        <div class="system" [attr.data-message-id]="row.message.id">{{ row.message.text }}</div>
+      } @else {
+        <div class="msg"
+             [class.mine]="row.mine"
+             [class.continues]="row.continues"
+             [class.continued]="row.continued"
+             [attr.data-message-id]="row.message.id">
+          @if (!row.mine) {
+            <span class="msg-avatar">
+              @if (!row.continued) {
+                <app-chat-avatar [name]="avatarName(row.message)" [seed]="row.message.authorId ?? 0" [size]="32"/>
+              }
+            </span>
+          }
+
+          <div class="bubble" [class.deleted]="row.message.isDeleted" [class.failed]="row.message.delivery === 'failed'">
+            @if (!row.mine && !row.continues && isGroup(conversation())) {
+              <span class="author">{{ row.message.authorFullName ?? 'Працівник' }}</span>
+            }
+
+            @if (row.message.replyTo; as reply) {
+              <button type="button" class="quote" (click)="scrollToMessage(reply.id)"
+                      [attr.aria-label]="'Перейти до повідомлення, на яке відповіли'">
+                <span class="quote-author">{{ reply.authorId === me() ? 'Ви' : reply.authorFullName ?? 'Працівник' }}</span>
+                <span class="quote-text">{{ reply.isDeleted ? 'Повідомлення видалено' : reply.text }}</span>
+              </button>
+            }
+
+            @if (row.message.isDeleted) {
+              <span class="text"><i class="pi pi-ban" aria-hidden="true"></i> Повідомлення видалено</span>
+            } @else {
+              <span class="text">{{ row.message.text }}</span>
+            }
+
+            <span class="meta">
+              @if (row.message.editedAt && !row.message.isDeleted) {
+                <span>змінено</span>
+              }
+              <span class="tabular">{{ time(row.message) }}</span>
+              @if (row.mine) {
+                @switch (row.message.delivery) {
+                  @case ('sending') {
+                    <i class="pi pi-clock" role="img" aria-label="Надсилається"></i>
+                  }
+                  @case ('failed') {
+                    <i class="pi pi-exclamation-circle" role="img" aria-label="Не надіслано"></i>
+                  }
+                  @default {
+                    <i class="tick" [class.read]="row.read" role="img" [attr.aria-label]="row.read ? 'Прочитано' : 'Надіслано'">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M18 6 7 17l-5-5"/>
+                        @if (row.read) {
+                          <path d="m22 10-7.5 7.5L13 16"/>
+                        }
+                      </svg>
+                    </i>
+                  }
+                }
+              }
+            </span>
+          </div>
+
+          @if (row.message.delivery === 'failed') {
+            <div class="failed-actions">
+              <span>Не надіслано</span>
+              <button type="button" (click)="retry(row.message)">Повторити</button>
+              <button type="button" (click)="discard(row.message)">Скасувати</button>
+            </div>
+          } @else if (row.message.id > 0 && !row.message.isDeleted) {
+            <button type="button" class="msg-actions" aria-label="Дії з повідомленням" aria-haspopup="menu"
+                    (click)="openActions($event, row)">
+              <i class="pi pi-ellipsis-v" aria-hidden="true"></i>
+            </button>
+          }
+        </div>
+      }
+    } @empty {
+      @if (thread().loaded) {
+        <div class="empty">
+          <app-chat-avatar [name]="title()" [seed]="avatarSeed(conversation())" [group]="isGroup(conversation())" [size]="64"/>
+          <span class="empty-title">{{ title() }}</span>
+          <span>Повідомлень ще немає. Напишіть перше!</span>
+        </div>
+      }
+    }
+
+    @if (typing()) {
+      <div class="typing-row" aria-hidden="true"><span class="dots"><i></i><i></i><i></i></span>{{ typing() }}</div>
+    }
+  }
+</div>
+
+@if (awayFromBottom()) {
+  <button type="button" class="to-bottom" aria-label="До нових повідомлень" (click)="scrollToBottom()">
+    <i class="pi pi-arrow-down" aria-hidden="true"></i>
+  </button>
+}
+
+@if (conversation() && !canWrite()) {
+  <div class="readonly">
+    <i class="pi pi-lock" aria-hidden="true"></i>
+    Працівник більше не доступний — написати в цей чат не можна
+  </div>
+} @else {
+  <form class="composer" (ngSubmit)="submit()">
+    @if (replyTo(); as reply) {
+      <div class="compose-bar">
+        <i class="pi pi-reply" aria-hidden="true"></i>
+        <span class="compose-bar-text">
+          <span class="compose-bar-title">Відповідь {{ reply.authorId === me() ? 'собі' : reply.authorFullName }}</span>
+          <span class="compose-bar-quote">{{ reply.text }}</span>
+        </span>
+        <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" size="small"
+                  ariaLabel="Скасувати відповідь" (onClick)="cancelCompose()"/>
+      </div>
+    }
+    @if (editing(); as edited) {
+      <div class="compose-bar">
+        <i class="pi pi-pencil" aria-hidden="true"></i>
+        <span class="compose-bar-text">
+          <span class="compose-bar-title">Редагування</span>
+          <span class="compose-bar-quote">{{ edited.text }}</span>
+        </span>
+        <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" size="small"
+                  ariaLabel="Скасувати редагування" (onClick)="cancelCompose()"/>
+      </div>
+    }
+
+    <div class="compose-row">
+      <label class="visually-hidden" for="composer">Повідомлення для {{ title() }}</label>
+      <textarea
+        #composer
+        id="composer"
+        pTextarea
+        rows="1"
+        [autoResize]="true"
+        [class.scrollable]="composerScrolls()"
+        placeholder="Напишіть повідомлення…"
+        [ngModel]="text()"
+        name="text"
+        (ngModelChange)="onInput($event)"
+        (keydown)="onKeydown($event)"></textarea>
+      <p-button
+        type="submit"
+        [icon]="editing() ? 'pi pi-check' : 'pi pi-send'"
+        [rounded]="true"
+        [ariaLabel]="editing() ? 'Зберегти зміни' : 'Надіслати'"
+        [disabled]="!text().trim() || text().length > maxLength"
+        [loading]="saving()"/>
+    </div>
+    @if (text().length > maxLength - 300) {
+      <div class="counter" [class.over]="text().length > maxLength">{{ text().length }} / {{ maxLength }}</div>
+    }
+  </form>
+}
+
+<p-menu #actionsMenu [model]="actions()" [popup]="true" appendTo="body" styleClass="message-actions-menu"/>

@@ -12,6 +12,11 @@
     <span class="contact-position">{{ employee().position?.name ?? 'Без посади' }}</span>
 
     <div class="quick-actions">
+      @if (employee().id !== currentEmployeeId()) {
+        <a class="quick-action" routerLink="/messages" [queryParams]="{to: employee().id}">
+          <i class="pi pi-comments"></i><span>Повідомлення</span>
+        </a>
+      }
       @if (employee().phoneNumber) {
         <a class="quick-action" [href]="'tel:' + employee().phoneNumber">
           <i class="pi pi-phone"></i><span>Зателефонувати</span>
@@ -19,7 +24,7 @@
       }
       @if (employee().email) {
         <a class="quick-action" [href]="'mailto:' + employee().email">
-          <i class="pi pi-envelope"></i><span>Написати</span>
+          <i class="pi pi-envelope"></i><span>Email</span>
         </a>
       }
     </div>

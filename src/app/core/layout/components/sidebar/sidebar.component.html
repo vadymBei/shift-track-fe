@@ -33,7 +33,7 @@
             <span class="nav-label">{{ item.label }}</span>
           }
           @if (badgeCount(item); as count) {
-            <span class="nav-badge" [attr.aria-label]="count + ' чекають рішення'">{{ collapsed() ? '' : count }}</span>
+            <span class="nav-badge" [attr.aria-label]="badgeLabel(item, count)">{{ collapsed() ? '' : badgeText(count) }}</span>
           }
         </a>
       }
