@@ -40,6 +40,7 @@ const NEAR_BOTTOM_PX = 120;
 const LOAD_OLDER_AT_PX = 160;
 /** The composer grows up to this height (as in the styles), then scrolls. */
 const COMPOSER_MAX_HEIGHT_PX = 160;
+const LONG_PRESS_MS = 500;
 
 interface MessageRow {
   /** The client id keeps the element when an unsent message is replaced by the saved one. */
@@ -135,6 +136,7 @@ export class ConversationViewComponent {
     });
   });
 
+  private pressTimer: ReturnType<typeof setTimeout> | null = null;
   private lastScrollHeight = 0;
   private renderedFirstId: number | null = null;
   private renderedLastId: number | null = null;
@@ -319,6 +321,39 @@ export class ConversationViewComponent {
     this.actionsMenu()?.toggle(event);
   }
 
+  /** Right click on a message opens its actions, like in other messengers. */
+  onContextMenu(event: MouseEvent, row: MessageRow): void {
+    if (!this.hasActions(row)) {
+      return;
+    }
+    event.preventDefault();
+    this.openActions(event, row);
+  }
+
+  /** A long press on a phone opens the actions. */
+  onPressStart(event: PointerEvent, row: MessageRow): void {
+    if (event.pointerType !== 'touch' || !this.hasActions(row)) {
+      return;
+    }
+    this.onPressEnd();
+    this.pressTimer = setTimeout(() => {
+      this.pressTimer = null;
+      navigator.vibrate?.(15);
+      this.openActions(event, row);
+    }, LONG_PRESS_MS);
+  }
+
+  onPressEnd(): void {
+    if (this.pressTimer) {
+      clearTimeout(this.pressTimer);
+      this.pressTimer = null;
+    }
+  }
+
+  private hasActions(row: MessageRow): boolean {
+    return row.message.id > 0 && !row.message.isDeleted && !row.message.delivery;
+  }
+
   retry(message: DisplayMessage): void {
     this.store.retry(message);
   }
@@ -327,7 +362,7 @@ export class ConversationViewComponent {
     this.store.discard(message);
   }
 
-  private remove(message: ChatMessage): void {
+  remove(message: ChatMessage): void {
     this.confirm.confirm({
       header: 'Видалити повідомлення?',
       message: 'Співрозмовники побачать, що повідомлення видалено.',

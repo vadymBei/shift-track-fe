@@ -200,8 +200,8 @@ test.describe('Messenger', () => {
       .on('DELETE', 'communication/messenger/messages/11', {...own, text: null, isDeleted: true});
 
     await page.goto('/messages/1');
-    await log(page).getByText('Зміна з 9:00').hover();
-    await log(page).getByRole('button', {name: 'Дії з повідомленням'}).click();
+    // Right click opens the actions, as in other messengers.
+    await log(page).getByText('Зміна з 9:00').click({button: 'right'});
     await page.getByRole('menuitem', {name: 'Редагувати'}).click();
 
     await expect(composer(page)).toHaveValue('Зміна з 9:00');
@@ -212,12 +212,28 @@ test.describe('Messenger', () => {
     await expect(log(page)).toContainText('змінено');
     expect(api.requestsTo('PUT', 'communication/messenger/messages/11')[0].body).toEqual({text: 'Зміна з 10:00'});
 
-    await log(page).getByRole('button', {name: 'Дії з повідомленням'}).click();
-    await page.getByRole('menuitem', {name: 'Видалити'}).click();
+    // The actions shown on hover.
+    await log(page).getByText('Зміна з 10:00').hover();
+    await log(page).getByRole('button', {name: 'Видалити повідомлення'}).click();
     await page.getByRole('alertdialog').getByRole('button', {name: 'Видалити'}).click();
 
     await expect(log(page)).toContainText('Повідомлення видалено');
     await expect(log(page)).not.toContainText('Зміна з 10:00');
+  });
+
+  test('others\' messages can be replied to but not changed', async ({page, api}) => {
+    withChat(api, directChat(me, olena), [chatMessage({id: 12, text: 'Хто завтра на 8:00?'})]);
+
+    await page.goto('/messages/1');
+    await log(page).getByText('Хто завтра на 8:00?').hover();
+
+    await expect(log(page).getByRole('button', {name: 'Відповісти'})).toBeVisible();
+    await expect(log(page).getByRole('button', {name: 'Видалити повідомлення'})).toHaveCount(0);
+    await expect(log(page).getByRole('button', {name: 'Редагувати'})).toHaveCount(0);
+
+    await log(page).getByRole('button', {name: 'Відповісти'}).click();
+    await expect(page.getByText('Відповідь Коваль Олена')).toBeVisible();
+    await expect(composer(page)).toBeFocused();
   });
 
   test('a chat with an employee who is no longer available is read-only', async ({page, api}) => {

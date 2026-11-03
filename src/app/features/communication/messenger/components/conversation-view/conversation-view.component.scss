@@ -276,36 +276,63 @@
   }
 }
 
-.msg-actions {
+.msg-tools {
+  display: flex;
+  align-self: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 999px;
+  background: var(--p-content-background);
+  box-shadow: var(--app-shadow-sm);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease-out;
+
+  .msg:hover &,
+  &:focus-within {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  // Phones have no hover: the actions open with a long press on the message.
+  @media (hover: none) {
+    display: none;
+  }
+}
+
+.tool {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  align-self: center;
   width: 28px;
   height: 28px;
   border: 0;
   border-radius: 50%;
   background: transparent;
   color: var(--p-text-muted-color);
-  opacity: 0;
-  transition: opacity 0.15s ease-out;
+
+  i {
+    font-size: 13px;
+  }
 
   &:hover {
     background: var(--p-content-hover-background);
+    color: var(--p-text-color);
+  }
+
+  &.danger:hover {
+    color: var(--p-red-500);
   }
 
   &:focus-visible {
-    opacity: 1;
     outline: 2px solid var(--p-primary-color);
+    outline-offset: -2px;
   }
+}
 
-  .msg:hover & {
-    opacity: 1;
-  }
-
-  @media (hover: none) {
-    opacity: 0.6;
-  }
+.bubble {
+  -webkit-touch-callout: none;
 }
 
 .failed-actions {

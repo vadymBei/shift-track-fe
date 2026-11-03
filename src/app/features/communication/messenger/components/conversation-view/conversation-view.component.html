@@ -61,7 +61,12 @@
             </span>
           }
 
-          <div class="bubble" [class.deleted]="row.message.isDeleted" [class.failed]="row.message.delivery === 'failed'">
+          <div class="bubble" [class.deleted]="row.message.isDeleted" [class.failed]="row.message.delivery === 'failed'"
+               (contextmenu)="onContextMenu($event, row)"
+               (pointerdown)="onPressStart($event, row)"
+               (pointerup)="onPressEnd()"
+               (pointercancel)="onPressEnd()"
+               (pointerleave)="onPressEnd()">
             @if (!row.mine && !row.continues && isGroup(conversation())) {
               <span class="author">{{ row.message.authorFullName ?? 'Працівник' }}</span>
             }
@@ -116,10 +121,12 @@
               <button type="button" (click)="discard(row.message)">Скасувати</button>
             </div>
           } @else if (row.message.id > 0 && !row.message.isDeleted) {
-            <button type="button" class="msg-actions" aria-label="Дії з повідомленням" aria-haspopup="menu"
-                    (click)="openActions($event, row)">
-              <i class="pi pi-ellipsis-v" aria-hidden="true"></i>
-            </button>
+            <div class="msg-tools">
+              <button type="button" class="tool" aria-label="Дії з повідомленням" aria-haspopup="menu"
+                      pTooltip="Більше" tooltipPosition="top" (click)="openActions($event, row)">
+                <i class="pi pi-ellipsis-v" aria-hidden="true"></i>
+              </button>
+            </div>
           }
         </div>
       }
