@@ -212,9 +212,10 @@ test.describe('Messenger', () => {
     await expect(log(page)).toContainText('змінено');
     expect(api.requestsTo('PUT', 'communication/messenger/messages/11')[0].body).toEqual({text: 'Зміна з 10:00'});
 
-    // The actions shown on hover.
+    // The actions button shown on hover.
     await log(page).getByText('Зміна з 10:00').hover();
-    await log(page).getByRole('button', {name: 'Видалити повідомлення'}).click();
+    await log(page).getByRole('button', {name: 'Дії з повідомленням'}).click();
+    await page.getByRole('menuitem', {name: 'Видалити'}).click();
     await page.getByRole('alertdialog').getByRole('button', {name: 'Видалити'}).click();
 
     await expect(log(page)).toContainText('Повідомлення видалено');
@@ -226,12 +227,13 @@ test.describe('Messenger', () => {
 
     await page.goto('/messages/1');
     await log(page).getByText('Хто завтра на 8:00?').hover();
+    await log(page).getByRole('button', {name: 'Дії з повідомленням'}).click();
 
-    await expect(log(page).getByRole('button', {name: 'Відповісти'})).toBeVisible();
-    await expect(log(page).getByRole('button', {name: 'Видалити повідомлення'})).toHaveCount(0);
-    await expect(log(page).getByRole('button', {name: 'Редагувати'})).toHaveCount(0);
+    await expect(page.getByRole('menuitem', {name: 'Відповісти'})).toBeVisible();
+    await expect(page.getByRole('menuitem', {name: 'Видалити'})).toHaveCount(0);
+    await expect(page.getByRole('menuitem', {name: 'Редагувати'})).toHaveCount(0);
 
-    await log(page).getByRole('button', {name: 'Відповісти'}).click();
+    await page.getByRole('menuitem', {name: 'Відповісти'}).click();
     await expect(page.getByText('Відповідь Коваль Олена')).toBeVisible();
     await expect(composer(page)).toBeFocused();
   });

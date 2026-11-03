@@ -82,6 +82,18 @@
       <legend>Робота</legend>
       <div class="grid">
         <div class="form-field">
+          <label for="empHireDate">Дата прийому на роботу</label>
+          <p-datepicker inputId="empHireDate" formControlName="hireDate" dateFormat="dd.mm.yy"
+                        [minDate]="minHireDate" [maxDate]="maxHireDate"
+                        [showIcon]="true" iconDisplay="input" [showButtonBar]="true" placeholder="дд.мм.рррр"
+                        appendTo="body" [fluid]="true"/>
+          @if (form.controls.hireDate.value) {
+            <small class="hint">Від неї рахуються відпустка і перші 6 місяців роботи</small>
+          } @else if (registrationDate()) {
+            <small class="hint">Не вказана — відпустка рахується від реєстрації в системі ({{ registrationDate() }})</small>
+          }
+        </div>
+        <div class="form-field">
           <label for="empUnit">Регіон</label>
           <p-select inputId="empUnit" formControlName="unitId" [options]="units()" optionLabel="name" optionValue="id"
                     placeholder="Оберіть регіон" [showClear]="true" [filter]="units().length > 8"

@@ -1,7 +1,8 @@
 import {Component, computed, inject, OnDestroy, OnInit, signal} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {catchError, finalize, of, Subject, takeUntil} from 'rxjs';
-import {toApiDate, toDate} from '../../../../../shared/utils/date.utils';
+import {addYears} from 'date-fns';
+import {formatDate, toApiDate, toDate} from '../../../../../shared/utils/date.utils';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {PrimeTemplate} from 'primeng/api';
 import {InputText} from 'primeng/inputtext';
@@ -58,6 +59,14 @@ export class EmployeeDialogComponent implements OnInit, OnDestroy {
     {label: 'Жінка', value: EmployeeGender.female}
   ];
   readonly maxBirthDate = new Date();
+  readonly minHireDate = new Date(1950, 0, 1);
+  readonly maxHireDate = addYears(new Date(), 1);
+
+  /** Without a hire date the vacations are counted from the registration. */
+  readonly registrationDate = computed(() => {
+    const createdAt = this.employee()?.createdAt;
+    return createdAt ? formatDate(createdAt, 'dd.MM.yyyy') : null;
+  });
 
   readonly employee = signal<Employee | null>(null);
   readonly units = signal<Unit[]>([]);
@@ -73,6 +82,7 @@ export class EmployeeDialogComponent implements OnInit, OnDestroy {
     name: ['', [Validators.required, Validators.maxLength(100)]],
     patronymic: ['', [Validators.required, Validators.maxLength(100)]],
     dateOfBirth: this.fb.control<Date | null>(null),
+    hireDate: this.fb.control<Date | null>(null),
     gender: [EmployeeGender.none as EmployeeGender, [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
     phoneNumber: [{value: '', disabled: true}],
@@ -100,6 +110,7 @@ export class EmployeeDialogComponent implements OnInit, OnDestroy {
           name: employee.name,
           patronymic: employee.patronymic,
           dateOfBirth: employee.dateOfBirth ? toDate(employee.dateOfBirth) : null,
+          hireDate: employee.hireDate ? toDate(employee.hireDate) : null,
           gender: employee.gender ?? EmployeeGender.none,
           email: employee.email,
           phoneNumber: employee.phoneNumber,
@@ -147,6 +158,7 @@ export class EmployeeDialogComponent implements OnInit, OnDestroy {
       email: value.email!.trim(),
       gender: value.gender ?? EmployeeGender.none,
       dateOfBirth: value.dateOfBirth ? toApiDate(value.dateOfBirth) as unknown as Date : undefined,
+      hireDate: value.hireDate ? toApiDate(value.hireDate) : null,
       departmentId: value.departmentId ?? undefined,
       positionId: value.positionId ?? undefined
     };

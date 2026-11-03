@@ -10,6 +10,7 @@ import {AccountService} from '../../../../../core/account/services/account.servi
 import {NotificationService} from '../../../../../shared/services/notification.service';
 import {Employee} from '../../models/employee.model';
 import {personInitials} from '../../../../../shared/utils/text.utils';
+import {formatDate} from '../../../../../shared/utils/date.utils';
 
 @Component({
   selector: 'app-contact-details',
@@ -36,7 +37,8 @@ export class ContactDetailsComponent implements OnDestroy {
     return [
       {icon: 'pi pi-id-card', label: 'Посада', value: e.position?.name ?? 'Без посади'},
       {icon: 'pi pi-building', label: 'Департамент', value: e.department?.name ?? 'Не вказано'},
-      {icon: 'pi pi-map-marker', label: 'Регіон', value: e.department?.unit?.name ?? 'Не вказано'}
+      {icon: 'pi pi-map-marker', label: 'Регіон', value: e.department?.unit?.name ?? 'Не вказано'},
+      ...(e.hireDate ? [{icon: 'pi pi-calendar', label: 'Працює з', value: formatDate(e.hireDate, 'd MMMM yyyy')}] : [])
     ];
   });
 
