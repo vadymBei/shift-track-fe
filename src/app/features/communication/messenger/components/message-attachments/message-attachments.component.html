@@ -1,0 +1,24 @@
+@if (images().length) {
+  <div class="images" [class.single]="images().length === 1">
+    @for (image of images(); track image.id) {
+      <button type="button" class="image" [attr.aria-label]="'Переглянути ' + image.fileName" (click)="viewImage.emit(image)">
+        <app-attachment-image [attachment]="image"/>
+      </button>
+    }
+  </div>
+}
+@for (file of documents(); track file.id) {
+  <div class="file">
+    <button type="button" class="file-main" [attr.aria-label]="'Відкрити ' + file.fileName" (click)="open(file)">
+      <app-file-badge [fileName]="file.fileName"/>
+      <span class="file-text">
+        <span class="file-name">{{ file.fileName }}</span>
+        <span class="file-size">{{ size(file.size) }}</span>
+      </span>
+    </button>
+    <button type="button" class="file-download" [attr.aria-label]="'Завантажити ' + file.fileName"
+            pTooltip="Завантажити" tooltipPosition="top" (click)="download(file)">
+      <i class="pi pi-download" aria-hidden="true"></i>
+    </button>
+  </div>
+}

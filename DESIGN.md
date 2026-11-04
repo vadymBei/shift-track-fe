@@ -229,6 +229,7 @@ PrimeNG-токени (генерує тема, автоматично зміню
 | Фото поточного користувача | `CurrentUserPhotoService` | `photoUrl()` — спільне для меню і профілю, `refresh()` після завантаження нового |
 
 | Аватар чату | `features/communication/messenger/components/chat-avatar` | `<app-chat-avatar [name]="fullName" [seed]="employeeId" [size]="40"/>` — ініціали в одному з 6 кольорів палітри за `seed`; `[group]="true"` — іконка групи |
+| Файли в чатах | `features/communication/messenger/components/message-attachments`, `file-badge` | `<app-message-attachments [attachments]="message.attachments"/>` — фото сіткою, документи плитками; `<app-file-badge [fileName]="name"/>` — «PDF», «XLSX» у кольорі типу. Файли потребують токена, тому завантажуються як blob через `AttachmentFilesService` |
 | Пошук колег по всій компанії | `features/communication/messenger/components/contact-picker` | `<app-contact-picker [multiple]="true" [selectedIds]="ids" (picked)="…"/>` — для вибору людей у діалогах |
 
 Клітинки самого табеля мають власну розмітку (режим «Години», ховер, виділення) і `app-shift-chip` не використовують.

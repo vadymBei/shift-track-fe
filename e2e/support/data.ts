@@ -137,6 +137,18 @@ export function chatMessage(overrides: Record<string, unknown> = {}) {
     isDeleted: false,
     clientMessageId: null,
     replyTo: null,
+    attachments: [],
+    ...overrides
+  };
+}
+
+export function attachment(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 1,
+    fileName: 'довідка.pdf',
+    contentType: 'application/pdf',
+    size: 188_416,
+    isImage: false,
     ...overrides
   };
 }

@@ -20,5 +20,12 @@
   'BCK_VCN_ANNUAL_VACATION_BEFORE_SIX_MONTHS': 'Щорічну основну відпустку можна взяти лише після 6 місяців безперервної роботи.',
   'ORG_EMP_NO_PERMISSION_TO_EDIT_EMPLOYEES': 'Редагувати працівників можуть лише адміністратори та регіональні директори.',
   'ORG_EMP_EMPLOYEE_OUT_OF_SCOPE': 'Ви можете редагувати лише працівників свого регіону або ще не призначених у департамент.',
-  'ORG_EMP_DEPARTMENT_OUT_OF_SCOPE': 'Перевести працівника можна лише в департамент свого регіону.'
+  'ORG_EMP_DEPARTMENT_OUT_OF_SCOPE': 'Перевести працівника можна лише в департамент свого регіону.',
+  'CMN_MSG_ATTACHMENT_EMPTY': 'Файл порожній',
+  'CMN_MSG_ATTACHMENT_TOO_LARGE': 'Файл більший за 20 МБ',
+  'CMN_MSG_ATTACHMENT_TYPE_NOT_ALLOWED': 'Такий тип файлів не можна надіслати',
+  'CMN_MSG_TOO_MANY_ATTACHMENTS': 'В одному повідомленні може бути до 10 файлів',
+  'CMN_MSG_ATTACHMENTS_NOT_FOUND': 'Деякі файли вже недоступні — прикріпіть їх ще раз',
+  'CMN_MSG_ATTACHMENT_NOT_FOUND': 'Файл не знайдено',
+  'CMN_MSG_ATTACHMENT_STORAGE_UNAVAILABLE': 'Сервер зараз не може зберегти файл'
 };

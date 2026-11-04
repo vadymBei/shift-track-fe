@@ -1,6 +1,7 @@
 import {Page} from '@playwright/test';
 import {expect, test} from './support/test';
-import {chatMessage, contact, directChat, employee, groupChat, member, users} from './support/data';
+import {attachment, chatMessage, contact, directChat, employee, groupChat, member, users} from './support/data';
+import {RawBody} from './support/mock-api';
 import {NotificationsHub} from './support/notifications-hub';
 
 const me = users.departmentDirector;
@@ -276,5 +277,123 @@ test.describe('Messenger', () => {
     await page.getByRole('link', {name: 'До списку чатів'}).click();
     await expect(list(page)).toBeVisible();
     await expect(page).toHaveURL(/\/messages$/);
+  });
+
+  test.describe('files', () => {
+    /** A 1×1 PNG. */
+    const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
+    const fileInput = (page: Page) => page.locator('input[type="file"]');
+
+    function answerUploads(api: import('./support/mock-api').MockApi) {
+      let id = 40;
+      api.on('POST', 'communication/messenger/conversations/1/attachments', request => {
+        const body = request.postDataBuffer()?.toString('latin1') ?? '';
+        const isImage = body.includes('photo.png');
+        return attachment({id: ++id, fileName: isImage ? 'photo.png' : 'Довідка.pdf',
+          contentType: isImage ? 'image/png' : 'application/pdf', isImage, size: isImage ? png.length : 3});
+      });
+    }
+
+    test('files are uploaded first and sent with the message', async ({page, api}) => {
+      withChat(api, directChat(me, olena), []);
+      answerUploads(api);
+      api
+        .on('GET', /^communication\/messenger\/attachments\/\d+/, new RawBody(png, 'image/png'))
+        .on('POST', 'communication/messenger/conversations/1/messages', request => {
+          const body = request.postDataJSON();
+          return chatMessage({id: 50, authorId: me.employee.id, text: body.text || null, clientMessageId: body.clientMessageId,
+            attachments: [attachment({id: 41, fileName: 'Довідка.pdf', size: 3}),
+              attachment({id: 42, fileName: 'photo.png', contentType: 'image/png', isImage: true, size: png.length})]});
+        });
+
+      await page.goto('/messages/1');
+      await fileInput(page).setInputFiles([
+        {name: 'Довідка.pdf', mimeType: 'application/pdf', buffer: Buffer.from('pdf')},
+        {name: 'photo.png', mimeType: 'image/png', buffer: png}
+      ]);
+
+      const uploads = page.getByRole('list', {name: 'Файли до повідомлення'});
+      await expect(uploads.getByRole('listitem')).toHaveCount(2);
+      await expect(uploads).toContainText('Довідка.pdf');
+      await expect(page.getByRole('button', {name: 'Надіслати'})).toBeEnabled();
+
+      // Files without text are a message too.
+      await page.getByRole('button', {name: 'Надіслати'}).click();
+
+      await expect.poll(() => api.requestsTo('POST', 'communication/messenger/conversations/1/messages').length).toBe(1);
+      expect(api.requestsTo('POST', 'communication/messenger/conversations/1/messages')[0].body)
+        .toMatchObject({text: '', attachmentIds: [41, 42]});
+      await expect(uploads).toHaveCount(0);
+      await expect(log(page).getByRole('button', {name: 'Відкрити Довідка.pdf'})).toBeVisible();
+      await expect(log(page).getByRole('img', {name: 'photo.png'})).toBeVisible();
+    });
+
+    test('files that can\'t be sent are not uploaded', async ({page, api}) => {
+      withChat(api, directChat(me, olena), []);
+      answerUploads(api);
+
+      await page.goto('/messages/1');
+      await fileInput(page).setInputFiles({name: 'setup.exe', mimeType: 'application/octet-stream', buffer: Buffer.from('MZ')});
+
+      await expect(page.locator('.p-toast')).toContainText('Такий тип файлів не можна надіслати');
+      expect(api.requestsTo('POST', 'communication/messenger/conversations/1/attachments')).toHaveLength(0);
+      await expect(page.getByRole('button', {name: 'Надіслати'})).toBeDisabled();
+    });
+
+    test('a file dropped from the message is removed on the server', async ({page, api}) => {
+      withChat(api, directChat(me, olena), []);
+      answerUploads(api);
+
+      await page.goto('/messages/1');
+      await fileInput(page).setInputFiles({name: 'Довідка.pdf', mimeType: 'application/pdf', buffer: Buffer.from('pdf')});
+      await page.getByRole('button', {name: 'Прибрати Довідка.pdf'}).click();
+
+      await expect.poll(() => api.requestsTo('DELETE', 'communication/messenger/attachments/41').length).toBe(1);
+      await expect(page.getByRole('list', {name: 'Файли до повідомлення'})).toHaveCount(0);
+    });
+
+    test('an upload error is shown on the file', async ({page, api}) => {
+      withChat(api, directChat(me, olena), []);
+      api.on('POST', 'communication/messenger/conversations/1/attachments',
+        {ErrorType: 'CMN_MSG_ATTACHMENT_TOO_LARGE', ErrorMessage: 'too large'}, 413);
+
+      await page.goto('/messages/1');
+      await fileInput(page).setInputFiles({name: 'Довідка.pdf', mimeType: 'application/pdf', buffer: Buffer.from('pdf')});
+
+      await expect(page.getByRole('list', {name: 'Файли до повідомлення'})).toContainText('Файл більший за 20 МБ');
+      await expect(page.getByRole('button', {name: 'Надіслати'})).toBeDisabled();
+    });
+
+    test('a received file is downloaded, a picture opens in the viewer', async ({page, api}) => {
+      withChat(api, directChat(me, olena), [chatMessage({id: 9, text: 'Графік на листопад', attachments: [
+        attachment({id: 5, fileName: 'графік.xlsx', contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),
+        attachment({id: 6, fileName: 'зміни.png', contentType: 'image/png', isImage: true})
+      ]})]);
+      api
+        .on('GET', /^communication\/messenger\/attachments\/5/, new RawBody(Buffer.from('xlsx'), 'application/octet-stream'))
+        .on('GET', /^communication\/messenger\/attachments\/6/, new RawBody(png, 'image/png'));
+
+      await page.goto('/messages/1');
+
+      const download = page.waitForEvent('download');
+      await log(page).getByRole('button', {name: 'Завантажити графік.xlsx'}).click();
+      expect((await download).suggestedFilename()).toBe('графік.xlsx');
+      expect(api.requestsTo('GET', /^communication\/messenger\/attachments\/5\?download=true/)).toHaveLength(1);
+
+      await log(page).getByRole('button', {name: 'Переглянути зміни.png'}).click();
+      const viewer = page.getByRole('dialog', {name: 'зміни.png'});
+      await expect(viewer.getByRole('img', {name: 'зміни.png'})).toBeVisible();
+      await page.keyboard.press('Escape');
+      await expect(viewer).toHaveCount(0);
+    });
+
+    test('the chat list shows a file message by its file', async ({page, api}) => {
+      withChat(api, directChat(me, olena, {lastMessage: chatMessage({id: 3, text: null,
+        attachments: [attachment({id: 7, fileName: 'зміни.png', contentType: 'image/png', isImage: true})]})}), []);
+
+      await page.goto('/messages');
+
+      await expect(list(page).getByRole('link', {name: /Коваль Олена/})).toContainText('Фото');
+    });
   });
 });

@@ -1,8 +1,8 @@
-import {HttpClient, HttpContext} from '@angular/common/http';
+import {HttpClient, HttpContext, HttpEvent} from '@angular/common/http';
 import {inject, Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {SKIP_ERROR_NOTIFICATION} from '../../../../shared/interceptors/error.interceptor';
-import {ChatContact, ChatMessage, Conversation, MessengerUnreadCount} from '../models/messenger.models';
+import {ChatAttachment, ChatContact, ChatMessage, Conversation, MessengerUnreadCount} from '../models/messenger.models';
 
 export const MESSAGES_PAGE = 50;
 
@@ -64,9 +64,28 @@ export class MessengerApiService {
   }
 
   /** Errors are shown by the message itself ("not sent, retry"), not by a toast. */
-  send(id: number, text: string, clientMessageId: string, replyToMessageId: number | null): Observable<ChatMessage> {
+  send(id: number, text: string, clientMessageId: string, replyToMessageId: number | null,
+       attachmentIds: number[] = []): Observable<ChatMessage> {
     return this.http.post<ChatMessage>(`${this.path}/conversations/${id}/messages`,
-      {text, clientMessageId, replyToMessageId}, quiet());
+      {text, clientMessageId, replyToMessageId, attachmentIds}, quiet());
+  }
+
+  /** With the upload progress; errors are shown on the file. */
+  uploadAttachment(conversationId: number, file: File): Observable<HttpEvent<ChatAttachment>> {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    return this.http.post<ChatAttachment>(`${this.path}/conversations/${conversationId}/attachments`, form,
+      {reportProgress: true, observe: 'events', ...quiet()});
+  }
+
+  /** An upload that wasn't sent. */
+  removeAttachment(id: number): Observable<unknown> {
+    return this.http.delete(`${this.path}/attachments/${id}`, quiet());
+  }
+
+  /** The file needs the token, so it comes as a blob, not by a link. */
+  getAttachment(id: number, download = false): Observable<Blob> {
+    return this.http.get(`${this.path}/attachments/${id}`, {params: {download}, responseType: 'blob', ...quiet()});
   }
 
   edit(messageId: number, text: string): Observable<ChatMessage> {

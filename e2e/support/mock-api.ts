@@ -6,6 +6,12 @@ const API_PREFIX = `${API_HOST}/api/shift-track/`;
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 type Responder = unknown | ((request: Request) => unknown);
 
+/** A response that isn't JSON, like a file. */
+export class RawBody {
+  constructor(readonly body: Buffer, readonly contentType: string) {
+  }
+}
+
 interface Handler {
   method: HttpMethod;
   pattern: RegExp;
@@ -64,7 +70,7 @@ export class MockApi {
     const path = url.substring(API_PREFIX.length);
     const method = request.method() as HttpMethod;
 
-    this.requests.push({method, path, body: request.postDataJSON?.() ?? null});
+    this.requests.push({method, path, body: jsonBody(request)});
 
     const handler = this.handlers.find(x => x.method === method && x.pattern.test(path));
 
@@ -77,10 +83,24 @@ export class MockApi {
       ? (handler.respond as (request: Request) => unknown)(request)
       : handler.respond;
 
+    if (body instanceof RawBody) {
+      await route.fulfill({status: handler.status, contentType: body.contentType, body: body.body});
+      return;
+    }
+
     await route.fulfill({
       status: handler.status,
       contentType: 'application/json',
       body: JSON.stringify(body ?? null)
     });
+  }
+}
+
+/** Multipart uploads aren't JSON. */
+function jsonBody(request: Request): unknown {
+  try {
+    return request.postDataJSON?.() ?? null;
+  } catch {
+    return null;
   }
 }

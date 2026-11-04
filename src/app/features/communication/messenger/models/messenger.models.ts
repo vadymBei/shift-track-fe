@@ -30,6 +30,15 @@ export interface MessagePreview {
   isDeleted: boolean;
 }
 
+export interface ChatAttachment {
+  id: number;
+  fileName: string;
+  contentType: string;
+  /** Bytes. */
+  size: number;
+  isImage: boolean;
+}
+
 export interface ChatMessage {
   id: number;
   conversationId: number;
@@ -43,6 +52,7 @@ export interface ChatMessage {
   isDeleted: boolean;
   clientMessageId: string | null;
   replyTo: MessagePreview | null;
+  attachments: ChatAttachment[];
 }
 
 /** A message shown before the server saved it. */

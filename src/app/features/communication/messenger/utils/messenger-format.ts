@@ -65,7 +65,7 @@ export function previewText(conversation: Conversation, me: number | null): stri
   if (!message) {
     return conversation.type === 'Group' ? 'Група створена' : 'Напишіть перше повідомлення';
   }
-  const text = message.isDeleted ? 'Повідомлення видалено' : (message.text ?? '');
+  const text = message.isDeleted ? 'Повідомлення видалено' : (message.text || attachmentsLabel(message));
   if (message.type === 'System') {
     return text;
   }
@@ -76,6 +76,18 @@ export function previewText(conversation: Conversation, me: number | null): stri
     return `${firstName(message.authorFullName)}: ${text}`;
   }
   return text;
+}
+
+/** For a message with files and no text: "Фото", "Фото (3)", "довідка.pdf", "Файли (2)". */
+export function attachmentsLabel(message: ChatMessage): string {
+  const attachments = message.attachments ?? [];
+  if (!attachments.length) {
+    return '';
+  }
+  if (attachments.every(x => x.isImage)) {
+    return attachments.length === 1 ? 'Фото' : `Фото (${attachments.length})`;
+  }
+  return attachments.length === 1 ? attachments[0].fileName : `Файли (${attachments.length})`;
 }
 
 /** "Коваль Олена Ігорівна" → "Олена". */

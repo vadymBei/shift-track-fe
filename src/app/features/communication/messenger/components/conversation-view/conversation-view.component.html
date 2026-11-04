@@ -75,14 +75,19 @@
               <button type="button" class="quote" (click)="scrollToMessage(reply.id)"
                       [attr.aria-label]="'Перейти до повідомлення, на яке відповіли'">
                 <span class="quote-author">{{ reply.authorId === me() ? 'Ви' : reply.authorFullName ?? 'Працівник' }}</span>
-                <span class="quote-text">{{ reply.isDeleted ? 'Повідомлення видалено' : reply.text }}</span>
+                <span class="quote-text">{{ reply.isDeleted ? 'Повідомлення видалено' : (reply.text || 'Вкладення') }}</span>
               </button>
             }
 
             @if (row.message.isDeleted) {
               <span class="text"><i class="pi pi-ban" aria-hidden="true"></i> Повідомлення видалено</span>
             } @else {
-              <span class="text">{{ row.message.text }}</span>
+              @if (row.message.attachments.length) {
+                <app-message-attachments [attachments]="row.message.attachments" (viewImage)="viewImage($event, row.message)"/>
+              }
+              @if (row.message.text) {
+                <span class="text">{{ row.message.text }}</span>
+              }
             }
 
             <span class="meta">
@@ -164,7 +169,7 @@
         <i class="pi pi-reply" aria-hidden="true"></i>
         <span class="compose-bar-text">
           <span class="compose-bar-title">Відповідь {{ reply.authorId === me() ? 'собі' : reply.authorFullName }}</span>
-          <span class="compose-bar-quote">{{ reply.text }}</span>
+          <span class="compose-bar-quote">{{ reply.text || 'Вкладення' }}</span>
         </span>
         <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" size="small"
                   ariaLabel="Скасувати відповідь" (onClick)="cancelCompose()"/>
@@ -182,7 +187,18 @@
       </div>
     }
 
+    @if (uploads().length) {
+      <app-upload-list [uploads]="uploads()" (remove)="removeUpload($event)"/>
+    }
+
     <div class="compose-row">
+      @if (!editing()) {
+        <p-button icon="pi pi-paperclip" [rounded]="true" [text]="true" severity="secondary"
+                  ariaLabel="Прикріпити файл" pTooltip="Прикріпити файл (до 20 МБ)" tooltipPosition="top"
+                  (onClick)="pickFiles()"/>
+        <input #fileInput type="file" class="visually-hidden" multiple [accept]="accept" tabindex="-1"
+               aria-hidden="true" (change)="onFilesPicked(fileInput)"/>
+      }
       <label class="visually-hidden" for="composer">Повідомлення для {{ title() }}</label>
       <textarea
         #composer
@@ -195,19 +211,31 @@
         [ngModel]="text()"
         name="text"
         (ngModelChange)="onInput($event)"
-        (keydown)="onKeydown($event)"></textarea>
+        (keydown)="onKeydown($event)"
+        (paste)="onPaste($event)"></textarea>
       <p-button
         type="submit"
         [icon]="editing() ? 'pi pi-check' : 'pi pi-send'"
         [rounded]="true"
         [ariaLabel]="editing() ? 'Зберегти зміни' : 'Надіслати'"
-        [disabled]="!text().trim() || text().length > maxLength"
+        [disabled]="!canSend()"
         [loading]="saving()"/>
     </div>
     @if (text().length > maxLength - 300) {
       <div class="counter" [class.over]="text().length > maxLength">{{ text().length }} / {{ maxLength }}</div>
     }
   </form>
+}
+
+@if (dragging()) {
+  <div class="drop-zone" aria-hidden="true">
+    <i class="pi pi-upload"></i>
+    <span>Відпустіть, щоб прикріпити файли</span>
+  </div>
+}
+
+@if (viewer(); as view) {
+  <app-image-viewer [images]="view.images" [start]="view.start" (close)="viewer.set(null)"/>
 }
 
 <p-menu #actionsMenu [model]="actions()" [popup]="true" appendTo="body" styleClass="message-actions-menu"/>

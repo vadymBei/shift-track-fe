@@ -537,3 +537,25 @@
     max-width: 88%;
   }
 }
+
+.drop-zone {
+  position: absolute;
+  inset: 8px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 2px dashed var(--p-primary-color);
+  border-radius: var(--app-radius-lg);
+  background: color-mix(in srgb, var(--p-content-background) 88%, transparent);
+  color: var(--p-primary-color);
+  font-size: 15px;
+  font-weight: 600;
+  pointer-events: none;
+
+  i {
+    font-size: 28px;
+  }
+}

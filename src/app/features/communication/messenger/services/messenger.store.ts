@@ -7,6 +7,7 @@ import {RealtimeService} from '../../../../core/realtime/realtime.service';
 import {NotificationService} from '../../../../shared/services/notification.service';
 import {MESSAGES_PAGE, MessengerApiService} from './messenger-api.service';
 import {
+  ChatAttachment,
   ChatMessage,
   Conversation,
   ConversationRead,
@@ -200,10 +201,11 @@ export class MessengerStore {
 
   // ---- sending
 
-  send(conversationId: number, text: string, replyTo: ChatMessage | null): void {
+  /** Text, files uploaded before, or both. */
+  send(conversationId: number, text: string, replyTo: ChatMessage | null, attachments: ChatAttachment[] = []): void {
     const me = this.me();
     const value = text.trim();
-    if (!me || !value) {
+    if (!me || (!value && !attachments.length)) {
       return;
     }
 
@@ -211,7 +213,7 @@ export class MessengerStore {
       id: --this.tempId,
       conversationId,
       type: 'Text',
-      text: value,
+      text: value || null,
       authorId: me,
       authorFullName: this.accountService.currentUser()?.employee?.fullName ?? null,
       createdAt: new Date().toISOString(),
@@ -225,6 +227,7 @@ export class MessengerStore {
         text: replyTo.text,
         isDeleted: replyTo.isDeleted
       } : null,
+      attachments,
       delivery: 'sending'
     };
 
@@ -246,7 +249,8 @@ export class MessengerStore {
   }
 
   private post(message: DisplayMessage): void {
-    this.api.send(message.conversationId, message.text ?? '', message.clientMessageId!, message.replyTo?.id ?? null)
+    this.api.send(message.conversationId, message.text ?? '', message.clientMessageId!, message.replyTo?.id ?? null,
+      message.attachments.map(x => x.id))
       .subscribe({
         next: saved => this.acceptMessage(saved),
         error: (error: HttpErrorResponse) => {
