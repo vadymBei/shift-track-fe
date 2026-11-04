@@ -31,6 +31,7 @@ import {MessengerApiService} from '../../services/messenger-api.service';
 import {ImageViewerComponent} from '../image-viewer/image-viewer.component';
 import {MentionPickerComponent} from '../mention-picker/mention-picker.component';
 import {MessageTextComponent} from '../message-text/message-text.component';
+import {MessageSearchComponent} from '../message-search/message-search.component';
 import {
   deserializeMentions,
   mentionCandidates,
@@ -100,7 +101,7 @@ function uploadsOf(conversationId: number): WritableSignal<PendingUpload[]> {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, RouterLink, Button, Menu, Skeleton, Textarea, Tooltip, ChatAvatarComponent,
     ImageViewerComponent, MessageAttachmentsComponent, UploadListComponent, MentionPickerComponent,
-    MessageTextComponent],
+    MessageTextComponent, MessageSearchComponent],
   templateUrl: './conversation-view.component.html',
   styleUrl: './conversation-view.component.scss'
 })
@@ -152,6 +153,13 @@ export class ConversationViewComponent {
     && this.text().length <= MAX_LENGTH
     && (!!this.text().trim() || (!this.editing() && this.uploaded().length > 0)));
   readonly awayFromBottom = signal(false);
+
+  readonly searching = signal(false);
+  /** Marked in the messages while searching. */
+  readonly searchHighlight = signal('');
+  /** The search result being shown. */
+  readonly foundId = signal<number | null>(null);
+  private jumpRequest = 0;
   readonly composerScrolls = signal(false);
   readonly actions = signal<MenuItem[]>([]);
   readonly skeletons = [1, 2, 3, 4];
@@ -221,6 +229,7 @@ export class ConversationViewComponent {
         this.replyTo.set(null);
         this.editing.set(null);
         this.awayFromBottom.set(false);
+        this.closeSearch();
       });
     });
 
@@ -274,6 +283,43 @@ export class ConversationViewComponent {
   scrollToBottom(): void {
     const scroller = this.scroller()?.nativeElement;
     scroller?.scrollTo({top: scroller.scrollHeight, behavior: 'smooth'});
+  }
+
+  // ---- search
+
+  toggleSearch(): void {
+    if (this.searching()) {
+      this.closeSearch();
+    } else {
+      this.searching.set(true);
+    }
+  }
+
+  closeSearch(): void {
+    this.searching.set(false);
+    this.searchHighlight.set('');
+    this.foundId.set(null);
+    this.jumpRequest++;
+  }
+
+  /** Loads the history back to the message if needed, then scrolls to it. */
+  async jumpTo(id: number): Promise<void> {
+    const request = ++this.jumpRequest;
+    this.foundId.set(id);
+    const reached = await this.store.reach(this.conversationId(), id);
+    if (request !== this.jumpRequest) {
+      return;
+    }
+    if (!reached) {
+      this.toast.warn('Не вдалося показати це повідомлення');
+      return;
+    }
+    // After the loaded messages are rendered and the view kept its place.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (request === this.jumpRequest) {
+        this.scrollToMessage(id);
+      }
+    }));
   }
 
   scrollToMessage(id: number): void {

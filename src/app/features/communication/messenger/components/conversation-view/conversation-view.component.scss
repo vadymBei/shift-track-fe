@@ -162,7 +162,8 @@
     flex-direction: row-reverse;
   }
 
-  &.highlight .bubble {
+  &.highlight .bubble,
+  &.found .bubble {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--p-primary-color) 35%, transparent);
   }
 }

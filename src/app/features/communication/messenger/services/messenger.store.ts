@@ -34,6 +34,8 @@ export interface TypingPerson {
 }
 
 const EMPTY_THREAD: Thread = {messages: [], loaded: false, loading: false, hasOlder: false, loadingOlder: false};
+/** Older messages loaded with a reached one, so that it isn't at the very top. */
+const REACH_CONTEXT = 20;
 const TYPING_SHOWN_MS = 5_000;
 const TYPING_SENT_EVERY_MS = 3_000;
 const UNREAD_REFRESH_DELAY_MS = 400;
@@ -160,6 +162,42 @@ export class MessengerStore {
     } else {
       this.markActiveRead();
     }
+  }
+
+  /**
+   * Loads the history back to the message (a search result), keeping it without gaps.
+   * False if it isn't in the conversation or couldn't be loaded.
+   */
+  async reach(id: number, messageId: number): Promise<boolean> {
+    // The server loads at most 1000 messages at once: further back takes a few requests.
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const thread = this.thread(id);
+      if (thread.messages.some(x => x.id === messageId)) {
+        return true;
+      }
+      const oldest = thread.messages.find(x => x.id > 0);
+      if (!thread.loaded || !oldest || !thread.hasOlder || oldest.id < messageId) {
+        return false;
+      }
+
+      this.patchThread(id, {loadingOlder: true});
+      try {
+        const page = await firstValueFrom(this.api.getMessages(id, oldest.id, REACH_CONTEXT, messageId));
+        const reached = page.some(x => x.id === messageId);
+        this.patchThread(id, current => ({
+          messages: mergeMessages(page, current.messages),
+          hasOlder: !reached || page.filter(x => x.id < messageId).length >= REACH_CONTEXT,
+          loadingOlder: false
+        }));
+        if (!page.length) {
+          return false;
+        }
+      } catch {
+        this.patchThread(id, {loadingOlder: false});
+        return false;
+      }
+    }
+    return this.thread(id).messages.some(x => x.id === messageId);
   }
 
   loadOlder(id: number): void {

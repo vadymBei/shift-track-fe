@@ -14,6 +14,9 @@
         }
       </span>
     </button>
+    <p-button icon="pi pi-search" [rounded]="true" [text]="true" [severity]="searching() ? 'primary' : 'secondary'"
+              ariaLabel="Пошук у чаті" pTooltip="Пошук у чаті" tooltipPosition="bottom" [attr.aria-pressed]="searching()"
+              (onClick)="toggleSearch()"/>
     <p-button icon="pi pi-info-circle" [rounded]="true" [text]="true" severity="secondary"
               [ariaLabel]="isGroup(current) ? 'Учасники групи' : 'Про співрозмовника'"
               [pTooltip]="isGroup(current) ? 'Учасники групи' : 'Про співрозмовника'" tooltipPosition="bottom"
@@ -25,6 +28,11 @@
     </div>
   }
 </header>
+
+@if (searching()) {
+  <app-message-search [conversationId]="conversationId()" (jump)="jumpTo($event)"
+                      (highlight)="searchHighlight.set($event)" (closed)="closeSearch()"/>
+}
 
 <div class="messages" #scroller (scroll)="onScroll()" role="log" aria-live="polite" [attr.aria-label]="'Розмова: ' + title()">
   @if (thread().loading && !thread().messages.length) {
@@ -53,6 +61,7 @@
              [class.continues]="row.continues"
              [class.continued]="row.continued"
              [class.mentions-me]="mentionsMe(row.message)"
+             [class.found]="row.message.id === foundId()"
              [attr.data-message-id]="row.message.id">
           @if (!row.mine) {
             <span class="msg-avatar">
@@ -87,7 +96,7 @@
                 <app-message-attachments [attachments]="row.message.attachments" (viewImage)="viewImage($event, row.message)"/>
               }
               @if (row.message.text) {
-                <app-message-text class="text" [message]="row.message" [me]="me()"/>
+                <app-message-text class="text" [message]="row.message" [me]="me()" [highlight]="searchHighlight()"/>
               }
             }
 

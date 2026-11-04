@@ -28,6 +28,8 @@
   'ORG_EMP_PHOTO_STORAGE_UNAVAILABLE': 'Не вдалося зберегти фото: сховище файлів недоступне. Зверніться до адміністратора.',
   'ORG_EMP_TOO_MANY_EMPLOYEES': 'Забагато працівників в одному запиті.',
   'CMN_MSG_ATTACHMENT_EMPTY': 'Файл порожній',
+  'CMN_MSG_SEARCH_TOO_SHORT': 'Введіть щонайменше 2 символи для пошуку',
+  'CMN_MSG_SEARCH_TOO_LONG': 'Задовгий текст для пошуку',
   'CMN_MSG_ATTACHMENT_TOO_LARGE': 'Файл більший за 20 МБ',
   'CMN_MSG_ATTACHMENT_TYPE_NOT_ALLOWED': 'Такий тип файлів не можна надіслати',
   'CMN_MSG_TOO_MANY_ATTACHMENTS': 'В одному повідомленні може бути до 10 файлів',

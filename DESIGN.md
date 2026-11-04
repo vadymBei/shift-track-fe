@@ -230,6 +230,7 @@ PrimeNG-токени (генерує тема, автоматично зміню
 | Фото поточного користувача | `CurrentUserPhotoService` | `photoUrl()` — спільне для меню і профілю, `refresh()` після завантаження нового |
 
 | Аватар чату | `features/communication/messenger/components/chat-avatar` | `<app-chat-avatar [name]="fullName" [seed]="employeeId" [size]="40"/>` — фото працівника `seed`, а без нього ініціали в одному з 6 кольорів палітри за `seed`; `[group]="true"` — іконка групи |
+| Пошук у чаті | `features/communication/messenger/components/message-search` | Лупа в шапці чату відкриває рядок пошуку: збіги від найновішого, «↑»/Enter — старіший, «↓»/Shift+Enter — новіший, Esc закриває. Перехід до старого збігу довантажує історію до нього без пропусків (`MessengerStore.reach`); знайдений текст позначає `app-message-text [highlight]` |
 | Файли в чатах | `features/communication/messenger/components/message-attachments`, `file-badge` | `<app-message-attachments [attachments]="message.attachments"/>` — фото сіткою, документи плитками; `<app-file-badge [fileName]="name"/>` — «PDF», «XLSX» у кольорі типу. Файли потребують токена, тому завантажуються як blob через `AttachmentFilesService` |
 | Пошук колег по всій компанії | `features/communication/messenger/components/contact-picker` | `<app-contact-picker [multiple]="true" [selectedIds]="ids" (picked)="…"/>` — для вибору людей у діалогах |
 

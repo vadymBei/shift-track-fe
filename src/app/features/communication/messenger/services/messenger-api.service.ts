@@ -2,7 +2,7 @@ import {HttpClient, HttpContext, HttpEvent} from '@angular/common/http';
 import {inject, Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {SKIP_ERROR_NOTIFICATION} from '../../../../shared/interceptors/error.interceptor';
-import {ChatAttachment, ChatContact, ChatMessage, Conversation, MessengerUnreadCount} from '../models/messenger.models';
+import {ChatAttachment, ChatContact, ChatMessage, Conversation, MessageSearch, MessengerUnreadCount} from '../models/messenger.models';
 
 export const MESSAGES_PAGE = 50;
 
@@ -59,12 +59,20 @@ export class MessengerApiService {
   }
 
   /** Messages before beforeId (or the newest), oldest first. */
-  getMessages(id: number, beforeId?: number | null, take = MESSAGES_PAGE): Observable<ChatMessage[]> {
+  /** With untilId the page reaches back to that message, and has `take` more before it. */
+  getMessages(id: number, beforeId?: number | null, take = MESSAGES_PAGE, untilId?: number): Observable<ChatMessage[]> {
     const params: Record<string, number> = {take};
     if (beforeId) {
       params['beforeId'] = beforeId;
     }
+    if (untilId) {
+      params['untilId'] = untilId;
+    }
     return this.http.get<ChatMessage[]>(`${this.path}/conversations/${id}/messages`, {params, ...quiet()});
+  }
+
+  searchMessages(id: number, query: string): Observable<MessageSearch> {
+    return this.http.get<MessageSearch>(`${this.path}/conversations/${id}/messages/search`, {params: {q: query}, ...quiet()});
   }
 
   /** Errors are shown by the message itself ("not sent, retry"), not by a toast. */

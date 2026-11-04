@@ -90,6 +90,13 @@ export interface Conversation {
   canWrite: boolean;
 }
 
+/** Ids of the matching messages, the newest first. */
+export interface MessageSearch {
+  messageIds: number[];
+  /** There are older matches than these. */
+  hasMore: boolean;
+}
+
 export interface MessengerUnreadCount {
   conversations: number;
   messages: number;
