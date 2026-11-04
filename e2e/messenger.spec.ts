@@ -275,6 +275,20 @@ test.describe('Messenger', () => {
     expect(api.requestsTo('POST', 'communication/messenger/conversations/direct')[0].body).toEqual({employeeId: olena.id});
   });
 
+  test('on a wide screen the open chat can be closed', async ({page, api}) => {
+    await page.setViewportSize({width: 1366, height: 768});
+    withChat(api, directChat(me, olena, {lastMessage: chatMessage({id: 1})}), [chatMessage({id: 1, text: 'Привіт!'})]);
+
+    await page.goto('/messages/1');
+    await expect(log(page)).toContainText('Привіт!');
+    await expect(list(page)).toBeVisible();
+
+    await page.getByRole('link', {name: 'До списку чатів'}).click();
+
+    await expect(page).toHaveURL(/\/messages$/);
+    await expect(page.getByRole('heading', {name: 'Оберіть чат'})).toBeVisible();
+  });
+
   test('on a phone the list and the chat are separate screens', async ({page, api}) => {
     await page.setViewportSize({width: 375, height: 760});
     withChat(api, directChat(me, olena, {lastMessage: chatMessage({id: 1})}), [chatMessage({id: 1, text: 'Привіт!'})]);

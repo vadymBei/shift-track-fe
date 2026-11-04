@@ -1,5 +1,5 @@
 <header class="view-head">
-  <a class="back" routerLink="/messages" aria-label="До списку чатів"><i class="pi pi-arrow-left" aria-hidden="true"></i></a>
+  <a class="back" routerLink="/messages" aria-label="До списку чатів" pTooltip="Закрити чат" tooltipPosition="bottom"><i class="pi pi-arrow-left" aria-hidden="true"></i></a>
 
   @if (conversation(); as current) {
     <button type="button" class="head-main" (click)="showDetails.emit()"

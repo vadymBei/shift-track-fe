@@ -15,7 +15,8 @@
 }
 
 .back {
-  display: none;
+  display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   width: 40px;
@@ -25,6 +26,10 @@
 
   &:hover {
     background: var(--p-content-hover-background);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary-color);
   }
 }
 
@@ -526,10 +531,6 @@
 }
 
 @media (max-width: 767.98px) {
-  .back {
-    display: inline-flex;
-  }
-
   .messages {
     padding: 12px 10px 8px;
   }
