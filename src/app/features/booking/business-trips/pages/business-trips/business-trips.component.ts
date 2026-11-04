@@ -4,7 +4,8 @@ import {DatePipe, DecimalPipe} from '@angular/common';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {FormBuilder, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {catchError, debounceTime, filter, finalize, forkJoin, map, of, startWith, Subject, takeUntil} from 'rxjs';
-import moment from 'moment';
+import {endOfMonth, startOfDay, startOfMonth} from 'date-fns';
+import {formatDate, toApiDate} from '../../../../../shared/utils/date.utils';
 
 import {PrimeTemplate} from 'primeng/api';
 import {TableModule} from 'primeng/table';
@@ -47,6 +48,7 @@ import {
 } from '../../constants/business-trip-labels';
 import {HomeService} from '../../../../home/services/home.service';
 import {EmptyStateComponent} from '../../../../../shared/components/empty-state/empty-state.component';
+import {PersonAvatarDirective} from '../../../../../shared/directives/person-avatar.directive';
 
 type ViewMode = 'list' | 'calendar';
 
@@ -72,7 +74,8 @@ type ViewMode = 'list' | 'calendar';
     Avatar,
     AvatarGroup,
     Tooltip,
-    TimelineCalendarComponent
+    TimelineCalendarComponent,
+    PersonAvatarDirective
   ],
   providers: [DialogService],
   templateUrl: './business-trips.component.html',
@@ -116,7 +119,7 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
     unitId: [null as number | null],
     departmentId: [null as number | null],
     status: [BusinessTripStatus.None],
-    period: this.fb.control<Date[] | null>([moment().startOf('month').toDate(), moment().endOf('month').startOf('day').toDate()]),
+    period: this.fb.control<Date[] | null>([startOfMonth(new Date()), startOfDay(endOfMonth(new Date()))]),
     searchPattern: ['']
   });
 
@@ -127,7 +130,7 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
   readonly isLoading = signal(false);
   readonly isBulkBusy = signal(false);
   readonly hasScope = signal(false);
-  readonly calendarMonth = signal<Date>(moment().startOf('month').toDate());
+  readonly calendarMonth = signal<Date>(startOfMonth(new Date()));
 
   selectedTrips: BusinessTrip[] = [];
 
@@ -159,10 +162,11 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
       rowKey: employee.id,
       rowLabel: employee.fullName,
       rowInitials: employeeInitials(employee),
+      rowEmployeeId: employee.id,
       start: trip.startDate,
       end: trip.endDate,
       label: route,
-      tooltip: `${route}: ${moment(trip.startDate).format('DD.MM')} – ${moment(trip.endDate).format('DD.MM.YYYY')} · ${meta.label}`,
+      tooltip: `${route}: ${formatDate(trip.startDate, 'dd.MM')} – ${formatDate(trip.endDate, 'dd.MM.yyyy')} · ${meta.label}`,
       severity: meta.severity === 'secondary' ? 'secondary' : meta.severity,
       countInTotals: trip.status !== BusinessTripStatus.Rejected,
       data: trip
@@ -280,9 +284,9 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
   }
 
   private setCalendarMonth(date: Date): void {
-    const start = moment(date).startOf('month');
-    this.calendarMonth.set(start.toDate());
-    this.form.patchValue({period: [start.toDate(), start.clone().endOf('month').startOf('day').toDate()]}, {emitEvent: false});
+    const start = startOfMonth(date);
+    this.calendarMonth.set(start);
+    this.form.patchValue({period: [start, startOfDay(endOfMonth(start))]}, {emitEvent: false});
     this.loadTrips();
   }
 
@@ -297,15 +301,15 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
     }
     this.hasScope.set(true);
 
-    const start = period?.[0] ?? moment().startOf('month').toDate();
+    const start = period?.[0] ?? startOfMonth(new Date());
     const end = period?.[1] ?? start;
 
     this.isLoading.set(true);
     this.tripService.getFiltered({
       departmentId,
       searchPattern: searchPattern ?? '',
-      startDate: moment(start).format('YYYY-MM-DD') as unknown as Date,
-      endDate: moment(end).format('YYYY-MM-DD') as unknown as Date
+      startDate: toApiDate(start) as unknown as Date,
+      endDate: toApiDate(end) as unknown as Date
     })
       .pipe(finalize(() => this.isLoading.set(false)), takeUntil(this.destroy$))
       .subscribe(trips => this.trips.set(trips));

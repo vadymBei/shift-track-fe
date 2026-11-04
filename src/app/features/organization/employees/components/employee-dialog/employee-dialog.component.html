@@ -5,7 +5,7 @@
         <p-skeleton shape="circle" size="44px"/>
         <p-skeleton width="200px" height="1.25rem"/>
       } @else {
-        <p-avatar [label]="initials()" shape="circle" size="large" styleClass="app-avatar employee-avatar"/>
+        <p-avatar [appPersonAvatar]="employee()?.id" [initials]="initials()" shape="circle" size="large" styleClass="app-avatar employee-avatar"/>
         <div>
           <h2 class="form-dialog-title">{{ employee()?.surname }} {{ employee()?.name }} {{ employee()?.patronymic }}</h2>
           <p class="form-dialog-subtitle">Редагування даних працівника</p>
@@ -81,6 +81,18 @@
     <fieldset class="section">
       <legend>Робота</legend>
       <div class="grid">
+        <div class="form-field">
+          <label for="empHireDate">Дата прийому на роботу</label>
+          <p-datepicker inputId="empHireDate" formControlName="hireDate" dateFormat="dd.mm.yy"
+                        [minDate]="minHireDate" [maxDate]="maxHireDate"
+                        [showIcon]="true" iconDisplay="input" [showButtonBar]="true" placeholder="дд.мм.рррр"
+                        appendTo="body" [fluid]="true"/>
+          @if (form.controls.hireDate.value) {
+            <small class="hint">Від неї рахуються відпустка і перші 6 місяців роботи</small>
+          } @else if (registrationDate()) {
+            <small class="hint">Не вказана — відпустка рахується від реєстрації в системі ({{ registrationDate() }})</small>
+          }
+        </div>
         <div class="form-field">
           <label for="empUnit">Регіон</label>
           <p-select inputId="empUnit" formControlName="unitId" [options]="units()" optionLabel="name" optionValue="id"

@@ -36,7 +36,7 @@
           @for (employee of visibleEmployees(); track employee.id) {
             <button type="button" class="person" [class.active]="selected()?.id === employee.id"
                     (click)="selectEmployee(employee)">
-              <p-avatar [label]="initials(employee)" shape="circle" styleClass="app-avatar person-avatar"/>
+              <p-avatar [appPersonAvatar]="employee.id" [initials]="initials(employee)" shape="circle" styleClass="app-avatar person-avatar"/>
               <span class="person-text">
                 <span class="person-name">{{ employee.fullName }}</span>
                 <span class="person-meta">
@@ -55,7 +55,7 @@
     <section class="details">
       @if (selected(); as employee) {
         <div class="profile glass">
-          <p-avatar [label]="initials(employee)" shape="circle" size="xlarge" styleClass="app-avatar profile-avatar"/>
+          <p-avatar [appPersonAvatar]="employee.id" [initials]="initials(employee)" shape="circle" size="xlarge" styleClass="app-avatar profile-avatar"/>
           <div class="profile-text">
             <h2>{{ employee.fullName }}</h2>
             <span>

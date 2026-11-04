@@ -3,7 +3,8 @@ import {DatePipe} from '@angular/common';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {finalize, Subject, takeUntil} from 'rxjs';
-import moment from 'moment';
+import {addDays, startOfDay} from 'date-fns';
+import {toDate} from '../../../../../shared/utils/date.utils';
 import {DynamicDialogRef} from 'primeng/dynamicdialog';
 import {Select} from 'primeng/select';
 import {DatePicker} from 'primeng/datepicker';
@@ -34,7 +35,7 @@ export class CreateVacationModalComponent implements OnInit, OnDestroy {
   private readonly notifications = inject(NotificationService);
 
   readonly typeGroups = VACATION_TYPE_GROUPS;
-  readonly today = moment().startOf('day').toDate();
+  readonly today = startOfDay(new Date());
   readonly employee = computed(() => this.accountService.currentUser()?.employee);
   readonly isSaving = signal(false);
 
@@ -65,7 +66,7 @@ export class CreateVacationModalComponent implements OnInit, OnDestroy {
   readonly endDate = computed(() => this.period()?.[1] ?? null);
   readonly daysCount = computed(() => countVacationDays(this.startDate(), this.endDate()));
   readonly daysLabel = computed(() => pluralDays(this.daysCount()).replace(/^\d+ /, ''));
-  readonly returnDate = computed(() => this.endDate() ? moment(this.endDate()).add(1, 'day').toDate() : null);
+  readonly returnDate = computed(() => this.endDate() ? addDays(this.endDate()!, 1) : null);
   readonly commentLength = computed(() => this.comment()?.length ?? 0);
 
   ngOnInit(): void {
@@ -75,7 +76,7 @@ export class CreateVacationModalComponent implements OnInit, OnDestroy {
     this.vacationService.getVacationBalanceByEmployeeId(employeeId)
       .pipe(takeUntil(this.destroy$))
       .subscribe(balance => this.annualVacationAvailableFrom.set(
-        moment(balance.annualVacationAvailableFrom).startOf('day').toDate()));
+        startOfDay(toDate(balance.annualVacationAvailableFrom))));
   }
 
   get isPeriodIncomplete(): boolean {

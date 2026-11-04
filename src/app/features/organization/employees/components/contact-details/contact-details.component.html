@@ -3,15 +3,16 @@
     <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" ariaLabel="Закрити"
               styleClass="close-button" (onClick)="close.emit()"/>
 
-    @if (photoUrl()) {
-      <p-avatar [image]="photoUrl()!" shape="circle" styleClass="app-avatar contact-avatar"/>
-    } @else {
-      <p-avatar [label]="initials()" shape="circle" styleClass="app-avatar contact-avatar"/>
-    }
+    <p-avatar [appPersonAvatar]="employee().id" [initials]="initials()" shape="circle" styleClass="app-avatar contact-avatar"/>
     <h2 class="contact-name">{{ employee().fullName }}</h2>
     <span class="contact-position">{{ employee().position?.name ?? 'Без посади' }}</span>
 
     <div class="quick-actions">
+      @if (employee().id !== currentEmployeeId()) {
+        <a class="quick-action" routerLink="/messages" [queryParams]="{to: employee().id}">
+          <i class="pi pi-comments"></i><span>Повідомлення</span>
+        </a>
+      }
       @if (employee().phoneNumber) {
         <a class="quick-action" [href]="'tel:' + employee().phoneNumber">
           <i class="pi pi-phone"></i><span>Зателефонувати</span>
@@ -19,7 +20,7 @@
       }
       @if (employee().email) {
         <a class="quick-action" [href]="'mailto:' + employee().email">
-          <i class="pi pi-envelope"></i><span>Написати</span>
+          <i class="pi pi-envelope"></i><span>Email</span>
         </a>
       }
     </div>

@@ -160,7 +160,7 @@
           <div class="list">
             @for (item of d.pendingApprovals; track item.kind + item.id) {
               <a class="list-row" [routerLink]="reviewLink(item)" [queryParams]="{status: 'PendingApproval'}">
-                <p-avatar [label]="initials(item.employee.fullName)" shape="circle" styleClass="app-avatar row-avatar"/>
+                <p-avatar [appPersonAvatar]="item.employee.id" [initials]="initials(item.employee.fullName)" shape="circle" styleClass="app-avatar row-avatar"/>
                 <span class="row-main">
                   <span class="row-title">{{ item.employee.fullName }}</span>
                   <span class="row-sub"><i [class]="kindIcon(item.kind)"></i>{{ item.title }}</span>

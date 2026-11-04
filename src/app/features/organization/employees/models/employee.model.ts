@@ -11,6 +11,12 @@ export interface Employee {
     email: string;
     phoneNumber: string;
     dateOfBirth?: Date;
+    /** First day of work; not set for those registered before it was stored. */
+    hireDate?: string | null;
+    /** What the vacations are counted from: the hire date or, without it, the registration date. */
+    serviceStart?: string;
+    /** Registration in the system (UTC). */
+    createdAt?: string;
     departmentId?: number;
     department?: Department;
     positionId?: number;

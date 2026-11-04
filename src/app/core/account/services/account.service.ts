@@ -10,6 +10,7 @@ import { Employee } from '../../../features/organization/employees/models/employ
 import { EditAccountRequest } from '../models/edit-account-request.model';
 import { ChangePasswordRequest } from '../models/change-password-request.model';
 import { NotificationService } from '../../../shared/services/notification.service';
+import type { EmployeePhoto } from '../../../shared/services/employee-photos.service';
 
 @Injectable({
   providedIn: 'root'
@@ -166,30 +167,14 @@ export class AccountService {
       );
   }
 
-  getProfilePhoto(employeeId: number) {
-    return this.httpClient.get(`system/auth/account/photo`, {
-      context: new HttpContext().set(SKIP_ERROR_NOTIFICATION, true),
-      headers: {
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
-      },
-      params: {
-        EmployeeId: employeeId
-      },
-      responseType: 'blob',
-      observe: 'response'
-    });
+  /** Replaces the photo of the current user. */
+  uploadProfilePhoto(photo: Blob): Observable<EmployeePhoto> {
+    const formData = new FormData();
+    formData.append('file', photo, 'photo.jpg');
+    return this.httpClient.post<EmployeePhoto>('system/auth/account/photo', formData);
   }
 
-  uploadProfilePhoto(formData: FormData) {
-    return this.httpClient.post(
-      'system/auth/account/upload-photo',
-      formData,
-      {
-        reportProgress: true,
-        responseType: 'blob',
-        observe: 'response'
-      }
-    );
+  removeProfilePhoto(): Observable<void> {
+    return this.httpClient.delete<void>('system/auth/account/photo');
   }
 }

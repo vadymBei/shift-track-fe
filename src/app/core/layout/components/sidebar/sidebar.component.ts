@@ -9,6 +9,7 @@ import {NAV_ITEMS} from '../../constants/nav-items';
 import {MenuItem} from '../../models/menu-item.model';
 import {MANAGER_ROLES} from '../../../account/constants/default-roles-catalog.constants';
 import {HomeService} from '../../../../features/home/services/home.service';
+import {MessengerStore} from '../../../../features/communication/messenger/services/messenger.store';
 import {UserMenuComponent} from '../user-menu/user-menu.component';
 import {ThemeToggleComponent} from '../../../../shared/components/theme-toggle/theme-toggle.component';
 import {NotificationBellComponent} from '../../../notifications/components/notification-bell/notification-bell.component';
@@ -33,6 +34,7 @@ import {NotificationBellComponent} from '../../../notifications/components/notif
 export class SidebarComponent {
   private accountService = inject(AccountService);
   private homeService = inject(HomeService);
+  private messenger = inject(MessengerStore);
 
   collapsed = input(false);
   collapsible = input(true);
@@ -56,7 +58,18 @@ export class SidebarComponent {
   }
 
   badgeCount(item: MenuItem): number {
+    if (item.badge === 'messages') {
+      return this.messenger.unread().messages;
+    }
     return item.badge && this.isManager() ? this.homeService.pendingCounts()[item.badge] : 0;
+  }
+
+  badgeLabel(item: MenuItem, count: number): string {
+    return item.badge === 'messages' ? `${count} непрочитаних повідомлень` : `${count} чекають рішення`;
+  }
+
+  badgeText(count: number): string {
+    return count > 99 ? '99+' : String(count);
   }
 
   readonly menuItems = computed(() => {

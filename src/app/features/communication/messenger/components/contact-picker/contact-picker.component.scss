@@ -1,0 +1,109 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.picker-results {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 240px;
+  max-height: min(420px, 55vh);
+  overflow-y: auto;
+  margin: 0 -8px;
+  padding: 0 8px;
+}
+
+.picker-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 12px;
+  color: var(--p-text-muted-color);
+  font-size: 14px;
+  text-align: center;
+}
+
+:host ::ng-deep .picker-spinner {
+  width: 18px;
+  height: 18px;
+}
+
+.picker-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--app-radius-md);
+  background: transparent;
+  color: var(--p-text-color);
+  font: inherit;
+  text-align: left;
+
+  &:hover:not(:disabled) {
+    background: var(--p-content-hover-background);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary-color);
+    outline-offset: -2px;
+  }
+
+  &.selected {
+    background: var(--p-highlight-background);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.picker-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.picker-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.picker-sub {
+  overflow: hidden;
+  color: var(--p-text-muted-color);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.picker-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--p-content-border-color);
+  border-radius: 7px;
+  color: #fff;
+
+  &.on {
+    border-color: var(--p-primary-color);
+    background: var(--p-primary-color);
+  }
+
+  i {
+    font-size: 12px;
+  }
+}
+
+.picker-go {
+  color: var(--p-text-muted-color);
+}

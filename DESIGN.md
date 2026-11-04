@@ -224,9 +224,15 @@ PrimeNG-токени (генерує тема, автоматично зміню
 |---|---|---|
 | Ініціали для аватара | `shared/utils/text.utils.ts` | `personInitials(employee)` → «БВ»; `personInitials(employee, 'name-first')` → «ВБ»; приймає й рядок fullName |
 | Відмінювання числа | `shared/utils/text.utils.ts` | `pluralUk(n, 'день', 'дні', 'днів')` |
-| Аватар з ініціалами | глобальний клас у `styles.scss` | `<p-avatar … styleClass="app-avatar my-avatar"/>`: кольори дає `app-avatar`, розмір — свій клас компонента |
+| Аватар працівника | `PersonAvatarDirective` + клас `app-avatar` у `styles.scss` | `<p-avatar [appPersonAvatar]="employee.id" [initials]="initials(employee)" shape="circle" styleClass="app-avatar my-avatar"/>`: фото працівника (`shared/directives/person-avatar.directive.ts`), поки воно вантажиться або якщо його немає — ініціали; кольори дає `app-avatar`, розмір — свій клас компонента. Без `[label]`/`[image]`: їх ставить директива |
+| Фото працівників | `shared/services/employee-photos.service.ts` | `photo(employeeId)` — сигнал з object URL або null. Id, запитані за один рендер, ідуть одним запитом версій (`organization/employees/photos?ids=`), далі вантажаться лише наявні фото за версією (кешуються браузером). Після зміни свого фото — `changed(id, version)`. Фото обрізається до квадрата й зменшується до 512px перед завантаженням (`shared/utils/image.utils.ts`) |
 | Плашка зміни | `features/organization/timesheet/components/shift-chip` | `<app-shift-chip [shift]="shift" size="xs/sm/md/lg/xl"/>`, без зміни — пунктирна порожня плашка (`placeholder`) |
 | Фото поточного користувача | `CurrentUserPhotoService` | `photoUrl()` — спільне для меню і профілю, `refresh()` після завантаження нового |
+
+| Аватар чату | `features/communication/messenger/components/chat-avatar` | `<app-chat-avatar [name]="fullName" [seed]="employeeId" [size]="40"/>` — фото працівника `seed`, а без нього ініціали в одному з 6 кольорів палітри за `seed`; `[group]="true"` — іконка групи |
+| Пошук у чаті | `features/communication/messenger/components/message-search` | Лупа в шапці чату відкриває рядок пошуку: збіги від найновішого, «↑»/Enter — старіший, «↓»/Shift+Enter — новіший, Esc закриває. Перехід до старого збігу довантажує історію до нього без пропусків (`MessengerStore.reach`); знайдений текст позначає `app-message-text [highlight]` |
+| Файли в чатах | `features/communication/messenger/components/message-attachments`, `file-badge` | `<app-message-attachments [attachments]="message.attachments"/>` — фото сіткою, документи плитками; `<app-file-badge [fileName]="name"/>` — «PDF», «XLSX» у кольорі типу. Файли потребують токена, тому завантажуються як blob через `AttachmentFilesService` |
+| Пошук колег по всій компанії | `features/communication/messenger/components/contact-picker` | `<app-contact-picker [multiple]="true" [selectedIds]="ids" (picked)="…"/>` — для вибору людей у діалогах |
 
 Клітинки самого табеля мають власну розмітку (режим «Години», ховер, виділення) і `app-shift-chip` не використовують.
 
@@ -263,7 +269,8 @@ PrimeNG-токени (генерує тема, автоматично зміню
    - ✅ Зарплати (KPI-плитки, відомість з масовою виплатою, деталі в p-drawer)
    - ✅ Адміністрування (головна)
    - ✅ Ролі працівників (список людей + картки ролей з регіонами й департаментами)
-   - ✅ Головна «Мій день» (`features/home`): зміна сьогодні, тиждень, баланс відпустки, заявки; для керівників — «Чекають рішення» і «Команда сьогодні». «Сьогодні» і «Мій тиждень» — справжні зміни працівника (`EmployeeShiftService.getByEmployeeId`), «Команда сьогодні» — табель поточного місяця департаменту користувача; решта даних поки моки в `HomeService`, контракт — `home-dashboard.model.ts`. Бейджі заявок у меню (`MenuItem.badge`).
+   - ✅ Повідомлення (`features/communication/messenger`): особисті чати й групи. Список чатів на склі, розмова — на суцільній поверхні; на телефоні (< 768px) список і розмова — окремі екрани. Стан і реальний час — `MessengerStore` (події SignalR через `RealtimeService`), надсилання оптимістичне з `clientMessageId`. Бейдж непрочитаних у меню (`MenuItem.badge = 'messages'`).
+   - ✅ Головна «Мій день» (`features/home`): зміна сьогодні, тиждень, баланс відпустки, заявки; для керівників — «Чекають рішення» і «Команда сьогодні». «Сьогодні» і «Мій тиждень» — справжні зміни працівника (`EmployeeShiftService.getByEmployeeId`), «Команда сьогодні» — табель поточного місяця департаменту користувача, «Мої заявки» й найближча відсутність — `booking/requests/my`, «Чекають рішення» — `booking/approvals/pending`, баланс — `booking/vacations/balance`. Моків більше немає; контракт — `home-dashboard.model.ts`. Бейджі заявок у меню (`MenuItem.badge`).
 7. ✅ Прибрано Bootstrap, Bootstrap Icons, ngx-bootstrap, ngx-color і старі глобальні стилі (початковий бандл 1,37 МБ → 745 кБ).
 
 ### Чекліст для кожної сторінки

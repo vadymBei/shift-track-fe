@@ -1,4 +1,28 @@
-<p-toast position="top-right"/>
-<p-confirmdialog [style]="{width: '440px'}" [breakpoints]="{'575px': '92vw'}"/>
+<p-toast position="bottom-right" [breakpoints]="{'640px': {width: 'calc(100% - 24px)', left: '12px', right: '12px'}}">
+  <!-- The default content, but a toast with an action (a new message, a notification) opens it when clicked. -->
+  <ng-template let-message pTemplate="message">
+    <span class="p-toast-message-icon">
+      @switch (message.severity) {
+        @case ('success') { <CheckIcon/> }
+        @case ('error') { <TimesCircleIcon/> }
+        @case ('warn') { <ExclamationTriangleIcon/> }
+        @default { <InfoCircleIcon/> }
+      }
+    </span>
+    @if (message.data?.action) {
+      <button type="button" class="p-toast-message-text toast-open" [attr.aria-label]="message.summary + ': відкрити'"
+              (click)="open(message, $event)">
+        <span class="p-toast-summary">{{ message.summary }}</span>
+        <span class="p-toast-detail">{{ message.detail }}</span>
+      </button>
+    } @else {
+      <div class="p-toast-message-text">
+        <div class="p-toast-summary">{{ message.summary }}</div>
+        <div class="p-toast-detail">{{ message.detail }}</div>
+      </div>
+    }
+  </ng-template>
+</p-toast>
+<p-confirm-dialog [style]="{width: '440px'}" [breakpoints]="{'575px': '92vw'}"/>
 
 <router-outlet></router-outlet>

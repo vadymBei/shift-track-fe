@@ -1,4 +1,4 @@
-import moment from 'moment';
+import {daysInclusive, formatDate} from '../../../../shared/utils/date.utils';
 import {VacationType} from '../enums/vacation-type.enum';
 import {VacationStatus} from '../enums/vacation-status.enum';
 import {pluralUk} from '../../../../shared/utils/text.utils';
@@ -61,12 +61,12 @@ export function countVacationDays(start?: Date | string | null, end?: Date | str
   if (!start || !end) {
     return 0;
   }
-  const days = moment(end).startOf('day').diff(moment(start).startOf('day'), 'days') + 1;
+  const days = daysInclusive(start, end);
   return days > 0 ? days : 0;
 }
 
 export function toApiDate(date: Date | string): string {
-  return moment(date).format('YYYY-MM-DD');
+  return formatDate(date, 'yyyy-MM-dd');
 }
 
 export function pluralDays(count: number): string {

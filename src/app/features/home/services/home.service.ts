@@ -1,7 +1,8 @@
 import {inject, Injectable, signal} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {catchError, forkJoin, map, Observable, of} from 'rxjs';
-import moment from 'moment';
+import {addDays, differenceInCalendarDays, isSameDay, max, startOfDay, startOfISOWeek} from 'date-fns';
+import {toApiDate, toApiMonth, toDate} from '../../../shared/utils/date.utils';
 import {ShiftType} from '../../organization/timesheet/enums/shift-type.enum';
 import {VacationStatus} from '../../booking/vacations/enums/vacation-status.enum';
 import {BusinessTripStatus} from '../../booking/business-trips/enums/business-trip-status.enum';
@@ -64,18 +65,18 @@ export class HomeService {
   }
 
   getMyWeek(employeeId: number): Observable<MyWeek> {
-    const today = moment().startOf('day');
-    const monday = today.clone().isoWeekday(1);
-    const to = moment.max(monday.clone().add(6, 'day'), today.clone().add(21, 'day'));
+    const today = startOfDay(new Date());
+    const monday = startOfISOWeek(today);
+    const to = max([addDays(monday, 6), addDays(today, 21)]);
     return this.employeeShiftService
-      .getByEmployeeId(employeeId, monday.format('YYYY-MM-DD'), to.format('YYYY-MM-DD'))
+      .getByEmployeeId(employeeId, toApiDate(monday), toApiDate(to))
       .pipe(map(shifts => buildMyWeek(shifts ?? [], monday, today)));
   }
 
   getTeamToday(departmentId: number, departmentName: string): Observable<TeamToday> {
-    const today = moment();
+    const today = new Date();
     return this.timesheetService
-      .getTimesheet({departmentId, period: today.format('YYYY-MM') as unknown as Date})
+      .getTimesheet({departmentId, period: toApiMonth(today) as unknown as Date})
       .pipe(map(sheet => buildTeamToday(sheet, departmentName, today)));
   }
 
@@ -138,11 +139,11 @@ function toPendingApproval(item: PendingApprovalResponse): PendingApproval {
 }
 
 
-function buildTeamToday(sheet: Timesheet, departmentName: string, today: moment.Moment): TeamToday {
+function buildTeamToday(sheet: Timesheet, departmentName: string, today: Date): TeamToday {
   const team: TeamToday = {departmentName, total: 0, working: [], vacation: [], dayOff: [], other: [], notPlanned: 0};
   for (const row of sheet?.employeeTimesheets ?? []) {
     team.total++;
-    const todayShift = row.employeeShifts.find(s => s?.date && moment(s.date).isSame(today, 'day'))?.shift;
+    const todayShift = row.employeeShifts.find(s => s?.date && isSameDay(toDate(s.date), today))?.shift;
     if (!todayShift) {
       team.notPlanned++;
       continue;
@@ -161,29 +162,29 @@ function buildTeamToday(sheet: Timesheet, departmentName: string, today: moment.
   return team;
 }
 
-function toDayShift(date: moment.Moment, es: EmployeeShift | undefined): DayShift {
+function toDayShift(date: Date, es: EmployeeShift | undefined): DayShift {
   return {
-    date: date.format('YYYY-MM-DD'),
+    date: toApiDate(date),
     shift: es?.shift ?? null,
     startTime: es?.startTime ?? es?.shift?.startTime ?? null,
     endTime: es?.endTime ?? es?.shift?.endTime ?? null
   };
 }
 
-function buildMyWeek(shifts: EmployeeShift[], monday: moment.Moment, today: moment.Moment): MyWeek {
+function buildMyWeek(shifts: EmployeeShift[], monday: Date, today: Date): MyWeek {
   const byDate = new Map<string, EmployeeShift>();
   for (const es of shifts) {
-    if (es?.date) byDate.set(moment(es.date).format('YYYY-MM-DD'), es);
+    if (es?.date) byDate.set(toApiDate(es.date), es);
   }
 
   const week = Array.from({length: 7}, (_, i) => {
-    const date = monday.clone().add(i, 'day');
-    return toDayShift(date, byDate.get(date.format('YYYY-MM-DD')));
+    const date = addDays(monday, i);
+    return toDayShift(date, byDate.get(toApiDate(date)));
   });
 
   const next = [...byDate.entries()]
-    .filter(([date, es]) => moment(date).isAfter(today, 'day') && es.shift?.type === ShiftType.workday)
+    .filter(([date, es]) => differenceInCalendarDays(toDate(date), today) > 0 && es.shift?.type === ShiftType.workday)
     .sort(([a], [b]) => a.localeCompare(b))[0];
 
-  return {week, nextShift: next ? toDayShift(moment(next[0]), next[1]) : null};
+  return {week, nextShift: next ? toDayShift(toDate(next[0]), next[1]) : null};
 }

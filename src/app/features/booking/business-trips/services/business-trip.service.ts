@@ -4,7 +4,7 @@ import {FilteredBusinessTripsRequest} from "../models/filtered-business-trips-re
 import {BusinessTrip} from "../models/business-trip.model";
 import {CreateBusinessTripRequest} from "../models/create-business-trip-request.model";
 import {map, Observable} from 'rxjs';
-import moment from 'moment';
+import {formatDate} from '../../../../shared/utils/date.utils';
 
 @Injectable({
   providedIn: 'root'
@@ -73,7 +73,7 @@ export class BusinessTripService {
         const link = document.createElement('a');
         link.href = url;
         link.download = `Наказ на відрядження ${trip.id} `
-          + `${moment(trip.startDate).format('DD.MM.YYYY')}-${moment(trip.endDate).format('DD.MM.YYYY')}.pdf`;
+          + `${formatDate(trip.startDate, 'dd.MM.yyyy')}-${formatDate(trip.endDate, 'dd.MM.yyyy')}.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

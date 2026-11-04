@@ -1,0 +1,99 @@
+<div class="list-head">
+  <div class="list-title-row">
+    <h1 class="list-title">Повідомлення</h1>
+    <p-button icon="pi pi-pen-to-square" [rounded]="true" [text]="true" ariaLabel="Новий чат"
+              pTooltip="Новий чат або група" tooltipPosition="bottom" (onClick)="newChat.emit()"/>
+  </div>
+
+  <p-iconfield>
+    <p-inputicon styleClass="pi pi-search"/>
+    <input pInputText type="search" [fluid]="true" placeholder="Пошук чатів і колег" aria-label="Пошук чатів і колег"
+           [ngModel]="search()" (ngModelChange)="onSearch($event)"/>
+  </p-iconfield>
+
+  <div class="tabs" role="tablist" aria-label="Фільтр чатів">
+    <button type="button" role="tab" class="tab" [class.active]="filter() === 'all'"
+            [attr.aria-selected]="filter() === 'all'" (click)="filter.set('all')">Усі</button>
+    <button type="button" role="tab" class="tab" [class.active]="filter() === 'unread'"
+            [attr.aria-selected]="filter() === 'unread'" (click)="filter.set('unread')">
+      Непрочитані@if (unreadConversations()) {<span> · {{ unreadConversations() }}</span>}
+    </button>
+    <button type="button" role="tab" class="tab" [class.active]="filter() === 'groups'"
+            [attr.aria-selected]="filter() === 'groups'" (click)="filter.set('groups')">Групи</button>
+  </div>
+</div>
+
+<nav class="list-body" aria-label="Чати">
+  @if (loading()) {
+    @for (i of skeletons; track i) {
+      <div class="item skeleton">
+        <p-skeleton shape="circle" size="44px"/>
+        <div class="item-text">
+          <p-skeleton width="60%" height="14px"/>
+          <p-skeleton width="85%" height="12px"/>
+        </div>
+      </div>
+    }
+  } @else {
+    @for (conversation of visible(); track conversation.id) {
+      <a class="item"
+         [routerLink]="['/messages', conversation.id]"
+         [class.active]="conversation.id === activeId()"
+         [class.unread]="conversation.unreadCount > 0"
+         [attr.aria-current]="conversation.id === activeId() ? 'page' : null">
+        <app-chat-avatar [name]="title(conversation)" [seed]="avatarSeed(conversation)" [group]="conversation.type === 'Group'"/>
+        <span class="item-text">
+          <span class="item-row">
+            <span class="item-title">{{ title(conversation) }}</span>
+            @if (conversation.isMuted) {
+              <i class="pi pi-bell-slash item-muted" role="img" aria-label="Без сповіщень"></i>
+            }
+            <span class="item-time">{{ time(conversation) }}</span>
+          </span>
+          <span class="item-row">
+            <span class="item-preview" [class.typing]="isTyping(conversation)">{{ preview(conversation) }}</span>
+            @if (conversation.hasUnreadMention) {
+              <span class="item-mention" role="img" aria-label="Вас згадали">&#64;</span>
+            }
+            @if (conversation.unreadCount > 0) {
+              <span class="item-badge" [class.muted]="conversation.isMuted"
+                    [attr.aria-label]="conversation.unreadCount + ' непрочитаних'">{{ unreadLabel(conversation) }}</span>
+            }
+          </span>
+        </span>
+      </a>
+    } @empty {
+      @if (!search().trim() || !newPeople().length) {
+        <div class="empty">
+          @if (search().trim()) {
+            <i class="pi pi-search" aria-hidden="true"></i>
+            <span>Нічого не знайдено</span>
+          } @else if (filter() === 'unread') {
+            <i class="pi pi-check-circle" aria-hidden="true"></i>
+            <span>Усе прочитано</span>
+          } @else if (filter() === 'groups') {
+            <i class="pi pi-users" aria-hidden="true"></i>
+            <span>Груп поки немає</span>
+          } @else {
+            <i class="pi pi-comments" aria-hidden="true"></i>
+            <span>Чатів поки немає</span>
+            <p-button label="Написати колезі" icon="pi pi-pen-to-square" size="small" [outlined]="true" (onClick)="newChat.emit()"/>
+          }
+        </div>
+      }
+    }
+
+    @if (search().trim().length >= 2 && newPeople().length) {
+      <div class="section">Колеги</div>
+      @for (contact of newPeople(); track contact.employeeId) {
+        <button type="button" class="item" (click)="openContact.emit(contact); clearSearch()">
+          <app-chat-avatar [name]="contact.fullName" [seed]="contact.employeeId"/>
+          <span class="item-text">
+            <span class="item-title">{{ contact.fullName }}</span>
+            <span class="item-preview">{{ subtitle(contact) }}</span>
+          </span>
+        </button>
+      }
+    }
+  }
+</nav>

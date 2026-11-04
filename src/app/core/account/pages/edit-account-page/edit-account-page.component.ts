@@ -1,9 +1,8 @@
 import {Component, computed, inject, OnDestroy, OnInit, signal} from '@angular/core';
-import {CurrentUserPhotoService} from '../../services/current-user-photo.service';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {RouterLink} from '@angular/router';
 import {finalize, Subject, takeUntil} from 'rxjs';
-import moment from 'moment';
+import {toApiDate, toDate} from '../../../../shared/utils/date.utils';
 
 import {Button} from 'primeng/button';
 import {InputText} from 'primeng/inputtext';
@@ -27,8 +26,13 @@ import {Employee} from '../../../../features/organization/employees/models/emplo
 import {EmployeeGender} from '../../../../features/organization/employees/enums/employee-gender.enum';
 import {NotificationService} from '../../../../shared/services/notification.service';
 import {personInitials} from '../../../../shared/utils/text.utils';
+import {EmployeePhotosService} from '../../../../shared/services/employee-photos.service';
+import {PersonAvatarDirective} from '../../../../shared/directives/person-avatar.directive';
+import {ConfirmService} from '../../../../shared/services/confirm.service';
+import {squarePhoto} from '../../../../shared/utils/image.utils';
 
-const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
+/** Of the chosen file: it's scaled down before the upload. */
+const MAX_SOURCE_SIZE = 20 * 1024 * 1024;
 
 @Component({
   selector: 'app-edit-account-page',
@@ -48,7 +52,8 @@ const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
     Dialog,
     Skeleton,
     Divider,
-    Tooltip
+    Tooltip,
+    PersonAvatarDirective
   ],
   templateUrl: './edit-account-page.component.html',
   styleUrl: './edit-account-page.component.scss'
@@ -81,15 +86,16 @@ export class EditAccountPageComponent implements OnInit, OnDestroy {
 
   readonly employee = signal<Employee | null>(null);
   readonly employeeRoles = signal<EmployeeRole[]>([]);
-  private readonly photoService = inject(CurrentUserPhotoService);
-  readonly photoUrl = this.photoService.photoUrl;
+  private readonly photos = inject(EmployeePhotosService);
+  private readonly confirmService = inject(ConfirmService);
+  readonly hasPhoto = computed(() => !!this.photos.photo(this.employee()?.id)());
   readonly isSaving = signal(false);
   readonly isLoading = signal(true);
 
   readonly photoDialogVisible = signal(false);
   readonly photoPreviewUrl = signal<string | null>(null);
   readonly isUploading = signal(false);
-  private photoFile: File | null = null;
+  private photoFile: Blob | null = null;
 
   readonly initials = computed(() => personInitials(this.employee()));
 
@@ -123,7 +129,7 @@ export class EditAccountPageComponent implements OnInit, OnDestroy {
       surname: employee.surname,
       name: employee.name,
       patronymic: employee.patronymic,
-      dateOfBirth: employee.dateOfBirth ? moment(employee.dateOfBirth).toDate() : null,
+      dateOfBirth: employee.dateOfBirth ? toDate(employee.dateOfBirth) : null,
       gender: employee.gender ?? EmployeeGender.none,
       email: employee.email,
       phoneNumber: employee.phoneNumber
@@ -151,7 +157,7 @@ export class EditAccountPageComponent implements OnInit, OnDestroy {
       email: value.email ?? '',
       phoneNumber: value.phoneNumber ?? '',
       gender: value.gender ?? EmployeeGender.none,
-      dateOfBirth: value.dateOfBirth ? moment(value.dateOfBirth).format('YYYY-MM-DD') as unknown as Date : undefined
+      dateOfBirth: value.dateOfBirth ? toApiDate(value.dateOfBirth) as unknown as Date : undefined
     };
 
     this.isSaving.set(true);
@@ -171,7 +177,7 @@ export class EditAccountPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  onPhotoSelected(event: Event): void {
+  async onPhotoSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
@@ -183,14 +189,23 @@ export class EditAccountPageComponent implements OnInit, OnDestroy {
       this.notifications.warn('Оберіть файл зображення (JPG, PNG тощо)');
       return;
     }
-    if (file.size > MAX_PHOTO_SIZE) {
-      this.notifications.warn('Розмір фото не повинен перевищувати 5 МБ');
+    if (file.size > MAX_SOURCE_SIZE) {
+      this.notifications.warn('Розмір фото не повинен перевищувати 20 МБ');
       return;
     }
 
-    this.photoFile = file;
+    // Cropped to a square and scaled down here: the preview shows exactly what is saved.
+    let photo: Blob;
+    try {
+      photo = await squarePhoto(file);
+    } catch {
+      this.notifications.warn('Не вдалося відкрити зображення. Спробуйте JPG або PNG');
+      return;
+    }
+
+    this.photoFile = photo;
     this.revokePreview();
-    this.photoPreviewUrl.set(URL.createObjectURL(file));
+    this.photoPreviewUrl.set(URL.createObjectURL(photo));
     this.photoDialogVisible.set(true);
   }
 
@@ -206,18 +221,38 @@ export class EditAccountPageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const formData = new FormData();
-    formData.append('File', this.photoFile);
-    formData.append('EmployeeId', employee.id.toString());
-
     this.isUploading.set(true);
-    this.accountService.uploadProfilePhoto(formData)
+    this.accountService.uploadProfilePhoto(this.photoFile)
       .pipe(finalize(() => this.isUploading.set(false)), takeUntil(this.destroy$))
-      .subscribe(() => {
+      .subscribe(photo => {
         this.notifications.success('Фото оновлено');
         this.cancelPhoto();
-        this.photoService.refresh();
+        this.photos.changed(employee.id, photo.version);
       });
+  }
+
+  confirmRemovePhoto(): void {
+    const employee = this.employee();
+    if (!employee) {
+      return;
+    }
+
+    this.confirmService.confirm({
+      header: 'Видалити фото?',
+      message: 'Замість фото колеги бачитимуть ваші ініціали.',
+      acceptLabel: 'Видалити',
+      acceptSeverity: 'danger',
+      icon: 'pi pi-trash',
+      onConfirm: () => {
+        this.isUploading.set(true);
+        this.accountService.removeProfilePhoto()
+          .pipe(finalize(() => this.isUploading.set(false)), takeUntil(this.destroy$))
+          .subscribe(() => {
+            this.notifications.success('Фото видалено');
+            this.photos.changed(employee.id, null);
+          });
+      }
+    });
   }
 
   private revokePreview(): void {

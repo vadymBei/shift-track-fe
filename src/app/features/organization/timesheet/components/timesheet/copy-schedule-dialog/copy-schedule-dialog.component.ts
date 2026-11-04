@@ -1,8 +1,8 @@
 import {Component, computed, effect, inject, OnDestroy, signal} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {catchError, finalize, forkJoin, map, of, Subject, switchMap, takeUntil} from 'rxjs';
-import moment from 'moment';
-import 'moment/locale/uk';
+import {addDays, addMonths, differenceInCalendarDays, eachDayOfInterval, endOfMonth, format, isAfter, isBefore, isSameDay, isSameMonth, startOfDay, startOfISOWeek, startOfMonth, subDays, subMonths} from 'date-fns';
+import {daysInclusive, toApiDate, toApiMonth} from '../../../../../../shared/utils/date.utils';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {Button} from 'primeng/button';
 import {DatePicker} from 'primeng/datepicker';
@@ -30,7 +30,12 @@ export interface CopyScheduleDialogData {
 type Preset = 'week' | 'month' | 'custom';
 
 const KEY = (employeeId: number, date: string) => `${employeeId}|${date}`;
-const DAY = 'YYYY-MM-DD';
+
+/** Inclusive range of whole days. */
+interface DayRange {
+  from: Date;
+  to: Date;
+}
 
 @Component({
   selector: 'app-copy-schedule-dialog',
@@ -46,16 +51,16 @@ export class CopyScheduleDialogComponent implements OnDestroy {
   private readonly employeeShiftService = inject(EmployeeShiftService);
   private readonly notifications = inject(NotificationService);
   private readonly data = inject<DynamicDialogConfig<CopyScheduleDialogData>>(DynamicDialogConfig).data!;
-  private readonly sourceRequest$ = new Subject<{from: moment.Moment; to: moment.Moment}>();
+  private readonly sourceRequest$ = new Subject<DayRange>();
 
   readonly employees = this.data.employees;
   readonly onlySelected = this.data.onlySelected;
 
-  readonly monthStart = moment(this.data.month).startOf('month');
-  readonly monthEnd = moment(this.data.month).endOf('month').startOf('day');
-  readonly monthStartDate = this.monthStart.toDate();
-  readonly monthEndDate = this.monthEnd.toDate();
-  readonly monthLabel = this.monthStart.clone().locale('uk').format('MMMM YYYY');
+  readonly monthStart = startOfMonth(this.data.month);
+  readonly monthEnd = startOfDay(endOfMonth(this.data.month));
+  readonly monthStartDate = this.monthStart;
+  readonly monthEndDate = this.monthEnd;
+  readonly monthLabel = format(this.monthStart, 'LLLL yyyy');
 
   readonly presets = [
     {label: 'Минулий тиждень', value: 'week' as Preset},
@@ -76,7 +81,7 @@ export class CopyScheduleDialogComponent implements OnDestroy {
   readonly targetRange = computed(() => this.toRange(this.target()));
   readonly cycleLength = computed(() => {
     const s = this.sourceRange();
-    return s ? s.to.diff(s.from, 'days') + 1 : 0;
+    return s ? daysInclusive(s.from, s.to) : 0;
   });
 
   readonly error = computed(() => {
@@ -84,7 +89,7 @@ export class CopyScheduleDialogComponent implements OnDestroy {
     const t = this.targetRange();
     if (!s || !t) return 'Оберіть період-джерело і куди вставити';
     if (this.cycleLength() > 62) return 'Джерело — не довше 62 днів';
-    if (!s.to.isBefore(t.from, 'day')) return 'Джерело має закінчуватися раніше, ніж починається вставка';
+    if (!isBefore(s.to, t.from)) return 'Джерело має закінчуватися раніше, ніж починається вставка';
     return null;
   });
 
@@ -101,18 +106,18 @@ export class CopyScheduleDialogComponent implements OnDestroy {
 
     for (const employee of this.employees) {
       let hasSource = false;
-      for (const day = s.from.clone(); day.isSameOrBefore(s.to, 'day'); day.add(1, 'day')) {
-        if (shifts.has(KEY(employee.id, day.format(DAY)))) { hasSource = true; result.sourceFilled++; }
+      for (const day of eachDayOfInterval({start: s.from, end: s.to})) {
+        if (shifts.has(KEY(employee.id, toApiDate(day)))) { hasSource = true; result.sourceFilled++; }
       }
       if (hasSource) result.employeesWithSource++;
 
-      for (const day = t.from.clone(); day.isSameOrBefore(t.to, 'day'); day.add(1, 'day')) {
-        const offset = ((day.diff(s.from, 'days') % length) + length) % length;
-        const sourceDate = s.from.clone().add(offset, 'day').format(DAY);
+      for (const day of eachDayOfInterval({start: t.from, end: t.to})) {
+        const offset = ((differenceInCalendarDays(day, s.from) % length) + length) % length;
+        const sourceDate = toApiDate(addDays(s.from, offset));
         const shift = shifts.get(KEY(employee.id, sourceDate));
         if (!shift) continue;
 
-        const date = day.format(DAY);
+        const date = toApiDate(day);
         const current = existing[KEY(employee.id, date)];
         if (current === shift.id) continue;
         if (current && !this.overwrite()) { result.skippedFilled++; continue; }
@@ -128,8 +133,8 @@ export class CopyScheduleDialogComponent implements OnDestroy {
     const shifts = this.sourceShifts();
     return this.employees.slice(0, 4).map(employee => {
       const days: {date: string; weekday: string; shift: Shift | null}[] = [];
-      for (const day = s.from.clone(); day.isSameOrBefore(s.to, 'day'); day.add(1, 'day')) {
-        days.push({date: day.format('D'), weekday: day.clone().locale('uk').format('dd'), shift: shifts.get(KEY(employee.id, day.format(DAY))) ?? null});
+      for (const day of eachDayOfInterval({start: s.from, end: s.to})) {
+        days.push({date: format(day, 'd'), weekday: format(day, 'EEEEEE'), shift: shifts.get(KEY(employee.id, toApiDate(day))) ?? null});
       }
       return {employee, days};
     });
@@ -147,8 +152,8 @@ export class CopyScheduleDialogComponent implements OnDestroy {
       .pipe(
         switchMap(({from, to}) => {
           const months: string[] = [];
-          for (const m = from.clone().startOf('month'); m.isSameOrBefore(to, 'month'); m.add(1, 'month')) {
-            months.push(m.format('YYYY-MM'));
+          for (let m = startOfMonth(from); !isAfter(m, to); m = addMonths(m, 1)) {
+            months.push(toApiMonth(m));
           }
           this.sourceLoading.set(true);
           return forkJoin(months.map(period => this.timesheetService
@@ -160,7 +165,7 @@ export class CopyScheduleDialogComponent implements OnDestroy {
                 for (const sheet of sheets) {
                   for (const t of sheet?.employeeTimesheets ?? []) {
                     for (const es of t.employeeShifts) {
-                      if (es?.shift && es.date) result.set(KEY(t.employee.id, moment(es.date).format(DAY)), es.shift);
+                      if (es?.shift && es.date) result.set(KEY(t.employee.id, toApiDate(es.date)), es.shift);
                     }
                   }
                 }
@@ -185,17 +190,17 @@ export class CopyScheduleDialogComponent implements OnDestroy {
     this.preset.set(preset);
     if (preset === 'custom') return;
 
-    const today = moment().startOf('day');
-    const targetFrom = this.monthStart.isSame(today, 'month') ? today.clone() : this.monthStart.clone();
-    this.target.set([targetFrom.toDate(), this.monthEnd.toDate()]);
+    const today = startOfDay(new Date());
+    const targetFrom = isSameMonth(this.monthStart, today) ? today : this.monthStart;
+    this.target.set([targetFrom, this.monthEnd]);
 
     if (preset === 'week') {
-      const weekStart = targetFrom.clone().isoWeekday(1).subtract(7, 'day');
-      this.source.set([weekStart.toDate(), weekStart.clone().add(6, 'day').toDate()]);
+      const weekStart = subDays(startOfISOWeek(targetFrom), 7);
+      this.source.set([weekStart, addDays(weekStart, 6)]);
     } else {
-      const prev = this.monthStart.clone().subtract(1, 'month');
-      this.source.set([prev.toDate(), prev.clone().endOf('month').startOf('day').toDate()]);
-      this.target.set([this.monthStart.toDate(), this.monthEnd.toDate()]);
+      const prev = subMonths(this.monthStart, 1);
+      this.source.set([prev, startOfDay(endOfMonth(prev))]);
+      this.target.set([this.monthStart, this.monthEnd]);
     }
   }
 
@@ -209,10 +214,10 @@ export class CopyScheduleDialogComponent implements OnDestroy {
     this.target.set(value);
   }
 
-  formatRange(range: {from: moment.Moment; to: moment.Moment} | null): string {
+  formatRange(range: DayRange | null): string {
     if (!range) return '—';
-    const f = (m: moment.Moment) => m.clone().locale('uk').format('D MMM');
-    return range.from.isSame(range.to, 'day') ? f(range.from) : `${f(range.from)} – ${f(range.to)}`;
+    const f = (date: Date) => format(date, 'd MMM');
+    return isSameDay(range.from, range.to) ? f(range.from) : `${f(range.from)} – ${f(range.to)}`;
   }
 
   save(): void {
@@ -234,11 +239,11 @@ export class CopyScheduleDialogComponent implements OnDestroy {
 
   readonly plural = pluralUk;
 
-  private toRange(value: Date[] | null): {from: moment.Moment; to: moment.Moment} | null {
+  private toRange(value: Date[] | null): DayRange | null {
     const from = value?.[0];
     const to = value?.[1] ?? from;
     if (!from || !to) return null;
-    return {from: moment(from).startOf('day'), to: moment(to).startOf('day')};
+    return {from: startOfDay(from), to: startOfDay(to)};
   }
 
   ngOnDestroy(): void {

@@ -25,13 +25,15 @@ import {Department} from '../../../structure/models/department.model';
 import {EmployeeDialogComponent, EmployeeDialogData} from '../../components/employee-dialog/employee-dialog.component';
 import {personInitials, pluralUk} from '../../../../../shared/utils/text.utils';
 import {EmptyStateComponent} from '../../../../../shared/components/empty-state/empty-state.component';
+import {PersonAvatarDirective} from '../../../../../shared/directives/person-avatar.directive';
 
 @Component({
   selector: 'app-employees-page',
   standalone: true,
   imports: [EmptyStateComponent, 
     FormsModule, ReactiveFormsModule, RouterLink, PrimeTemplate, TableModule, Button, Select, FloatLabel,
-    IconField, InputIcon, InputText, ToggleSwitch, Tag, Avatar, Tooltip
+    IconField, InputIcon, InputText, ToggleSwitch, Tag, Avatar, Tooltip,
+    PersonAvatarDirective
   ],
   providers: [DialogService],
   templateUrl: './employees-page.component.html',

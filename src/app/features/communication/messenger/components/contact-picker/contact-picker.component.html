@@ -1,0 +1,50 @@
+<p-iconfield class="picker-search">
+  <p-inputicon styleClass="pi pi-search"/>
+  <input
+    pInputText
+    type="search"
+    [fluid]="true"
+    [pAutoFocus]="autofocus()"
+    placeholder="Прізвище або ім'я"
+    aria-label="Пошук працівників"
+    [ngModel]="search()"
+    (ngModelChange)="onSearch($event)"/>
+</p-iconfield>
+
+<div class="picker-results" role="listbox" [attr.aria-multiselectable]="multiple()" aria-label="Працівники">
+  @if (loading()) {
+    <div class="picker-hint"><p-progress-spinner strokeWidth="5" styleClass="picker-spinner"/> Шукаємо…</div>
+  } @else if (search().trim().length < 2) {
+    <div class="picker-hint">Введіть щонайменше 2 літери, щоб знайти колегу</div>
+  } @else if (searched() && !results().length) {
+    <div class="picker-hint">Нікого не знайдено</div>
+  } @else {
+    @for (contact of results(); track contact.employeeId) {
+      @let disabled = isDisabled(contact);
+      @let selected = isSelected(contact);
+      <button
+        type="button"
+        role="option"
+        class="picker-item"
+        [class.selected]="selected"
+        [disabled]="disabled"
+        [attr.aria-selected]="selected"
+        (click)="picked.emit(contact)">
+        <app-chat-avatar [name]="contact.fullName" [seed]="contact.employeeId" [size]="40"/>
+        <span class="picker-text">
+          <span class="picker-name">{{ contact.fullName }}</span>
+          <span class="picker-sub">{{ disabled ? disabledHint() : subtitle(contact) }}</span>
+        </span>
+        @if (multiple()) {
+          <span class="picker-check" [class.on]="selected || disabled" aria-hidden="true">
+            @if (selected || disabled) {
+              <i class="pi pi-check"></i>
+            }
+          </span>
+        } @else {
+          <i class="pi pi-angle-right picker-go" aria-hidden="true"></i>
+        }
+      </button>
+    }
+  }
+</div>

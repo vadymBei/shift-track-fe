@@ -23,13 +23,15 @@ import {Department} from '../../../structure/models/department.model';
 import {ContactDetailsComponent} from '../../components/contact-details/contact-details.component';
 import {personInitials} from '../../../../../shared/utils/text.utils';
 import {EmptyStateComponent} from '../../../../../shared/components/empty-state/empty-state.component';
+import {PersonAvatarDirective} from '../../../../../shared/directives/person-avatar.directive';
 
 @Component({
   selector: 'app-contacts-page',
   standalone: true,
   imports: [EmptyStateComponent, 
     ReactiveFormsModule, PrimeTemplate, Select, FloatLabel, IconField, InputIcon, InputText,
-    Avatar, Button, Tooltip, Skeleton, Drawer, ContactDetailsComponent
+    Avatar, Button, Tooltip, Skeleton, Drawer, ContactDetailsComponent,
+    PersonAvatarDirective
   ],
   templateUrl: './contacts-page.component.html',
   styleUrl: './contacts-page.component.scss'

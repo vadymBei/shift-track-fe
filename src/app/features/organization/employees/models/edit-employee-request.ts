@@ -9,5 +9,7 @@ export interface EditEmployeeRequest {
     departmentId?: number;
     positionId?: number;
     dateOfBirth?: Date;
+    /** 2026-10-27; null clears it (the registration date counts then). */
+    hireDate: string | null;
     gender: EmployeeGender;
 }
