@@ -14,7 +14,6 @@ import {
   WritableSignal
 } from '@angular/core';
 import {HttpErrorResponse, HttpEventType} from '@angular/common/http';
-import {Subscription} from 'rxjs';
 import {FormsModule} from '@angular/forms';
 import {RouterLink} from '@angular/router';
 import {MenuItem} from 'primeng/api';
@@ -26,10 +25,22 @@ import {Tooltip} from 'primeng/tooltip';
 import {ConfirmService} from '../../../../../shared/services/confirm.service';
 import {NotificationService} from '../../../../../shared/services/notification.service';
 import {MessengerStore} from '../../services/messenger.store';
-import {ChatAttachment, ChatMessage, Conversation, DisplayMessage} from '../../models/messenger.models';
+import {ChatAttachment, ChatMember, ChatMessage, Conversation, DisplayMessage} from '../../models/messenger.models';
 import {ChatAvatarComponent} from '../chat-avatar/chat-avatar.component';
 import {MessengerApiService} from '../../services/messenger-api.service';
 import {ImageViewerComponent} from '../image-viewer/image-viewer.component';
+import {MentionPickerComponent} from '../mention-picker/mention-picker.component';
+import {MessageTextComponent} from '../message-text/message-text.component';
+import {
+  deserializeMentions,
+  mentionCandidates,
+  mentionLabel,
+  mentionQuery,
+  mentionsMe,
+  PickedMention,
+  plainText,
+  serializeMentions
+} from '../../utils/mention-utils';
 import {MessageAttachmentsComponent} from '../message-attachments/message-attachments.component';
 import {PendingUpload, UploadListComponent} from '../upload-list/upload-list.component';
 import {ErrorTranslations} from '../../../../../shared/constants/error-translations';
@@ -68,6 +79,7 @@ interface MessageRow {
 
 /** Drafts survive switching between conversations. */
 const drafts = new Map<number, string>();
+const draftMentions = new Map<number, PickedMention[]>();
 
 /** Files chosen in a conversation stay there while another one is open, like the draft. */
 const uploadsByConversation = new Map<number, WritableSignal<PendingUpload[]>>();
@@ -87,7 +99,8 @@ function uploadsOf(conversationId: number): WritableSignal<PendingUpload[]> {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, RouterLink, Button, Menu, Skeleton, Textarea, Tooltip, ChatAvatarComponent,
-    ImageViewerComponent, MessageAttachmentsComponent, UploadListComponent],
+    ImageViewerComponent, MessageAttachmentsComponent, UploadListComponent, MentionPickerComponent,
+    MessageTextComponent],
   templateUrl: './conversation-view.component.html',
   styleUrl: './conversation-view.component.scss'
 })
@@ -110,6 +123,20 @@ export class ConversationViewComponent {
   readonly replyTo = signal<ChatMessage | null>(null);
   readonly editing = signal<ChatMessage | null>(null);
   readonly saving = signal(false);
+
+  /** People chosen with "@" in the composer. */
+  readonly picked = signal<PickedMention[]>([]);
+  readonly mentionAt = signal<{query: string; start: number} | null>(null);
+  readonly mentionIndex = signal(0);
+
+  /** Suggestions while "@name" is typed; mentions are for groups. */
+  readonly mentionOptions = computed(() => {
+    const at = this.mentionAt();
+    const conversation = this.conversation();
+    return at && conversation?.type === 'Group'
+      ? mentionCandidates(conversation.members, at.query, this.me())
+      : [];
+  });
   readonly accept = ATTACHMENT_ACCEPT;
   readonly dragging = signal(false);
   readonly viewer = signal<{images: ChatAttachment[]; start: ChatAttachment} | null>(null);
@@ -188,6 +215,8 @@ export class ConversationViewComponent {
       untracked(() => {
         this.store.open(id);
         this.text.set(drafts.get(id) ?? '');
+        this.picked.set(draftMentions.get(id) ?? []);
+        this.mentionAt.set(null);
         this.updateComposerScroll();
         this.replyTo.set(null);
         this.editing.set(null);
@@ -259,11 +288,16 @@ export class ConversationViewComponent {
 
   // ---- composer
 
-  onInput(value: string): void {
+  /** lookForMention: off when the text is changed by code and the caret isn't there yet. */
+  onInput(value: string, lookForMention = true): void {
     this.text.set(value);
     this.updateComposerScroll();
+    if (lookForMention) {
+      this.updateMentionQuery();
+    }
     if (!this.editing()) {
       drafts.set(this.conversationId(), value);
+      draftMentions.set(this.conversationId(), this.picked());
       if (value.trim()) {
         this.store.notifyTyping(this.conversationId());
       }
@@ -271,6 +305,26 @@ export class ConversationViewComponent {
   }
 
   onKeydown(event: KeyboardEvent): void {
+    const options = this.mentionOptions();
+    if (options.length && !event.isComposing) {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        const step = event.key === 'ArrowDown' ? 1 : -1;
+        this.mentionIndex.update(index => (index + step + options.length) % options.length);
+        return;
+      }
+      if (event.key === 'Enter' || event.key === 'Tab') {
+        event.preventDefault();
+        this.chooseMention(options[Math.min(this.mentionIndex(), options.length - 1)]);
+        return;
+      }
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        this.mentionAt.set(null);
+        return;
+      }
+    }
+
     if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
       event.preventDefault();
       void this.submit();
@@ -288,11 +342,12 @@ export class ConversationViewComponent {
   }
 
   async submit(): Promise<void> {
-    const value = this.text().trim();
     const editing = this.editing();
-    if (!this.canSend() || this.saving() || (editing && !value)) {
+    if (!this.canSend() || this.saving() || (editing && !this.text().trim())) {
       return;
     }
+    const value = serializeMentions(this.text().trim(), this.picked());
+    this.mentionAt.set(null);
 
     if (editing) {
       if (value === editing.text) {
@@ -312,7 +367,9 @@ export class ConversationViewComponent {
     this.store.send(this.conversationId(), value, this.replyTo(), this.uploaded());
     uploadsOf(this.conversationId()).set(this.uploads().filter(x => x.error));
     this.text.set('');
+    this.picked.set([]);
     drafts.delete(this.conversationId());
+    draftMentions.delete(this.conversationId());
     this.replyTo.set(null);
     this.focusComposer();
   }
@@ -321,8 +378,10 @@ export class ConversationViewComponent {
     const wasEditing = !!this.editing();
     this.replyTo.set(null);
     this.editing.set(null);
+    this.mentionAt.set(null);
     if (wasEditing) {
       this.text.set(drafts.get(this.conversationId()) ?? '');
+      this.picked.set(draftMentions.get(this.conversationId()) ?? []);
     }
     this.focusComposer();
   }
@@ -336,8 +395,58 @@ export class ConversationViewComponent {
   startEdit(message: ChatMessage): void {
     this.replyTo.set(null);
     this.editing.set(message);
-    this.text.set(message.text ?? '');
+    const editable = deserializeMentions(message);
+    this.text.set(editable.text);
+    this.picked.set(editable.picked);
     this.focusComposer();
+  }
+
+  // ---- mentions
+
+  /** Looks for "@name" before the caret. */
+  updateMentionQuery(): void {
+    const element = this.composer()?.nativeElement;
+    const at = element && this.conversation()?.type === 'Group'
+      ? mentionQuery(this.text(), element.selectionStart ?? this.text().length)
+      : null;
+    if (at?.query !== this.mentionAt()?.query || at?.start !== this.mentionAt()?.start) {
+      this.mentionIndex.set(0);
+    }
+    this.mentionAt.set(at);
+  }
+
+  chooseMention(member: ChatMember): void {
+    const at = this.mentionAt();
+    const element = this.composer()?.nativeElement;
+    if (!at || !element) {
+      return;
+    }
+
+    const label = mentionLabel(member.fullName);
+    const caret = element.selectionStart ?? this.text().length;
+    const text = this.text();
+    const inserted = `@${label} `;
+    const value = text.slice(0, at.start) + inserted + text.slice(caret);
+
+    if (!this.picked().some(x => x.employeeId === member.employeeId)) {
+      this.picked.update(list => [...list, {employeeId: member.employeeId, label}]);
+    }
+    this.mentionAt.set(null);
+    this.onInput(value, false);
+
+    const position = at.start + inserted.length;
+    setTimeout(() => {
+      element.focus();
+      element.setSelectionRange(position, position);
+    });
+  }
+
+  mentionsMe(message: ChatMessage): boolean {
+    return mentionsMe(message, this.me());
+  }
+
+  plain(message: ChatMessage | null): string {
+    return message ? plainText(message) : '';
   }
 
   // ---- files
@@ -546,7 +655,7 @@ export class ConversationViewComponent {
   }
 
   private copy(message: ChatMessage): void {
-    navigator.clipboard?.writeText(message.text ?? '')
+    navigator.clipboard?.writeText(plainText(message))
       .then(() => this.toast.success('Текст скопійовано'))
       .catch(() => this.toast.warn('Не вдалося скопіювати'));
   }

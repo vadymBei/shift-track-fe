@@ -50,6 +50,8 @@ export function notificationLink(notification: AppNotification): {path: string; 
       return {path: '/timesheet'};
     case 'Payroll':
       return {path: '/payrolls'};
+    case 'Messenger':
+      return notification.entityId ? {path: `/messages/${notification.entityId}`} : {path: '/messages'};
     default:
       return null;
   }

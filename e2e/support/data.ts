@@ -138,6 +138,7 @@ export function chatMessage(overrides: Record<string, unknown> = {}) {
     clientMessageId: null,
     replyTo: null,
     attachments: [],
+    mentions: [],
     ...overrides
   };
 }
@@ -168,6 +169,8 @@ export function directChat(me: TestUser, other: ReturnType<typeof employee>, ove
     readByOthersUpToMessageId: null,
     myRole: 'Member',
     canWrite: true,
+    isMuted: false,
+    hasUnreadMention: false,
     ...overrides
   };
 }
@@ -185,6 +188,8 @@ export function groupChat(owner: TestUser, others: ReturnType<typeof employee>[]
     readByOthersUpToMessageId: null,
     myRole: 'Owner',
     canWrite: true,
+    isMuted: false,
+    hasUnreadMention: false,
     ...overrides
   };
 }

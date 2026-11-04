@@ -91,4 +91,20 @@ test.describe('Notifications', () => {
     await expect.poll(() => api.requestsTo('PUT', 'communication/notifications/read-all').length).toBe(1);
     await expect(bell(page)).toHaveAccessibleName('Сповіщення');
   });
+
+  test('clicking a pop-up opens what it is about and marks it read', async ({page, api, hub}) => {
+    const pending = vacation({id: 42, permissions: permissions({canView: true, canApprove: true})});
+    api
+      .on('GET', 'booking/vacations', [pending])
+      .on('GET', 'booking/vacations/42', pending);
+    await openConnected(page, hub, '/home');
+
+    await hub.notificationReceived(notification({id: 8, entityId: 42, title: 'Нова заява на відпустку'}));
+    await page.locator('.p-toast').getByRole('button', {name: 'Нова заява на відпустку: відкрити'}).click();
+
+    await expect(page).toHaveURL(/\/vacations/);
+    await expect(page.getByRole('dialog').filter({hasText: 'Коваль Олена'})).toBeVisible();
+    await expect.poll(() => api.requestsTo('PUT', 'communication/notifications/read/8').length).toBe(1);
+    await expect(page.locator('.p-toast')).not.toContainText('Нова заява на відпустку');
+  });
 });

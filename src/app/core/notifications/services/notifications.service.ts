@@ -1,10 +1,12 @@
 import {effect, inject, Injectable, signal, untracked} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
+import {Router} from '@angular/router';
 import {AccountService} from '../../account/services/account.service';
 import {NotificationService} from '../../../shared/services/notification.service';
 import {HomeService} from '../../../features/home/services/home.service';
 import {RealtimeService} from '../../realtime/realtime.service';
 import {AppNotification} from '../models/app-notification.model';
+import {notificationLink} from '../constants/notification-meta';
 
 const LIST_SIZE = 50;
 
@@ -15,6 +17,7 @@ export class NotificationsService {
   private readonly toast = inject(NotificationService);
   private readonly homeService = inject(HomeService);
   private readonly realtime = inject(RealtimeService);
+  private readonly router = inject(Router);
 
   private readonly path = 'communication/notifications';
 
@@ -103,7 +106,18 @@ export class NotificationsService {
     if (this.loaded()) {
       this.items.update(items => [notification, ...items.filter(n => n.id !== notification.id)]);
     }
-    this.toast.info(notification.message ?? '', notification.title);
+    // A mention in the chat that is open right now needs no pop-up.
+    const openChat = notification.moduleType === 'Messenger'
+      && this.router.url.split('?')[0] === `/messages/${notification.entityId}`;
+    if (!openChat) {
+      const link = notificationLink(notification);
+      this.toast.info(notification.message ?? '', notification.title, link ? {
+        open: () => {
+          this.markAsRead(notification);
+          void this.router.navigate([link.path], {queryParams: link.queryParams});
+        }
+      } : undefined);
+    }
     if (notification.moduleType === 'Vacation' || notification.moduleType === 'BusinessTrip') {
       this.homeService.refreshPendingCounts();
     }

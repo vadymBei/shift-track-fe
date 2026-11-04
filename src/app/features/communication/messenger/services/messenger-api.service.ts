@@ -42,6 +42,10 @@ export class MessengerApiService {
     return this.http.delete<Conversation>(`${this.path}/conversations/${id}/members/${employeeId}`);
   }
 
+  setMuted(id: number, muted: boolean): Observable<Conversation> {
+    return this.http.put<Conversation>(`${this.path}/conversations/${id}/muted`, {muted});
+  }
+
   leave(id: number): Observable<unknown> {
     return this.http.post(`${this.path}/conversations/${id}/leave`, {});
   }

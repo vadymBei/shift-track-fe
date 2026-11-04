@@ -45,12 +45,19 @@
         <span class="item-text">
           <span class="item-row">
             <span class="item-title">{{ title(conversation) }}</span>
+            @if (conversation.isMuted) {
+              <i class="pi pi-bell-slash item-muted" role="img" aria-label="Без сповіщень"></i>
+            }
             <span class="item-time">{{ time(conversation) }}</span>
           </span>
           <span class="item-row">
             <span class="item-preview" [class.typing]="isTyping(conversation)">{{ preview(conversation) }}</span>
+            @if (conversation.hasUnreadMention) {
+              <span class="item-mention" role="img" aria-label="Вас згадали">&#64;</span>
+            }
             @if (conversation.unreadCount > 0) {
-              <span class="item-badge" [attr.aria-label]="conversation.unreadCount + ' непрочитаних'">{{ unreadLabel(conversation) }}</span>
+              <span class="item-badge" [class.muted]="conversation.isMuted"
+                    [attr.aria-label]="conversation.unreadCount + ' непрочитаних'">{{ unreadLabel(conversation) }}</span>
             }
           </span>
         </span>

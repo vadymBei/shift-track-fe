@@ -3,6 +3,7 @@ import {FormsModule} from '@angular/forms';
 import {Button} from 'primeng/button';
 import {InputText} from 'primeng/inputtext';
 import {Tag} from 'primeng/tag';
+import {ToggleSwitch} from 'primeng/toggleswitch';
 import {Tooltip} from 'primeng/tooltip';
 import {ConfirmService} from '../../../../../shared/services/confirm.service';
 import {MessengerStore} from '../../services/messenger.store';
@@ -15,7 +16,7 @@ import {conversationTitle, membersLabel} from '../../utils/messenger-format';
   selector: 'app-conversation-details',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, Button, InputText, Tag, Tooltip, ChatAvatarComponent],
+  imports: [FormsModule, Button, InputText, Tag, ToggleSwitch, Tooltip, ChatAvatarComponent],
   templateUrl: './conversation-details.component.html',
   styleUrl: './conversation-details.component.scss'
 })
@@ -32,6 +33,7 @@ export class ConversationDetailsComponent {
   readonly renaming = signal(false);
   readonly title = signal('');
   readonly saving = signal(false);
+  readonly savingMute = signal(false);
 
   readonly me = this.store.me;
   readonly isGroup = computed(() => this.conversation().type === 'Group');
@@ -80,6 +82,17 @@ export class ConversationDetailsComponent {
       this.renaming.set(false);
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  async setMuted(muted: boolean): Promise<void> {
+    this.savingMute.set(true);
+    try {
+      await this.store.setMuted(this.conversation().id, muted);
+    } catch {
+      // The error is shown by the interceptor; the switch shows the saved state again.
+    } finally {
+      this.savingMute.set(false);
     }
   }
 

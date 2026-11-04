@@ -186,3 +186,28 @@
     opacity: 0.6;
   }
 }
+
+.item-muted {
+  flex-shrink: 0;
+  color: var(--p-text-muted-color);
+  font-size: 12px;
+}
+
+.item-badge.muted {
+  background: var(--p-content-border-color);
+  color: var(--p-text-muted-color);
+}
+
+.item-mention {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--p-orange-500);
+  color: var(--p-primary-contrast-color);
+  font-size: 12px;
+  font-weight: 700;
+}

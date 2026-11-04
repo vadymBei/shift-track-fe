@@ -40,6 +40,17 @@
     }
   </section>
 
+  <section class="settings">
+    <label class="setting" for="chatMuted">
+      <span class="setting-text">
+        <span class="setting-title"><i class="pi pi-bell-slash" aria-hidden="true"></i> Без сповіщень</span>
+        <span class="setting-hint">Без спливаючих повідомлень, непрочитані все одно рахуються в меню.@if (isGroup()) { Коли вас згадають, сповіщення все одно прийде.}</span>
+      </span>
+      <p-toggleswitch inputId="chatMuted" [ngModel]="conversation().isMuted" (ngModelChange)="setMuted($event)"
+                      [disabled]="savingMute()"/>
+    </label>
+  </section>
+
   @if (isGroup()) {
     <section class="members">
       <div class="members-head">

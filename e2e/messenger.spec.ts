@@ -145,6 +145,17 @@ test.describe('Messenger', () => {
     await expect(list(page).getByRole('link').first()).toContainText('Магазин №12 · зміна');
   });
 
+  test('a message pop-up outside the messenger opens the chat', async ({page, api, hub}) => {
+    withChat(api, directChat(me, olena), [chatMessage({id: 60, text: 'Ви на зміні?'})]);
+
+    await openConnected(page, hub, '/home');
+    await hub.push('chatMessageCreated', chatMessage({id: 60, text: 'Ви на зміні?'}));
+    await page.locator('.p-toast').getByRole('button', {name: /Коваль Олена: відкрити/}).click();
+
+    await expect(page).toHaveURL(/\/messages\/1$/);
+    await expect(log(page)).toContainText('Ви на зміні?');
+  });
+
   test('a new chat with a colleague found by name', async ({page, api}) => {
     const chat = directChat(me, iryna, {id: 5});
     api

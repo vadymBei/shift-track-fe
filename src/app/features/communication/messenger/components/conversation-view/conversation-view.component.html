@@ -52,6 +52,7 @@
              [class.mine]="row.mine"
              [class.continues]="row.continues"
              [class.continued]="row.continued"
+             [class.mentions-me]="mentionsMe(row.message)"
              [attr.data-message-id]="row.message.id">
           @if (!row.mine) {
             <span class="msg-avatar">
@@ -86,7 +87,7 @@
                 <app-message-attachments [attachments]="row.message.attachments" (viewImage)="viewImage($event, row.message)"/>
               }
               @if (row.message.text) {
-                <span class="text">{{ row.message.text }}</span>
+                <app-message-text class="text" [message]="row.message" [me]="me()"/>
               }
             }
 
@@ -169,7 +170,7 @@
         <i class="pi pi-reply" aria-hidden="true"></i>
         <span class="compose-bar-text">
           <span class="compose-bar-title">Відповідь {{ reply.authorId === me() ? 'собі' : reply.authorFullName }}</span>
-          <span class="compose-bar-quote">{{ reply.text || 'Вкладення' }}</span>
+          <span class="compose-bar-quote">{{ plain(reply) || 'Вкладення' }}</span>
         </span>
         <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" size="small"
                   ariaLabel="Скасувати відповідь" (onClick)="cancelCompose()"/>
@@ -180,11 +181,15 @@
         <i class="pi pi-pencil" aria-hidden="true"></i>
         <span class="compose-bar-text">
           <span class="compose-bar-title">Редагування</span>
-          <span class="compose-bar-quote">{{ edited.text }}</span>
+          <span class="compose-bar-quote">{{ plain(edited) }}</span>
         </span>
         <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" size="small"
                   ariaLabel="Скасувати редагування" (onClick)="cancelCompose()"/>
       </div>
+    }
+
+    @if (mentionOptions().length) {
+      <app-mention-picker [options]="mentionOptions()" [activeIndex]="mentionIndex()" (pick)="chooseMention($event)"/>
     }
 
     @if (uploads().length) {
@@ -212,6 +217,11 @@
         name="text"
         (ngModelChange)="onInput($event)"
         (keydown)="onKeydown($event)"
+        (click)="updateMentionQuery()"
+        (blur)="mentionAt.set(null)"
+        [attr.aria-expanded]="mentionOptions().length > 0"
+        [attr.aria-controls]="mentionOptions().length ? 'mention-picker' : null"
+        [attr.aria-activedescendant]="mentionOptions().length ? 'mention-option-' + mentionIndex() : null"
         (paste)="onPaste($event)"></textarea>
       <p-button
         type="submit"

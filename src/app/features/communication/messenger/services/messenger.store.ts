@@ -6,6 +6,8 @@ import {AccountService} from '../../../../core/account/services/account.service'
 import {RealtimeService} from '../../../../core/realtime/realtime.service';
 import {NotificationService} from '../../../../shared/services/notification.service';
 import {MESSAGES_PAGE, MessengerApiService} from './messenger-api.service';
+import {mentionsMe, plainText} from '../utils/mention-utils';
+import {attachmentsLabel} from '../utils/messenger-format';
 import {
   ChatAttachment,
   ChatMessage,
@@ -228,6 +230,7 @@ export class MessengerStore {
         isDeleted: replyTo.isDeleted
       } : null,
       attachments,
+      mentions: [],
       delivery: 'sending'
     };
 
@@ -307,6 +310,11 @@ export class MessengerStore {
     return this.upsert(await firstValueFrom(this.api.removeMember(id, employeeId)));
   }
 
+  async setMuted(id: number, muted: boolean): Promise<void> {
+    this.upsert(await firstValueFrom(this.api.setMuted(id, muted)));
+    this.refreshUnread();
+  }
+
   async leave(id: number): Promise<void> {
     await firstValueFrom(this.api.leave(id));
     this.forget(id);
@@ -337,6 +345,7 @@ export class MessengerStore {
     this.updateConversation(id, x => ({
       ...x,
       unreadCount: 0,
+      hasUnreadMention: false,
       members: x.members.map(m => m.employeeId === me ? {...m, lastReadMessageId: newest} : m)
     }));
     if (hadUnread > 0) {
@@ -373,7 +382,11 @@ export class MessengerStore {
     if (known) {
       this.touchConversation(message.conversationId, message);
       if (fromOthers && !watching) {
-        this.updateConversation(message.conversationId, x => ({...x, unreadCount: x.unreadCount + 1}));
+        this.updateConversation(message.conversationId, x => ({
+          ...x,
+          unreadCount: x.unreadCount + 1,
+          hasUnreadMention: x.hasUnreadMention || mentionsMe(message, me)
+        }));
         this.unread.update(count => ({
           conversations: count.conversations + (known.unreadCount === 0 ? 1 : 0),
           messages: count.messages + 1
@@ -461,14 +474,18 @@ export class MessengerStore {
   }
 
   private announce(message: ChatMessage): void {
-    if (message.type !== 'Text' || this.router.url.startsWith(MESSENGER_ROUTE)) {
+    const conversation = this.conversation(message.conversationId);
+    // A mention comes as a notification (also in a muted chat), so it isn't shown twice.
+    if (message.type !== 'Text' || this.router.url.startsWith(MESSENGER_ROUTE)
+      || conversation?.isMuted || mentionsMe(message, this.me())) {
       return;
     }
-    const conversation = this.conversation(message.conversationId);
     const title = conversation?.type === 'Group'
       ? `${message.authorFullName ?? ''} · ${conversation.title ?? ''}`
       : message.authorFullName ?? 'Нове повідомлення';
-    this.toast.info(shorten(message.text ?? '', 120), title);
+    this.toast.info(shorten(plainText(message) || attachmentsLabel(message), 120), title, {
+      open: () => void this.router.navigate([MESSENGER_ROUTE, message.conversationId])
+    });
   }
 
   // ---- state helpers

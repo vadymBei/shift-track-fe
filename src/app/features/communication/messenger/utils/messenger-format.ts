@@ -2,6 +2,7 @@ import {differenceInMinutes, isSameDay, isSameYear, isToday, isYesterday, subDay
 import {formatDate, toDate} from '../../../../shared/utils/date.utils';
 import {pluralUk} from '../../../../shared/utils/text.utils';
 import {ChatMessage, Conversation} from '../models/messenger.models';
+import {plainText} from './mention-utils';
 
 /** Time in the list of chats: 14:05 today, "Вчора", the weekday this week, then the date. */
 export function listTime(value: string): string {
@@ -65,7 +66,7 @@ export function previewText(conversation: Conversation, me: number | null): stri
   if (!message) {
     return conversation.type === 'Group' ? 'Група створена' : 'Напишіть перше повідомлення';
   }
-  const text = message.isDeleted ? 'Повідомлення видалено' : (message.text || attachmentsLabel(message));
+  const text = message.isDeleted ? 'Повідомлення видалено' : (plainText(message) || attachmentsLabel(message));
   if (message.type === 'System') {
     return text;
   }

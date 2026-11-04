@@ -437,6 +437,7 @@
 }
 
 .composer {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -558,4 +559,9 @@
   i {
     font-size: 28px;
   }
+}
+
+
+.msg.mentions-me:not(.mine) .bubble {
+  border-color: color-mix(in srgb, var(--p-orange-500) 55%, var(--p-content-border-color));
 }

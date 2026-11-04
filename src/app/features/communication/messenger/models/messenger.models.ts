@@ -39,6 +39,12 @@ export interface ChatAttachment {
   isImage: boolean;
 }
 
+/** An employee mentioned in the text as "<@employeeId>". */
+export interface MessageMention {
+  employeeId: number;
+  fullName: string | null;
+}
+
 export interface ChatMessage {
   id: number;
   conversationId: number;
@@ -53,6 +59,8 @@ export interface ChatMessage {
   clientMessageId: string | null;
   replyTo: MessagePreview | null;
   attachments: ChatAttachment[];
+  /** Names for the "<@id>" tokens of the text. */
+  mentions: MessageMention[];
 }
 
 /** A message shown before the server saved it. */
@@ -75,6 +83,10 @@ export interface Conversation {
   unreadCount: number;
   readByOthersUpToMessageId: number | null;
   myRole: ConversationMemberRole | 'None';
+  /** No pop-ups and not counted in the menu; mentions still come as notifications. */
+  isMuted: boolean;
+  /** An unread message mentions the current user. */
+  hasUnreadMention: boolean;
   canWrite: boolean;
 }
 

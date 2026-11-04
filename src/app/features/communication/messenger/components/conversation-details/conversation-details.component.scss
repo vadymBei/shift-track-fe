@@ -61,6 +61,38 @@
   gap: 8px;
 }
 
+.settings {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--p-content-border-color);
+}
+
+.setting {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.setting-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.setting-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.setting-hint {
+  color: var(--p-text-muted-color);
+  font-size: 12px;
+}
+
 .members {
   display: flex;
   flex: 1;
