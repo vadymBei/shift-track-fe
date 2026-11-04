@@ -5,6 +5,7 @@ import {toDate} from '../../utils/date.utils';
 import {Button} from 'primeng/button';
 import {Tooltip} from 'primeng/tooltip';
 import {Avatar} from 'primeng/avatar';
+import {PersonAvatarDirective} from '../../directives/person-avatar.directive';
 
 export type TimelineSeverity = 'warn' | 'info' | 'success' | 'danger' | 'secondary';
 
@@ -13,6 +14,8 @@ export interface TimelineItem<T = unknown> {
   rowKey: string | number;
   rowLabel: string;
   rowInitials: string;
+  /** Shows the photo of the employee instead of the initials. */
+  rowEmployeeId?: number | null;
   start: Date | string;
   end: Date | string;
   label: string;
@@ -45,6 +48,7 @@ interface Row<T> {
   key: string | number;
   label: string;
   initials: string;
+  employeeId: number | null;
   bars: Bar<T>[];
 }
 
@@ -53,7 +57,7 @@ const WEEKDAYS = ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
 @Component({
   selector: 'app-timeline-calendar',
   standalone: true,
-  imports: [DatePipe, Button, Tooltip, Avatar],
+  imports: [DatePipe, Button, Tooltip, Avatar, PersonAvatarDirective],
   templateUrl: './timeline-calendar.component.html',
   styleUrl: './timeline-calendar.component.scss'
 })
@@ -104,7 +108,7 @@ export class TimelineCalendarComponent<T = unknown> {
 
       let row = rows.get(item.rowKey);
       if (!row) {
-        row = {key: item.rowKey, label: item.rowLabel, initials: item.rowInitials, bars: []};
+        row = {key: item.rowKey, label: item.rowLabel, initials: item.rowInitials, employeeId: item.rowEmployeeId ?? null, bars: []};
         rows.set(item.rowKey, row);
       }
 

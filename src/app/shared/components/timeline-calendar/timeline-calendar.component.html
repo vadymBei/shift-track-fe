@@ -27,7 +27,7 @@
       @for (row of rows(); track row.key) {
         <div class="grid-row" [style.grid-template-columns]="gridTemplate()">
           <div class="name-cell">
-            <p-avatar [label]="row.initials" shape="circle" styleClass="app-avatar row-avatar"/>
+            <p-avatar [appPersonAvatar]="row.employeeId" [initials]="row.initials" shape="circle" styleClass="app-avatar row-avatar"/>
             <span class="name">{{ row.label }}</span>
           </div>
           @for (day of days(); track day.day) {

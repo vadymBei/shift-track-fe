@@ -26,7 +26,8 @@ export const test = base.extend<Fixtures>({
       .on('GET', /^booking\/vacations\/balance\//, vacationBalance())
       .on('GET', 'organization/structure/units/by-roles', [unit])
       .on('GET', /^organization\/structure\/departments\/by-roles/, [department])
-      .on('GET', 'system/auth/account/photo', {}, 404);
+      .on('GET', 'organization/employees/photos', [])
+      .on('GET', /^organization\/employees\/\d+\/photo/, {}, 404);
 
     await api.install();
     await use(api);

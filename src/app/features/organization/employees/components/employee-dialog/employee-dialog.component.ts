@@ -26,6 +26,7 @@ import {Unit} from '../../../structure/models/unit.model';
 import {Department} from '../../../structure/models/department.model';
 import {Position} from '../../../structure/models/position.model';
 import {personInitials} from '../../../../../shared/utils/text.utils';
+import {PersonAvatarDirective} from '../../../../../shared/directives/person-avatar.directive';
 
 export interface EmployeeDialogData {
   employeeId: number;
@@ -36,7 +37,8 @@ export interface EmployeeDialogData {
   standalone: true,
   imports: [
     ReactiveFormsModule, PrimeTemplate, InputText, IconField, InputIcon, DatePicker, Select,
-    Button, Message, Avatar, Skeleton
+    Button, Message, Avatar, Skeleton,
+    PersonAvatarDirective
   ],
   templateUrl: './employee-dialog.component.html',
   styleUrl: './employee-dialog.component.scss'

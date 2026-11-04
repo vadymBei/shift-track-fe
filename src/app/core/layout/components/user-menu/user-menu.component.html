@@ -6,11 +6,7 @@
   aria-haspopup="true"
   aria-label="Меню користувача"
   (click)="menu.toggle($event)">
-  @if (photoUrl(); as photo) {
-    <p-avatar [image]="photo" shape="circle" styleClass="user-avatar has-photo" [ariaLabel]="initials()"/>
-  } @else {
-    <p-avatar [label]="initials()" shape="circle" styleClass="user-avatar"/>
-  }
+  <p-avatar [appPersonAvatar]="employee()?.id" [initials]="initials()" shape="circle" styleClass="user-avatar"/>
 
   @if (!compact()) {
     <span class="user-info">

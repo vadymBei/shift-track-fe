@@ -55,7 +55,7 @@
         <article class="contact-card glass">
           <button type="button" class="card-main" (click)="selected.set(employee)"
                   [attr.aria-label]="'Відкрити контакт: ' + employee.fullName">
-            <p-avatar [label]="initials(employee)" shape="circle" size="large" styleClass="app-avatar card-avatar"/>
+            <p-avatar [appPersonAvatar]="employee.id" [initials]="initials(employee)" shape="circle" size="large" styleClass="app-avatar card-avatar"/>
             <div class="card-text">
               <span class="card-name">{{ employee.fullName }}</span>
               <span class="card-position">{{ employee.position?.name ?? 'Без посади' }}</span>

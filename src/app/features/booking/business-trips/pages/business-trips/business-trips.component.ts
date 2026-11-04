@@ -48,6 +48,7 @@ import {
 } from '../../constants/business-trip-labels';
 import {HomeService} from '../../../../home/services/home.service';
 import {EmptyStateComponent} from '../../../../../shared/components/empty-state/empty-state.component';
+import {PersonAvatarDirective} from '../../../../../shared/directives/person-avatar.directive';
 
 type ViewMode = 'list' | 'calendar';
 
@@ -73,7 +74,8 @@ type ViewMode = 'list' | 'calendar';
     Avatar,
     AvatarGroup,
     Tooltip,
-    TimelineCalendarComponent
+    TimelineCalendarComponent,
+    PersonAvatarDirective
   ],
   providers: [DialogService],
   templateUrl: './business-trips.component.html',
@@ -160,6 +162,7 @@ export class BusinessTripsComponent implements OnInit, OnDestroy {
       rowKey: employee.id,
       rowLabel: employee.fullName,
       rowInitials: employeeInitials(employee),
+      rowEmployeeId: employee.id,
       start: trip.startDate,
       end: trip.endDate,
       label: route,

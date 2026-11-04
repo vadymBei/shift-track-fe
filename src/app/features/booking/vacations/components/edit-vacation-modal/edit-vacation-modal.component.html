@@ -1,7 +1,7 @@
 <div class="vacation-dialog">
   <header class="dialog-header with-border">
     <div class="employee">
-      <p-avatar [label]="initials()" shape="circle" size="large" styleClass="app-avatar employee-avatar"/>
+      <p-avatar [appPersonAvatar]="vacation().employee.id" [initials]="initials()" shape="circle" size="large" styleClass="app-avatar employee-avatar"/>
       <div>
         <div class="title-row">
           <h2 class="dialog-title">Заявка на відпустку</h2>

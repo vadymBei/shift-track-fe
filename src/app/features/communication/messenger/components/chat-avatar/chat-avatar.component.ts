@@ -1,17 +1,21 @@
-import {ChangeDetectionStrategy, Component, computed, input} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, inject, input} from '@angular/core';
 import {personInitials} from '../../../../../shared/utils/text.utils';
+import {EmployeePhotosService} from '../../../../../shared/services/employee-photos.service';
 
 const TONES = 6;
 
-/** Initials in a colour picked by the id, or a group icon. */
+/** The photo of the person, initials in a colour picked by the id until it loads or without one, or a group icon. */
 @Component({
   selector: 'app-chat-avatar',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <span class="avatar" [class]="'tone-' + tone()" [style.--size.px]="size()" aria-hidden="true">
+    <span class="avatar" [class]="'tone-' + tone()" [class.has-photo]="!!photo()" [style.--size.px]="size()"
+          aria-hidden="true">
       @if (group()) {
         <i class="pi pi-users"></i>
+      } @else if (photo()) {
+        <img class="photo" [src]="photo()" alt=""/>
       } @else {
         {{ initials() }}
       }
@@ -38,6 +42,13 @@ const TONES = 6;
       i {
         font-size: calc(var(--size) * 0.42);
       }
+    }
+
+    .photo {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
     }
 
     .tone-0 { --tone: var(--p-violet-500); --tone-text: var(--p-violet-700); }
@@ -67,11 +78,15 @@ const TONES = 6;
   `
 })
 export class ChatAvatarComponent {
+  private readonly photos = inject(EmployeePhotosService);
+
   readonly name = input<string | null>(null);
+  /** The employee id for a person (also picks the photo), the conversation id for a group. */
   readonly seed = input<number>(0);
   readonly group = input(false);
   readonly size = input(44);
 
   readonly initials = computed(() => personInitials(this.name() ?? '') || '?');
   readonly tone = computed(() => Math.abs(this.seed()) % TONES);
+  readonly photo = computed(() => this.group() ? null : this.photos.photo(this.seed())());
 }

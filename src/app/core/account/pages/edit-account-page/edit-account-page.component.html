@@ -12,10 +12,13 @@
         @if (isLoading()) {
           <p-skeleton shape="circle" size="128px"/>
         } @else {
-          @if (photoUrl()) {
-            <p-avatar [image]="photoUrl()!" shape="circle" styleClass="app-avatar profile-avatar"/>
-          } @else {
-            <p-avatar [label]="initials()" shape="circle" styleClass="app-avatar profile-avatar"/>
+          <p-avatar [appPersonAvatar]="employee()?.id" [initials]="initials()" shape="circle"
+                    styleClass="app-avatar profile-avatar"/>
+          @if (hasPhoto()) {
+            <button type="button" class="photo-button photo-remove" pTooltip="Видалити фото" tooltipPosition="bottom"
+                    aria-label="Видалити фото" [disabled]="isUploading()" (click)="confirmRemovePhoto()">
+              <i class="pi pi-trash"></i>
+            </button>
           }
           <label class="photo-button" pTooltip="Змінити фото" tooltipPosition="bottom" for="photoInput">
             <i class="pi pi-camera"></i>
@@ -182,7 +185,7 @@
     @if (photoPreviewUrl()) {
       <img class="preview-image" [src]="photoPreviewUrl()" alt="Попередній перегляд фото"/>
     }
-    <span class="hint">Так фото виглядатиме в профілі та меню</span>
+    <span class="hint">Так фото бачитимуть колеги: у профілі, чатах і списках</span>
   </div>
   <ng-template #footer>
     <p-button label="Скасувати" [text]="true" severity="secondary" (onClick)="cancelPhoto()"/>

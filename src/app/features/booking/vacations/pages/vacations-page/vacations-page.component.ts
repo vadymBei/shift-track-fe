@@ -49,6 +49,7 @@ import {
 import {personInitials} from '../../../../../shared/utils/text.utils';
 import {HomeService} from '../../../../home/services/home.service';
 import {EmptyStateComponent} from '../../../../../shared/components/empty-state/empty-state.component';
+import {PersonAvatarDirective} from '../../../../../shared/directives/person-avatar.directive';
 
 type ViewMode = 'list' | 'calendar';
 
@@ -72,7 +73,8 @@ type ViewMode = 'list' | 'calendar';
     Tag,
     Avatar,
     Tooltip,
-    TimelineCalendarComponent
+    TimelineCalendarComponent,
+    PersonAvatarDirective
   ],
   providers: [DialogService],
   templateUrl: './vacations-page.component.html',
@@ -131,6 +133,7 @@ export class VacationsPageComponent implements OnInit, OnDestroy {
       rowKey: vacation.employee.id,
       rowLabel: vacation.employee.fullName,
       rowInitials: this.initials(vacation),
+      rowEmployeeId: vacation.employee.id,
       start: vacation.startDate,
       end: vacation.endDate,
       label: pluralDays(vacation.daysCount),

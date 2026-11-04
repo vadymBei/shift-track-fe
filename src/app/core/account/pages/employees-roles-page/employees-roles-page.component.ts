@@ -36,6 +36,7 @@ import {
 } from '../../components/role-access-dialog/role-access-dialog.component';
 import {personInitials} from '../../../../shared/utils/text.utils';
 import {EmptyStateComponent} from '../../../../shared/components/empty-state/empty-state.component';
+import {PersonAvatarDirective} from '../../../../shared/directives/person-avatar.directive';
 
 interface UnitNode {
   roleUnit: EmployeeRoleUnit;
@@ -58,7 +59,7 @@ const DIALOG_OPTIONS = {
 @Component({
   selector: 'app-employees-roles-page',
   standalone: true,
-  imports: [EmptyStateComponent, FormsModule, RouterLink, Button, Select, IconField, InputIcon, InputText, Avatar, Tag, Tooltip, Skeleton],
+  imports: [EmptyStateComponent, FormsModule, RouterLink, Button, Select, IconField, InputIcon, InputText, Avatar, Tag, Tooltip, Skeleton, PersonAvatarDirective],
   providers: [DialogService],
   templateUrl: './employees-roles-page.component.html',
   styleUrl: './employees-roles-page.component.scss'

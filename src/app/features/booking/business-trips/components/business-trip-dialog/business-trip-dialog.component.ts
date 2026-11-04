@@ -28,6 +28,7 @@ import {
   isTripClosed,
   toTripApiDate
 } from '../../constants/business-trip-labels';
+import {PersonAvatarDirective} from '../../../../../shared/directives/person-avatar.directive';
 
 export interface BusinessTripDialogData {
   trip?: BusinessTrip;
@@ -38,7 +39,8 @@ export interface BusinessTripDialogData {
   standalone: true,
   imports: [
     DatePipe, FormsModule, ReactiveFormsModule, PrimeTemplate,
-    AutoComplete, DatePicker, InputNumber, Textarea, Button, Message, Tag, Avatar
+    AutoComplete, DatePicker, InputNumber, Textarea, Button, Message, Tag, Avatar,
+    PersonAvatarDirective
   ],
   templateUrl: './business-trip-dialog.component.html',
   styleUrl: './business-trip-dialog.component.scss'

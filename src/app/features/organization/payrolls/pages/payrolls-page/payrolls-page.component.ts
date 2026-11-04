@@ -30,6 +30,7 @@ import {Payroll} from '../../models/payroll.model';
 import {PayrollStatus} from '../../enums/payroll-status.enum';
 import {personInitials} from '../../../../../shared/utils/text.utils';
 import {EmptyStateComponent} from '../../../../../shared/components/empty-state/empty-state.component';
+import {PersonAvatarDirective} from '../../../../../shared/directives/person-avatar.directive';
 
 type StatusFilter = 'all' | PayrollStatus;
 
@@ -38,7 +39,8 @@ type StatusFilter = 'all' | PayrollStatus;
   standalone: true,
   imports: [EmptyStateComponent, 
     DatePipe, DecimalPipe, FormsModule, ReactiveFormsModule, PrimeTemplate, TableModule, Button, Select, SelectButton,
-    DatePicker, FloatLabel, Tag, Avatar, Tooltip, ProgressBar, Drawer, Skeleton
+    DatePicker, FloatLabel, Tag, Avatar, Tooltip, ProgressBar, Drawer, Skeleton,
+    PersonAvatarDirective
   ],
   templateUrl: './payrolls-page.component.html',
   styleUrl: './payrolls-page.component.scss'

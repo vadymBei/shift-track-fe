@@ -97,7 +97,7 @@
             <div class="participants">
               @for (employee of participants(); track employee.id) {
                 <div class="participant">
-                  <p-avatar [label]="initials(employee)" shape="circle" styleClass="app-avatar participant-avatar"/>
+                  <p-avatar [appPersonAvatar]="employee.id" [initials]="initials(employee)" shape="circle" styleClass="app-avatar participant-avatar"/>
                   <div class="participant-text">
                     <span class="participant-name">{{ employee.fullName }}</span>
                     <span class="participant-position">{{ employee.position?.name || 'Співробітник' }}</span>
@@ -128,7 +128,7 @@
               [fluid]="true">
               <ng-template pTemplate="item" let-employee>
                 <div class="suggestion">
-                  <p-avatar [label]="initials(employee)" shape="circle" styleClass="app-avatar suggestion-avatar"/>
+                  <p-avatar [appPersonAvatar]="employee.id" [initials]="initials(employee)" shape="circle" styleClass="app-avatar suggestion-avatar"/>
                   <div class="suggestion-text">
                     <span>{{ employee.fullName }}</span>
                     <small>{{ employee.position?.name }}</small>

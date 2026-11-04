@@ -4,7 +4,7 @@
       @if (isBulk) {
         <div class="avatar-stack">
           @for (e of employees.slice(0, 3); track e.id) {
-            <p-avatar [label]="initials(e)" shape="circle" styleClass="app-avatar stack-avatar"/>
+            <p-avatar [appPersonAvatar]="e.id" [initials]="initials(e)" shape="circle" styleClass="app-avatar stack-avatar"/>
           }
           @if (employees.length > 3) {
             <p-avatar [label]="'+' + (employees.length - 3)" shape="circle" styleClass="app-avatar stack-avatar more"/>
@@ -15,7 +15,7 @@
           <p class="form-dialog-subtitle">{{ subtitle() }}</p>
         </div>
       } @else {
-        <p-avatar [label]="initials(employee)" shape="circle" size="large" styleClass="app-avatar dialog-avatar"/>
+        <p-avatar [appPersonAvatar]="employee.id" [initials]="initials(employee)" shape="circle" size="large" styleClass="app-avatar dialog-avatar"/>
         <div>
           <h2 class="form-dialog-title">{{ employee.fullName }}</h2>
           <p class="form-dialog-subtitle">{{ subtitle() }}</p>

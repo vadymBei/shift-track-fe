@@ -60,6 +60,18 @@
   }
 }
 
+.photo-remove {
+  right: auto;
+  left: 2px;
+  background: var(--p-surface-500);
+  color: #ffffff;
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+}
+
 #photoInput:focus-visible + .photo-button,
 .photo-button:focus-visible {
   outline: 2px solid var(--p-primary-color);

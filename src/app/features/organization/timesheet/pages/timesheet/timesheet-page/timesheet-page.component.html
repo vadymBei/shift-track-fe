@@ -154,7 +154,7 @@
                       <div class="employee">
                         <p-checkbox [binary]="true" [ngModel]="isSelected(row)" (onChange)="toggleRow(row)"
                                     [ariaLabel]="'Обрати ' + row.employee.fullName"/>
-                        <p-avatar [label]="row.initials" shape="circle" styleClass="app-avatar employee-avatar"/>
+                        <p-avatar [appPersonAvatar]="row.employee.id" [initials]="row.initials" shape="circle" styleClass="app-avatar employee-avatar"/>
                         <div class="employee-text">
                           <span class="employee-name">{{ row.employee.fullName }}</span>
                           @if (row.employee.position?.name) {

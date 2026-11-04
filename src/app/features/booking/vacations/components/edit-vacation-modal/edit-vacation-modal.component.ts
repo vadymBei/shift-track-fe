@@ -30,6 +30,7 @@ import {
 } from '../../constants/vacation-labels';
 import {personInitials} from '../../../../../shared/utils/text.utils';
 import {Tooltip} from 'primeng/tooltip';
+import {PersonAvatarDirective} from '../../../../../shared/directives/person-avatar.directive';
 
 export interface EditVacationDialogData {
   vacation: Vacation;
@@ -47,7 +48,7 @@ interface ApprovalStep {
 @Component({
   selector: 'app-edit-vacation-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, DatePipe, Select, DatePicker, Textarea, Button, Message, Tag, Avatar, Timeline, PrimeTemplate, Tooltip],
+  imports: [ReactiveFormsModule, DatePipe, Select, DatePicker, Textarea, Button, Message, Tag, Avatar, Timeline, PrimeTemplate, Tooltip, PersonAvatarDirective],
   templateUrl: './edit-vacation-modal.component.html',
   styleUrl: './edit-vacation-modal.component.scss'
 })

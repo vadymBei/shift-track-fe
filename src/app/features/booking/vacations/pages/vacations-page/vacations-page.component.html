@@ -155,7 +155,7 @@
               }
               <td>
                 <div class="employee">
-                  <p-avatar [label]="initials(vacation)" shape="circle" styleClass="app-avatar employee-avatar"/>
+                  <p-avatar [appPersonAvatar]="vacation.employee.id" [initials]="initials(vacation)" shape="circle" styleClass="app-avatar employee-avatar"/>
                   <div class="employee-text">
                     <span class="employee-name">{{ vacation.employee.fullName }}</span>
                     <span class="employee-position">{{ vacation.employee.position?.name }}</span>

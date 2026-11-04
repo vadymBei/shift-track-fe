@@ -3,11 +3,7 @@
     <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" ariaLabel="Закрити"
               styleClass="close-button" (onClick)="close.emit()"/>
 
-    @if (photoUrl()) {
-      <p-avatar [image]="photoUrl()!" shape="circle" styleClass="app-avatar contact-avatar"/>
-    } @else {
-      <p-avatar [label]="initials()" shape="circle" styleClass="app-avatar contact-avatar"/>
-    }
+    <p-avatar [appPersonAvatar]="employee().id" [initials]="initials()" shape="circle" styleClass="app-avatar contact-avatar"/>
     <h2 class="contact-name">{{ employee().fullName }}</h2>
     <span class="contact-position">{{ employee().position?.name ?? 'Без посади' }}</span>
 

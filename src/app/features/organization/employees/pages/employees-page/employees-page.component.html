@@ -67,7 +67,7 @@
           <tr>
             <td>
               <div class="employee">
-                <p-avatar [label]="initials(employee)" shape="circle" styleClass="app-avatar employee-avatar"/>
+                <p-avatar [appPersonAvatar]="employee.id" [initials]="initials(employee)" shape="circle" styleClass="app-avatar employee-avatar"/>
                 <div class="employee-text">
                   <span class="employee-name">{{ employee.fullName }}</span>
                   <span class="employee-email">{{ employee.email }}</span>

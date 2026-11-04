@@ -26,6 +26,7 @@ import {personInitials, pluralUk} from '../../../../shared/utils/text.utils';
 import {ShiftChipComponent} from '../../../organization/timesheet/components/shift-chip/shift-chip.component';
 import {VacationService} from '../../../booking/vacations/services/vacation.service';
 import {VacationBalance} from '../../../booking/vacations/models/vacation-balance.model';
+import {PersonAvatarDirective} from '../../../../shared/directives/person-avatar.directive';
 
 type ShiftState =
   | {kind: 'none'}
@@ -44,7 +45,7 @@ function shiftWindow(day: Date, startTime: string, endTime: string): {start: Dat
 @Component({
   selector: 'app-home-page',
   standalone: true,
-  imports: [NgTemplateOutlet, ShiftChipComponent, DecimalPipe, DatePipe, RouterLink, Button, Tag, Avatar, ProgressBar, Skeleton, Tooltip],
+  imports: [NgTemplateOutlet, ShiftChipComponent, DecimalPipe, DatePipe, RouterLink, Button, Tag, Avatar, ProgressBar, Skeleton, Tooltip, PersonAvatarDirective],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.scss'
 })

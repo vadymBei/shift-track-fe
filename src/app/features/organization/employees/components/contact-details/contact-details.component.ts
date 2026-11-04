@@ -1,7 +1,6 @@
-import {Component, computed, effect, inject, input, OnDestroy, output, signal} from '@angular/core';
+import {Component, computed, inject, input, output} from '@angular/core';
 import {DatePipe} from '@angular/common';
 import {RouterLink} from '@angular/router';
-import {Subscription} from 'rxjs';
 import {Avatar} from 'primeng/avatar';
 import {Button} from 'primeng/button';
 import {Tooltip} from 'primeng/tooltip';
@@ -11,23 +10,21 @@ import {NotificationService} from '../../../../../shared/services/notification.s
 import {Employee} from '../../models/employee.model';
 import {personInitials} from '../../../../../shared/utils/text.utils';
 import {formatDate} from '../../../../../shared/utils/date.utils';
+import {PersonAvatarDirective} from '../../../../../shared/directives/person-avatar.directive';
 
 @Component({
   selector: 'app-contact-details',
   standalone: true,
-  imports: [DatePipe, RouterLink, Avatar, Button, Tooltip, Divider],
+  imports: [DatePipe, RouterLink, Avatar, Button, Tooltip, Divider, PersonAvatarDirective],
   templateUrl: './contact-details.component.html',
   styleUrl: './contact-details.component.scss'
 })
-export class ContactDetailsComponent implements OnDestroy {
+export class ContactDetailsComponent {
   private readonly accountService = inject(AccountService);
   private readonly notifications = inject(NotificationService);
 
   employee = input.required<Employee>();
   close = output<void>();
-
-  readonly photoUrl = signal<string | null>(null);
-  private photoSub?: Subscription;
 
   readonly initials = computed(() => personInitials(this.employee()));
   readonly currentEmployeeId = computed(() => this.accountService.currentUser()?.employee?.id ?? null);
@@ -42,39 +39,10 @@ export class ContactDetailsComponent implements OnDestroy {
     ];
   });
 
-  constructor() {
-    effect(() => {
-      const id = this.employee().id;
-      this.photoSub?.unsubscribe();
-      this.revokePhoto();
-      this.photoSub = this.accountService.getProfilePhoto(id).subscribe({
-        next: response => {
-          if (response.body && response.body.size > 0) {
-            this.photoUrl.set(URL.createObjectURL(response.body));
-          }
-        },
-        error: () => this.photoUrl.set(null)
-      });
-    });
-  }
-
   copy(value: string | undefined, what: string): void {
     if (!value) return;
     navigator.clipboard?.writeText(value)
       .then(() => this.notifications.success(`${what} скопійовано`))
       .catch(() => this.notifications.warn('Не вдалося скопіювати'));
-  }
-
-  private revokePhoto(): void {
-    const url = this.photoUrl();
-    if (url) {
-      URL.revokeObjectURL(url);
-      this.photoUrl.set(null);
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.photoSub?.unsubscribe();
-    this.revokePhoto();
   }
 }

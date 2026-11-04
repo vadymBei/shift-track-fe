@@ -40,6 +40,7 @@ import {
 } from '../../../components/timesheet/copy-schedule-dialog/copy-schedule-dialog.component';
 import {personInitials} from '../../../../../../shared/utils/text.utils';
 import {EmptyStateComponent} from '../../../../../../shared/components/empty-state/empty-state.component';
+import {PersonAvatarDirective} from '../../../../../../shared/directives/person-avatar.directive';
 
 type DisplayMode = 'shifts' | 'hours';
 
@@ -70,7 +71,8 @@ interface DragState {
   standalone: true,
   imports: [EmptyStateComponent, 
     DecimalPipe, FormsModule, ReactiveFormsModule, PrimeTemplate, Button, Select, SelectButton, DatePicker, FloatLabel, IconField,
-    InputIcon, InputText, Avatar, Checkbox, Tooltip, Skeleton
+    InputIcon, InputText, Avatar, Checkbox, Tooltip, Skeleton,
+    PersonAvatarDirective
   ],
   providers: [DialogService],
   templateUrl: './timesheet-page.component.html',

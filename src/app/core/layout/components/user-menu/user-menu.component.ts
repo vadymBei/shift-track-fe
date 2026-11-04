@@ -4,19 +4,18 @@ import {Menu} from 'primeng/menu';
 import {Avatar} from 'primeng/avatar';
 import {Ripple} from 'primeng/ripple';
 import {AccountService} from '../../../account/services/account.service';
-import {CurrentUserPhotoService} from '../../../account/services/current-user-photo.service';
+import {PersonAvatarDirective} from '../../../../shared/directives/person-avatar.directive';
 import {personInitials} from '../../../../shared/utils/text.utils';
 
 @Component({
   selector: 'app-user-menu',
   standalone: true,
-  imports: [Menu, Avatar, Ripple],
+  imports: [Menu, Avatar, Ripple, PersonAvatarDirective],
   templateUrl: './user-menu.component.html',
   styleUrl: './user-menu.component.scss'
 })
 export class UserMenuComponent {
   private accountService = inject(AccountService);
-  readonly photoUrl = inject(CurrentUserPhotoService).photoUrl;
 
   compact = input(false);
 

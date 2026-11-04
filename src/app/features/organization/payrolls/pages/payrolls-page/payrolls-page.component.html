@@ -114,7 +114,7 @@
               </td>
               <td>
                 <div class="employee">
-                  <p-avatar [label]="initials(payroll)" shape="circle" styleClass="app-avatar employee-avatar"/>
+                  <p-avatar [appPersonAvatar]="payroll.employeeId" [initials]="initials(payroll)" shape="circle" styleClass="app-avatar employee-avatar"/>
                   <div class="employee-text">
                     <span class="employee-name">{{ payroll.employee.fullName }}</span>
                     <span class="employee-position">{{ payroll.employee.position?.name }}</span>
@@ -160,7 +160,7 @@
     @if (selected(); as payroll) {
       <div class="details">
         <div class="details-head">
-          <p-avatar [label]="initials(payroll)" shape="circle" size="xlarge" styleClass="app-avatar employee-avatar"/>
+          <p-avatar [appPersonAvatar]="payroll.employeeId" [initials]="initials(payroll)" shape="circle" size="xlarge" styleClass="app-avatar employee-avatar"/>
           <div class="details-name">
             <h2>{{ payroll.employee.fullName }}</h2>
             <span>{{ payroll.employee.position?.name }}</span>

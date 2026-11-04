@@ -22,6 +22,7 @@ import {EmployeeShiftHistoryService} from '../../../services/employee-shift-hist
 import {shortTime, SHIFT_TYPE_META} from '../../../constants/shift-labels';
 import {personInitials} from '../../../../../../shared/utils/text.utils';
 import {ShiftChipComponent} from '../../shift-chip/shift-chip.component';
+import {PersonAvatarDirective} from '../../../../../../shared/directives/person-avatar.directive';
 
 export interface EmployeeShiftDialogData {
   employees: Employee[];
@@ -37,7 +38,7 @@ type Tab = 'assign' | 'history';
 @Component({
   selector: 'app-employee-shift-dialog',
   standalone: true,
-  imports: [ShiftChipComponent, DatePipe, FormsModule, Button, DatePicker, SelectButton, Avatar, Skeleton],
+  imports: [ShiftChipComponent, DatePipe, FormsModule, Button, DatePicker, SelectButton, Avatar, Skeleton, PersonAvatarDirective],
   templateUrl: './employee-shift-dialog.component.html',
   styleUrl: './employee-shift-dialog.component.scss'
 })
